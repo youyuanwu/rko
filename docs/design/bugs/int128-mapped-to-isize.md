@@ -1,4 +1,4 @@
-# Bug: `__int128` types emitted as `isize`
+# ✅ Fixed (bnd-winmd 0.0.3): `__int128` types emitted as `isize`
 
 ## Summary
 
@@ -49,3 +49,9 @@ In `extract.rs`, add `TypeKind::Int128 => CType::I128` and
 128-bit variants, add them to `model.rs` and map to
 `ELEMENT_TYPE_I8`/`ELEMENT_TYPE_U8` with a 16-byte size in the winmd
 emission (or use a `[u8; 16]` struct workaround).
+
+## Resolution
+
+Fixed in bnd-winmd 0.0.3. The `__s128`, `__u128`, `s128`, and `u128`
+typedefs are now suppressed entirely rather than emitting incorrect
+`isize` mappings.

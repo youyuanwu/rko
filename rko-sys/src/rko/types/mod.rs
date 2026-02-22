@@ -71,13 +71,11 @@ pub type __le16 = __u16;
 pub type __le32 = __u32;
 pub type __le64 = __u64;
 pub type __poll_t = u32;
-pub type __s128 = isize;
 pub type __s16 = i16;
 pub type __s32 = i32;
 pub type __s64 = i64;
 pub type __s8 = i8;
 pub type __sum16 = __u16;
-pub type __u128 = isize;
 pub type __u16 = u16;
 pub type __u32 = u32;
 pub type __u64 = u64;
@@ -203,7 +201,6 @@ impl Default for rcuwait {
     }
 }
 pub type resource_size_t = phys_addr_t;
-pub type s128 = __s128;
 pub type sector_t = u64;
 pub type size_t = __kernel_size_t;
 pub type slab_flags_t = u32;
@@ -225,7 +222,6 @@ pub type swap_r_func_t = Option<
     ),
 >;
 pub type timer_t = __kernel_timer_t;
-pub type u128 = __u128;
 pub type u_char = u8;
 pub type u_int = u32;
 pub type u_int16_t = u16;

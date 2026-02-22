@@ -1,4 +1,4 @@
-# Bug: `typedef _Bool bool` produces recursive type alias
+# ✅ Fixed (bnd-winmd 0.0.3): `typedef _Bool bool` produces recursive type alias
 
 ## Summary
 
@@ -58,3 +58,8 @@ collides with its underlying Rust primitive type name (`bool`, `i8`,
 
 Option 1 is simpler and matches how the kernel's own bindgen handles it
 (bindgen does not emit `type bool = bool;`).
+
+## Resolution
+
+Fixed in bnd-winmd 0.0.3. The typedef is now suppressed entirely —
+no `pub type bool = ...` is emitted. No manual patching required.

@@ -19,15 +19,21 @@ CARGO ?= cargo
 
 KMAKE = $(MAKE) -C $(KSRC) O=$(KOUT) M=$(CURDIR) MO=$(MOUT) LLVM=1
 
-.PHONY: all clean cargo
+# Rust source files that the static library depends on
+RUST_SRCS := $(CURDIR)/hello.rs $(CURDIR)/Cargo.toml $(CURDIR)/cargo-kernel.toml \
+	$(shell find $(CURDIR)/../../rko-sys/src -name '*.rs')
 
-all: cargo
+.PHONY: all clean
+
+all: $(MOUT)/hello_rust.o
 	$(KMAKE) modules
 
-cargo:
-	RUSTC_BOOTSTRAP=1 $(CARGO) build --release -p hello --manifest-path $(CURDIR)/Cargo.toml
+$(MOUT)/libhello.a: $(RUST_SRCS)
 	@mkdir -p $(MOUT)
-	$(LD) -r --whole-archive $(CURDIR)/target/target/release/libhello.a -o $(MOUT)/hello_rust.o
+	RUSTC_BOOTSTRAP=1 $(CARGO) --config $(CURDIR)/cargo-kernel.toml -Z unstable-options build --release -p hello --manifest-path $(CURDIR)/Cargo.toml --artifact-dir $(MOUT)
+
+$(MOUT)/hello_rust.o: $(MOUT)/libhello.a
+	$(LD) -r --whole-archive $< -o $@
 
 clean:
 	$(KMAKE) clean

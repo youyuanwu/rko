@@ -23,3 +23,11 @@ endif()
 if(NOT EXISTS ${KDIR_ROOT}/Makefile)
   message(FATAL_ERROR "Kernel source directory not found: ${KDIR_ROOT}")
 endif()
+
+# Build hello.ko sample kernel module
+add_custom_target(hello_ko
+  COMMAND RUSTC_BOOTSTRAP=1 $(MAKE) KSRC=${KDIR_ROOT} KOUT=${KBIN_ROOT}
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/samples/hello
+  COMMENT "Building hello.ko kernel module"
+  USES_TERMINAL
+)
