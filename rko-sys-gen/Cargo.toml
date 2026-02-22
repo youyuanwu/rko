@@ -1,0 +1,11 @@
+[package]
+name = "rko-sys-gen"
+version = "0.1.0"
+edition = "2024"
+description = "Generator that produces the rko-sys crate from Linux kernel headers"
+publish = false
+
+[dependencies]
+bnd-winmd = "0.0.2"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+windows-bindgen = "0.66"

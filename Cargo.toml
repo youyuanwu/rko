@@ -1,0 +1,4 @@
+[workspace]
+resolver = "2"
+
+members = ["rko-sys", "rko-sys-gen", "samples/hello"]

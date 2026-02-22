@@ -1,0 +1,14 @@
+[package]
+name = "rko-sys"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+windows-link = "0.2"
+
+[features]
+default = ["types", "err"]
+Foundation = []
+# generated features
+types = ["Foundation"]
+err = ["Foundation"]

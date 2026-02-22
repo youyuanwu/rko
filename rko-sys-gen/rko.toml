@@ -1,0 +1,73 @@
+# bnd-winmd configuration for Linux kernel internal headers.
+#
+# Include paths follow the kernel Makefile LINUXINCLUDE + USERINCLUDE order.
+# Paths are relative to this file's directory (rko-sys-gen/).
+include_paths = [
+    "../linux/arch/x86/include",
+    "../linux_bin/arch/x86/include/generated",
+    "../linux/include",
+    "../linux_bin/include",
+    "../linux/arch/x86/include/uapi",
+    "../linux_bin/arch/x86/include/generated/uapi",
+    "../linux/include/uapi",
+    "../linux_bin/include/generated/uapi",
+]
+
+[output]
+name = "rko"
+file = "rko-sys.winmd"
+
+# Partition 1: kernel fundamental types — __u8/__u64, size_t, pid_t,
+# atomic_t, list_head, etc.
+[[partition]]
+namespace = "rko.types"
+library = "kernel"
+headers = ["linux/types.h"]
+traverse = [
+    "linux/types.h",
+    "uapi/linux/types.h",
+    "uapi/asm-generic/int-ll64.h",
+    "asm/types.h",
+    "uapi/linux/posix_types.h",
+    "uapi/asm-generic/posix_types.h",
+    "uapi/asm/posix_types_64.h",
+]
+clang_args = [
+    "--target=x86_64-linux-gnu",
+    "-nostdinc",
+    "-D__KERNEL__",
+    "-DMODULE",
+    "-D__BINDGEN__",
+    "-fno-builtin",
+    "-fno-PIE",
+    "-fno-strict-aliasing",
+    "-fno-common",
+    "-fms-extensions",
+    "-std=gnu11",
+]
+
+# Partition 2: kernel errno constants — EPERM..EHWPOISON + ERESTARTSYS etc.
+[[partition]]
+namespace = "rko.err"
+library = "kernel"
+headers = ["linux/errno.h"]
+traverse = [
+    "linux/errno.h",
+    "uapi/linux/errno.h",
+    "uapi/asm/errno.h",
+    "uapi/asm-generic/errno.h",
+    "uapi/asm-generic/errno-base.h",
+]
+clang_args = [
+    "--target=x86_64-linux-gnu",
+    "-nostdinc",
+    "-D__KERNEL__",
+    "-DMODULE",
+    "-D__BINDGEN__",
+    "-fno-builtin",
+    "-fno-PIE",
+    "-fno-strict-aliasing",
+    "-fno-common",
+    "-fms-extensions",
+    "-std=gnu11",
+]
