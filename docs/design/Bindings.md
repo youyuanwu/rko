@@ -33,8 +33,11 @@ rko/
 │   └── rko.toml               # Partition config + kernel clang args
 │
 ├── samples/hello/             # Minimal kernel module sample
-│   ├── Cargo.toml
-│   └── hello.rs
+│   ├── .cargo/config.toml    # Kernel target + rustflags + build-std
+│   ├── Cargo.toml            # staticlib, excluded from workspace
+│   ├── Kbuild                # obj-m := hello.o
+│   ├── Makefile              # cargo + ld --whole-archive + make -C
+│   └── hello.rs              # Module source → hello.ko
 │
 ├── linux/                     # Kernel source tree (symlink)
 └── linux_bin/                 # Kernel build output (symlink)
@@ -76,9 +79,14 @@ See `docs/design/bugs/` for full bug reports.
 # 1. Generate rko-sys source (run once, or after header changes)
 cargo run -p rko-sys-gen
 
-# 2. Build the workspace
+# 2. Build the workspace (host target — rko-sys + rko-sys-gen)
 cargo build
+
+# 3. Build the kernel module (kernel target → hello.ko)
+cd samples/hello && make
 ```
+
+See `docs/design/Kbuild.md` for full Kbuild integration details.
 
 The generated `src/rko/` and `winmd/` are committed so downstream
 consumers do not need the kernel source tree or libclang.

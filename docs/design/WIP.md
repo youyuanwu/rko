@@ -5,8 +5,8 @@ kernel module with `module_init` / `module_exit`.
 
 ## Status: ✅ Complete
 
-All steps done. Workspace builds and passes clippy with zero warnings.
-See `samples/hello/hello.rs` for a working minimal module.
+All steps done. `hello.ko` builds end-to-end (cargo + Kbuild).
+See `samples/hello/` for the full working example.
 
 ## What Was Built
 
@@ -17,7 +17,11 @@ See `samples/hello/hello.rs` for a working minimal module.
 | Types | `rko-sys/src/rko/types/mod.rs` | Generated: 119 typedefs, 10 structs, 3 constants |
 | Errno | `rko-sys/src/rko/err/mod.rs` | Generated: 150 constants (EPERM..ENOGRACE) |
 | Printk | `rko-sys/src/printk.rs` | Hand-written: `_printk` extern + KERN_* constants |
-| Module macros | `rko-sys/src/module.rs` | Hand-written: `module_license!`, `module_author!`, `module_description!` |
+| Module macros | `rko-sys/src/module.rs` | Hand-written: `global_asm!`-based modinfo macros |
+| Kbuild config | `samples/hello/Kbuild` | Module object declaration |
+| Build wrapper | `samples/hello/Makefile` | cargo + `ld --whole-archive` + `make -C` |
+| Cargo config | `samples/hello/.cargo/config.toml` | Kernel target + rustflags + `build-std` |
+| Sample module | `samples/hello/hello.rs` | init/exit + printk, builds to `hello.ko` |
 | Sample | `samples/hello/hello.rs` | Minimal init/exit module, `#![no_std]`, clippy-clean |
 
 ## Design Decisions
@@ -67,7 +71,6 @@ See `docs/design/bugs/` for details:
 
 ## Next Steps
 
-- Fix autoconf.h injection in generator for correct `CONFIG_*`-dependent types
 - Add `rko.module` partition (`struct module`) for device/filesystem registration
 - Add `slab`, `fs` partitions for richer kernel API coverage
 - Kbuild integration to compile `samples/hello` into an actual `.ko`

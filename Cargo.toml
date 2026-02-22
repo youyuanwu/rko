@@ -1,4 +1,5 @@
 [workspace]
 resolver = "2"
 
-members = ["rko-sys", "rko-sys-gen", "samples/hello"]
+members = ["rko-sys", "rko-sys-gen"]
+exclude = ["samples/hello"]

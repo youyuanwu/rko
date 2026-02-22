@@ -1,3 +1,4 @@
 /linux
 /linux_bin
-/target
+target
+build

@@ -13,10 +13,12 @@
 /// ```
 #[macro_export]
 macro_rules! module_license {
-    ($license:literal) => {
-        #[cfg_attr(not(target_os = "macos"), unsafe(link_section = ".modinfo"))]
-        #[used]
-        static _MODULE_LICENSE: &[u8] = concat!("license=", $license, "\0").as_bytes();
+    ($val:literal) => {
+        ::core::arch::global_asm!(
+            ".section .modinfo,\"a\"",
+            concat!(".ascii \"license=", $val, "\\0\""),
+            ".previous",
+        );
     };
 }
 
@@ -29,10 +31,12 @@ macro_rules! module_license {
 /// ```
 #[macro_export]
 macro_rules! module_author {
-    ($author:literal) => {
-        #[cfg_attr(not(target_os = "macos"), unsafe(link_section = ".modinfo"))]
-        #[used]
-        static _MODULE_AUTHOR: &[u8] = concat!("author=", $author, "\0").as_bytes();
+    ($val:literal) => {
+        ::core::arch::global_asm!(
+            ".section .modinfo,\"a\"",
+            concat!(".ascii \"author=", $val, "\\0\""),
+            ".previous",
+        );
     };
 }
 
@@ -45,9 +49,11 @@ macro_rules! module_author {
 /// ```
 #[macro_export]
 macro_rules! module_description {
-    ($desc:literal) => {
-        #[cfg_attr(not(target_os = "macos"), unsafe(link_section = ".modinfo"))]
-        #[used]
-        static _MODULE_DESCRIPTION: &[u8] = concat!("description=", $desc, "\0").as_bytes();
+    ($val:literal) => {
+        ::core::arch::global_asm!(
+            ".section .modinfo,\"a\"",
+            concat!(".ascii \"description=", $val, "\\0\""),
+            ".previous",
+        );
     };
 }

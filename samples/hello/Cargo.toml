@@ -7,6 +7,7 @@ publish = false
 [lib]
 name = "hello"
 path = "hello.rs"
+crate-type = ["staticlib"]
 test = false
 bench = false
 
