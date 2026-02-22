@@ -64,7 +64,7 @@ no effect. Kernel symbol resolution is handled by the module loader at
 | **Variadic functions** (`printk`, …) | Auto-skipped by bnd-winmd | Hand-written extern in `printk.rs` |
 | **Static inline functions** | Not visible to libclang | Wrap in C helpers compiled into a static lib |
 | **Complex macros** (`IS_ERR`, `container_of`, …) | Invisible to libclang | Re-implement in Rust or wrap in C helpers |
-| **`-include autoconf.h` missing** | `phys_addr_t`/`dma_addr_t` wrong size | Must inject at runtime — see `bugs/phys-addr-wrong-size.md` |
+| **`-include autoconf.h`** | ~~`phys_addr_t`/`dma_addr_t` wrong size~~ | ✅ Fixed — added to `rko.toml` clang_args |
 | **`typedef _Bool bool`** | Recursive type alias | Manual patch — see `bugs/bool-recursive-type-alias.md` |
 | **Arch-specific** | Currently x86_64 only | Parameterize include paths later |
 

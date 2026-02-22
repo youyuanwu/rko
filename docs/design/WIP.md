@@ -56,12 +56,12 @@ See `docs/design/bugs/` for details:
 | `typedef _Bool bool` → recursive type alias | Build-breaking | bnd-winmd |
 | `__int128` → `isize` (should be `i128`/`u128`) | Low | bnd-winmd |
 | Function pointer struct field → `*mut isize` | Medium | bnd-winmd |
-| `phys_addr_t`/`dma_addr_t` → `u32` (missing autoconf.h) | High | rko-sys-gen config |
+| `phys_addr_t`/`dma_addr_t` → `u32` (missing autoconf.h) | ✅ Fixed | rko.toml config |
 
 ## Resolved Questions
 
 1. **`-isystem` clang builtins** — Not needed for types/errno. Resolve at runtime for future partitions.
-2. **`-include autoconf.h`** — **Must fix.** Generator must inject absolute path. See `bugs/phys-addr-wrong-size.md`.
+2. **`-include autoconf.h`** — ✅ Fixed. Added `-include generated/autoconf.h` to `clang_args` in `rko.toml`. Resolves via the `../linux_bin/include` search path.
 3. **`library = "kernel"`** — No effect on current output (zero functions). Will revisit for function-bearing partitions.
 4. **Macro constant extraction** — ✅ Confirmed working. All 150 errno constants extracted correctly.
 

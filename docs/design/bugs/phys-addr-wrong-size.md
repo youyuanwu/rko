@@ -51,23 +51,14 @@ branch.
 High — using `u32` for DMA/physical addresses on a 64-bit kernel is
 silently wrong and would cause truncation bugs at runtime.
 
-## Fix
+## Status: ✅ Fixed
 
-This is a **config issue**, not a bnd-winmd bug. The partition's
-`clang_args` must include:
+Added `-include generated/autoconf.h` to `clang_args` in both partitions
+of `rko-sys-gen/rko.toml`. Since `../linux_bin/include` is already in
+`include_paths`, clang's `-include` resolves through the search path.
 
-```toml
-clang_args = [
-    ...,
-    "-include", "<path-to-linux_bin>/include/generated/autoconf.h",
-]
+Re-generated output now correctly produces:
+```rust
+pub type dma_addr_t = u64;
+pub type phys_addr_t = u64;
 ```
-
-This requires either:
-1. Absolute paths in `clang_args` (resolved by the generator at runtime), or
-2. A new bnd-winmd feature to support path resolution in `clang_args`
-   relative to `include_paths`.
-
-The generator (`rko-sys-gen/src/lib.rs`) should resolve the autoconf.h
-path before invoking `bnd_winmd::run`, or the TOML should use a path
-relative to one of the `include_paths` entries.

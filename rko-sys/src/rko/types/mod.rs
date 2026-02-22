@@ -83,13 +83,17 @@ pub type __u32 = u32;
 pub type __u64 = u64;
 pub type __u8 = u8;
 pub type __wsum = __u32;
+#[repr(C, packed(8))]
+#[derive(Clone, Copy, Default)]
+pub struct atomic64_t {
+    pub counter: i64,
+}
 #[repr(C, packed(4))]
 #[derive(Clone, Copy, Default)]
 pub struct atomic_t {
     pub counter: i32,
 }
 pub type blkcnt_t = u64;
-// `typedef _Bool bool` — maps directly to Rust's `bool` primitive.
 pub type caddr_t = __kernel_caddr_t;
 pub type call_rcu_func_t =
     Option<unsafe extern "system" fn(param0: *const callback_head, param1: rcu_callback_t)>;
@@ -121,7 +125,7 @@ pub type cmp_r_func_t = Option<
 >;
 pub type daddr_t = __kernel_daddr_t;
 pub type dev_t = __kernel_dev_t;
-pub type dma_addr_t = u32;
+pub type dma_addr_t = u64;
 #[repr(C)]
 #[derive(Clone, Copy, Default)]
 pub struct fd_set {
@@ -177,7 +181,9 @@ pub type mode_t = __kernel_mode_t;
 pub type mqd_t = __kernel_mqd_t;
 pub type nlink_t = u32;
 pub type off_t = __kernel_off_t;
-pub type phys_addr_t = u32;
+pub type old_gid_t = __kernel_old_gid_t;
+pub type old_uid_t = __kernel_old_uid_t;
+pub type phys_addr_t = u64;
 pub type pid_t = __kernel_pid_t;
 pub type ptrdiff_t = __kernel_ptrdiff_t;
 pub type rcu_callback_t = Option<unsafe extern "system" fn(param0: *const callback_head)>;
