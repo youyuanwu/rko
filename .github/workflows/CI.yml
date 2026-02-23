@@ -37,7 +37,7 @@ jobs:
     - name: Install LLVM toolchain
       run: |
         sudo apt-get update
-        sudo apt-get install -y clang llvm lld libelf-dev libssl-dev libclang-dev
+        sudo apt-get install -y clang llvm lld libelf-dev libssl-dev libclang-dev cpio busybox-static qemu-system-x86
 
     - name: Clone linux to /linux dir with commit
       run: |
@@ -46,7 +46,7 @@ jobs:
         TAG: v6.19
 
     - name: Configure cmake
-      run: cmake -S . -B build
+      run: cmake -S . -B build -DENABLE_KVM=OFF
 
     - name: configure linux
       run: cmake --build build --target configure_linux --verbose
@@ -70,3 +70,6 @@ jobs:
 
     - name: Build all kmods
       run: cmake --build build --target all
+
+    - name: Run QEMU tests
+      run: ctest --test-dir build --verbose

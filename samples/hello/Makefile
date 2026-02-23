@@ -11,11 +11,13 @@
 #   KSRC  — kernel source directory   (default: ../../linux)
 #   KOUT  — kernel build output       (default: ../../linux_bin)
 #   MOUT  — module build output       (default: ./build)
+#   KVM   — enable KVM acceleration   (default: 1, set 0 to disable)
 
 KSRC ?= $(CURDIR)/../../linux
 KOUT ?= $(CURDIR)/../../linux_bin
 MOUT ?= $(CURDIR)/build
 CARGO ?= cargo
+KVM ?= 1
 
 KMAKE = $(MAKE) -C $(KSRC) O=$(KOUT) M=$(CURDIR) MO=$(MOUT) LLVM=1
 
@@ -23,10 +25,19 @@ KMAKE = $(MAKE) -C $(KSRC) O=$(KOUT) M=$(CURDIR) MO=$(MOUT) LLVM=1
 RUST_SRCS := $(CURDIR)/hello.rs $(CURDIR)/Cargo.toml $(CURDIR)/cargo-kernel.toml \
 	$(shell find $(CURDIR)/../../rko-core/src $(CURDIR)/../../rko-sys/src -name '*.rs')
 
-.PHONY: all clean
+.PHONY: all clean test
 
 all: $(MOUT)/hello_rust.o
 	$(KMAKE) modules
+
+INITRAMFS = $(MOUT)/initramfs.cpio.gz
+SCRIPTS = $(CURDIR)/../../scripts
+
+test: all $(INITRAMFS)
+	$(SCRIPTS)/run-qemu-test.sh $(KOUT)/arch/x86/boot/bzImage $(INITRAMFS) $(MOUT)/test.log $(KVM)
+
+$(INITRAMFS): $(MOUT)/hello.ko $(SCRIPTS)/init.sh $(SCRIPTS)/make-initramfs.sh
+	$(SCRIPTS)/make-initramfs.sh $(MOUT)/hello.ko $@
 
 $(MOUT)/libhello.a: $(RUST_SRCS)
 	@mkdir -p $(MOUT)

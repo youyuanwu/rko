@@ -55,3 +55,25 @@ add_custom_target(hello_ko_clean
   COMMENT "Cleaning hello.ko build artifacts"
   USES_TERMINAL
 )
+
+# QEMU tests
+option(ENABLE_KVM "Enable KVM acceleration for QEMU tests" ON)
+if(ENABLE_KVM)
+  set(KVM_FLAG "KVM=1")
+else()
+  set(KVM_FLAG "KVM=0")
+endif()
+
+enable_testing()
+
+add_custom_target(hello_ko_test
+  COMMAND RUSTC_BOOTSTRAP=1 $(MAKE) KSRC=${KDIR_ROOT} KOUT=${KBIN_ROOT} ${KVM_FLAG} test
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/samples/hello
+  COMMENT "Testing hello.ko in QEMU"
+  USES_TERMINAL
+)
+
+add_test(
+  NAME hello_ko
+  COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target hello_ko_test
+)

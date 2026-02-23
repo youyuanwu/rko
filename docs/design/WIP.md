@@ -6,6 +6,7 @@ kernel module with `module_init` / `module_exit`.
 ## Status: ✅ Complete
 
 All steps done. `hello.ko` builds end-to-end (cargo + Kbuild).
+Automated QEMU testing via `make test` / `ctest`.
 See `samples/hello/` for the full working example.
 
 ## What Was Built
@@ -16,13 +17,21 @@ See `samples/hello/` for the full working example.
 | Partition config | `rko-sys-gen/rko.toml` | 2 partitions, kernel include paths, clang args |
 | Types | `rko-sys/src/rko/types/mod.rs` | Generated: 119 typedefs, 10 structs, 3 constants |
 | Errno | `rko-sys/src/rko/err/mod.rs` | Generated: 150 constants (EPERM..ENOGRACE) |
-| Printk | `rko-sys/src/printk.rs` | Hand-written: `_printk` extern + KERN_* constants |
-| Module macros | `rko-sys/src/module.rs` | Hand-written: `global_asm!`-based modinfo macros |
+| Printk | `rko-core/src/printk.rs` | `_printk` extern, `KERN_*`, `pr_info!` macro family, `RawFormatter`, `rust_fmt_argument` |
+| Module macros | `rko-core/src/module.rs` | `global_asm!`-based modinfo macros |
 | Kbuild config | `samples/hello/Kbuild` | Module object declaration |
-| Build wrapper | `samples/hello/Makefile` | cargo + `ld --whole-archive` + `make -C` |
-| Cargo config | `samples/hello/.cargo/config.toml` | Kernel target + rustflags + `build-std` |
-| Sample module | `samples/hello/hello.rs` | init/exit + printk, builds to `hello.ko` |
-| Sample | `samples/hello/hello.rs` | Minimal init/exit module, `#![no_std]`, clippy-clean |
+| Build wrapper | `samples/hello/Makefile` | cargo + `ld --whole-archive` + `make -C` + `test` target |
+| Cargo config | `samples/hello/cargo-kernel.toml` | Kernel rustflags + `build-std` (passed via `--config`) |
+| Sample module | `samples/hello/hello.rs` | init/exit + `pr_info!`, builds to `hello.ko` |
+| Test scripts | `scripts/init.sh`, `make-initramfs.sh`, `run-qemu-test.sh` | QEMU-based automated testing |
+
+## Crate Structure
+
+| Crate | Purpose |
+|---|---|
+| `rko-sys` | Generated FFI bindings (types, errno) — `#![no_std]` |
+| `rko-sys-gen` | Generator crate (bnd-winmd + windows-bindgen) |
+| `rko-core` | Hand-written wrappers (printk, module macros) — `#![no_std]`, depends on `rko-sys` |
 
 ## Design Decisions
 
@@ -31,10 +40,10 @@ See `samples/hello/` for the full working example.
 - **`rko.types`** — `linux/types.h`: kernel typedefs (`__u8`–`__u64`, `pid_t`, `gfp_t`, …), structs (`atomic_t`, `list_head`, `callback_head`, …)
 - **`rko.err`** — `linux/errno.h`: all `E*` constants including kernel-internal (ERESTARTSYS, EPROBE_DEFER, …)
 
-### What is hand-written
+### What is hand-written (rko-core)
 
-- **`printk.rs`** — `_printk` is variadic (auto-skipped by bnd-winmd), `KERN_*` are string-literal macros
-- **`module.rs`** — `.modinfo` section macros are pure Rust `#[unsafe(link_section)]` constructs
+- **`printk.rs`** — `_printk` extern, `KERN_*` constants, `RawFormatter`, `rust_fmt_argument` (`%pA` callback), `call_printk`, `set_log_prefix`, `pr_info!` through `pr_cont!`
+- **`module.rs`** — `.modinfo` section macros using `global_asm!`
 
 ### What the module author provides
 
@@ -42,35 +51,19 @@ See `samples/hello/` for the full working example.
 - Addressability markers — `#[used] #[unsafe(link_section = ".init.data")]` static fn pointers
 - Panic handler — `#[panic_handler]` (upstream kernel uses `pr_emerg!` + `BUG()`)
 
-### Upstream kernel Rust printk reference
-
-See `linux/rust/kernel/print.rs`. The kernel uses a three-layer approach:
-1. bindgen extracts `_printk` (variadic) + `KERN_*` (`&[u8; 3]`)
-2. `kernel::print::call_printk()` builds format strings like `"\x016%s: %pA\0"` using `%pA` + `rust_fmt_argument` callback
-3. `pr_info!` / `pr_err!` macros wrap `call_printk`
-
-For rko-sys, we use raw `_printk` with c-string literals: `printk::_printk(c"\x016hello\n".as_ptr())`
-
 ## Known Bugs
 
 See `docs/design/bugs/` for details:
 
-| Bug | Severity | Fix location |
+| Bug | Severity | Status |
 |---|---|---|
-| `typedef _Bool bool` → recursive type alias | Build-breaking | bnd-winmd |
-| `__int128` → `isize` (should be `i128`/`u128`) | Low | bnd-winmd |
-| Function pointer struct field → `*mut isize` | Medium | bnd-winmd |
-| `phys_addr_t`/`dma_addr_t` → `u32` (missing autoconf.h) | ✅ Fixed | rko.toml config |
-
-## Resolved Questions
-
-1. **`-isystem` clang builtins** — Not needed for types/errno. Resolve at runtime for future partitions.
-2. **`-include autoconf.h`** — ✅ Fixed. Added `-include generated/autoconf.h` to `clang_args` in `rko.toml`. Resolves via the `../linux_bin/include` search path.
-3. **`library = "kernel"`** — No effect on current output (zero functions). Will revisit for function-bearing partitions.
-4. **Macro constant extraction** — ✅ Confirmed working. All 150 errno constants extracted correctly.
+| `typedef _Bool bool` → recursive type alias | Build-breaking | ✅ Fixed (bnd-winmd 0.0.3) |
+| `__int128` → `isize` (should be `i128`/`u128`) | Low | ✅ Fixed (bnd-winmd 0.0.3) |
+| Function pointer struct field → `*mut isize` | Medium | Open — bnd-winmd |
+| `phys_addr_t`/`dma_addr_t` → `u32` (missing autoconf.h) | Medium | ✅ Fixed (rko.toml config) |
 
 ## Next Steps
 
 - Add `rko.module` partition (`struct module`) for device/filesystem registration
 - Add `slab`, `fs` partitions for richer kernel API coverage
-- Kbuild integration to compile `samples/hello` into an actual `.ko`
+- Reduce `.ko` size by using kernel's pre-compiled core instead of build-std

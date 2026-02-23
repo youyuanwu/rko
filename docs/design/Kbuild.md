@@ -59,11 +59,11 @@ use `LLVM=1` to compile `hello.mod.c` with the correct compiler flags.
 
 | File | Description |
 |---|---|
-| `samples/hello/.cargo/config.toml` | Kernel target JSON + rustflags + `build-std = ["core"]` |
+| `samples/hello/cargo-kernel.toml` | Kernel rustflags + `build-std = ["core"]` (passed via `cargo --config`) |
 | `samples/hello/Cargo.toml` | `crate-type = ["staticlib"]`, excluded from workspace |
 | `samples/hello/Kbuild` | `obj-m := hello.o` / `hello-y := hello_rust.o` |
-| `samples/hello/Makefile` | cargo build → `ld -r --whole-archive` → `make -C` wrapper |
-| `samples/hello/hello.rs` | Module source (unchanged from before) |
+| `samples/hello/Makefile` | cargo build → `ld -r --whole-archive` → `make -C` wrapper + `test` target |
+| `samples/hello/hello.rs` | Module source using `pr_info!` from `rko-core` |
 
 ## Rustc Flags
 
@@ -80,12 +80,16 @@ See `samples/hello/.cargo/config.toml`. Flags replicate kernel's
 | `-Ccodegen-units=1` | Consistent optimization |
 | `-Cforce-unwind-tables=n` | No DWARF unwind |
 | `-Ctarget-feature=-sse,...,-avx2` | Kernel code must not use FPU/SIMD |
+| `-Zfunction-return=thunk-extern` | Retpoline mitigation (`CONFIG_MITIGATION_RETHUNK`) |
+| `-Zcf-protection=branch` | IBT/CET mitigation (`CONFIG_X86_KERNEL_IBT`) |
 
 ## Build Workflow
 
 ```sh
 cd samples/hello
 make                # builds libhello.a → hello_rust.o → build/hello.ko
+make test           # builds + runs QEMU test (KVM=1 by default)
+make KVM=0 test     # QEMU test without KVM (for CI)
 make clean          # removes all artifacts
 ```
 
@@ -123,7 +127,7 @@ dmesg | tail
 ### `.modinfo` sections use `global_asm!`
 
 The `module_license!`, `module_author!`, `module_description!` macros
-in `rko-sys/src/module.rs` use `global_asm!` to emit `.modinfo` strings.
+in `rko-core/src/module.rs` use `global_asm!` to emit `.modinfo` strings.
 
 Using `#[link_section = ".modinfo"]` on Rust statics does **not** work —
 LLVM optimizes `[u8; N]` array statics into `.rodata` references with
@@ -143,27 +147,23 @@ directives:
 ### Module excluded from workspace
 
 `samples/hello` is listed in `Cargo.toml` `exclude` — it cannot be a
-workspace member because its `.cargo/config.toml` sets a kernel target
-and kernel-specific rustflags that would break host builds of `rko-sys`
-and `rko-sys-gen`.
+workspace member because its `cargo-kernel.toml` sets a kernel target
+and kernel-specific rustflags that would break host builds of `rko-sys`,
+`rko-sys-gen`, and `rko-core`.
 
 ### objtool warnings
 
-The build produces objtool warnings about `!ENDBR` relocations and
-`MITIGATION_RETHUNK` in bundled `core` code. These are expected — the
-cargo-built `core` is not compiled with the kernel's IBT/retpoline
-mitigation flags. They are warnings, not errors.
+The build produces 2 objtool warnings from `___rust_probestack` (a
+`compiler_builtins` intrinsic). The `-Zfunction-return=thunk-extern` and
+`-Zcf-protection=branch` flags eliminate all warnings from our code and
+`core`; only the dead `probestack` code remains.
 
 ## Open Questions
 
-1. **objtool warnings** — The bundled `core` triggers objtool warnings.
-   To suppress, may need to add retpoline/IBT flags to rustflags, or
-   switch to using kernel's pre-compiled `core`.
-
-2. **`.ko` size** — `hello.ko` is ~866KB due to bundled `core`. Future
+1. **`.ko` size** — `hello.ko` is ~866KB due to bundled `core`. Future
    optimization: use kernel's `libcore.rmeta` via
    `--sysroot=/dev/null -L linux_bin/rust/` (requires exact rustc match).
 
-3. **`windows-link` dependency** — `rko-sys` depends on `windows-link`
+2. **`windows-link` dependency** — `rko-sys` depends on `windows-link`
    which generates `#[link]` attributes. Currently causes no issues but
    is unnecessary for kernel modules.
