@@ -1,12 +1,13 @@
 #!/bin/bash
 # Build a minimal initramfs containing busybox, the test init script, and a .ko module.
 #
-# Usage: make-initramfs.sh <module.ko> <output.cpio.gz>
+# Usage: make-initramfs.sh <module.ko> <output.cpio.gz> [init-script]
 set -euo pipefail
 
 KO_FILE="$1"
 OUTPUT="$2"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+INIT_SCRIPT="${3:-$SCRIPT_DIR/init.sh}"
 
 TMPDIR=$(mktemp -d)
 trap "rm -rf $TMPDIR" EXIT
@@ -22,7 +23,7 @@ for cmd in sh mount insmod rmmod dmesg grep poweroff; do
 done
 
 # Install init script
-cp "$SCRIPT_DIR/init.sh" "$TMPDIR/init"
+cp "$INIT_SCRIPT" "$TMPDIR/init"
 chmod +x "$TMPDIR/init"
 
 # Install kernel module

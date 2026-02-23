@@ -1,0 +1,2 @@
+obj-m := kvec_test.o
+kvec_test-y := kvec_test_rust.o

@@ -1,0 +1,21 @@
+[build]
+
+[unstable]
+build-std = ["core"]
+
+[target.'cfg(target_arch = "x86_64")']
+rustflags = [
+    "-Cpanic=abort",
+    "-Cno-redzone=y",
+    "-Ccode-model=kernel",
+    "-Crelocation-model=static",
+    "-Csymbol-mangling-version=v0",
+    "-Ccodegen-units=1",
+    "-Cforce-unwind-tables=n",
+    "-Cembed-bitcode=n",
+    "-Clto=n",
+    "-Copt-level=2",
+    "-Ctarget-feature=-sse,-sse2,-sse3,-ssse3,-sse4.1,-sse4.2,-avx,-avx2",
+    "-Zfunction-return=thunk-extern",
+    "-Zcf-protection=branch",
+]

@@ -10,5 +10,9 @@
 
 #[cfg(feature = "err")]
 pub mod err;
+#[cfg(feature = "gfp")]
+pub mod gfp;
+#[cfg(feature = "slab")]
+pub mod slab;
 #[cfg(feature = "types")]
 pub mod types;

@@ -11,6 +11,7 @@ include_paths = [
     "../linux_bin/arch/x86/include/generated/uapi",
     "../linux/include/uapi",
     "../linux_bin/include/generated/uapi",
+    "../rko-sys/src",
 ]
 
 [output]
@@ -58,6 +59,52 @@ traverse = [
     "uapi/asm/errno.h",
     "uapi/asm-generic/errno.h",
     "uapi/asm-generic/errno-base.h",
+]
+clang_args = [
+    "--target=x86_64-linux-gnu",
+    "-nostdinc",
+    "-include", "generated/autoconf.h",
+    "-D__KERNEL__",
+    "-DMODULE",
+    "-D__BINDGEN__",
+    "-fno-builtin",
+    "-fno-PIE",
+    "-fno-strict-aliasing",
+    "-fno-common",
+    "-fms-extensions",
+    "-std=gnu11",
+]
+
+# Partition 3: slab allocator — kfree, krealloc_node_align_noprof, etc.
+[[partition]]
+namespace = "rko.slab"
+library = "kernel"
+headers = ["linux/slab.h"]
+traverse = [
+    "linux/slab.h",
+]
+clang_args = [
+    "--target=x86_64-linux-gnu",
+    "-nostdinc",
+    "-include", "generated/autoconf.h",
+    "-D__KERNEL__",
+    "-DMODULE",
+    "-D__BINDGEN__",
+    "-fno-builtin",
+    "-fno-PIE",
+    "-fno-strict-aliasing",
+    "-fno-common",
+    "-fms-extensions",
+    "-std=gnu11",
+]
+
+# Partition 4: GFP allocation flags — GFP_KERNEL, GFP_ATOMIC, __GFP_ZERO, etc.
+[[partition]]
+namespace = "rko.gfp"
+library = "kernel"
+headers = ["linux/gfp_types.h"]
+traverse = [
+    "linux/gfp_types.h",
 ]
 clang_args = [
     "--target=x86_64-linux-gnu",

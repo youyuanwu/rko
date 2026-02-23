@@ -5,33 +5,38 @@ kernel module with `module_init` / `module_exit`.
 
 ## Status: ✅ Complete
 
-All steps done. `hello.ko` builds end-to-end (cargo + Kbuild).
+All steps done. `hello.ko` and `kvec_test.ko` build end-to-end (cargo + Kbuild).
 Automated QEMU testing via `make test` / `ctest`.
-See `samples/hello/` for the full working example.
+See `samples/hello/` and `samples/kvec_test/` for working examples.
 
 ## What Was Built
 
 | Component | File | Description |
 |---|---|---|
 | Generator | `rko-sys-gen/src/lib.rs` | bnd-winmd → winmd → windows-bindgen pipeline |
-| Partition config | `rko-sys-gen/rko.toml` | 2 partitions, kernel include paths, clang args |
+| Partition config | `rko-sys-gen/rko.toml` | 4 partitions (types, err, slab, gfp), kernel include paths, clang args |
 | Types | `rko-sys/src/rko/types/mod.rs` | Generated: 119 typedefs, 10 structs, 3 constants |
 | Errno | `rko-sys/src/rko/err/mod.rs` | Generated: 150 constants (EPERM..ENOGRACE) |
+| Slab | `rko-sys/src/rko/slab/mod.rs` | Generated: 60 slab functions (kfree, krealloc_node_align_noprof, …) + constants/types |
+| GFP bits | `rko-sys/src/rko/gfp/mod.rs` | Generated: 29 `___GFP_*_BIT` bit-position constants |
 | Printk | `rko-core/src/printk.rs` | `_printk` extern, `KERN_*`, `pr_info!` macro family, `RawFormatter`, `rust_fmt_argument` |
 | Module macros | `rko-core/src/module.rs` | `global_asm!`-based modinfo macros |
+| Alloc | `rko-core/src/alloc/` | `Flags` (bitflags), `AllocError`, `Allocator` trait, `Kmalloc`, `Vec<T,A>`, `KVec<T>` |
 | Kbuild config | `samples/hello/Kbuild` | Module object declaration |
 | Build wrapper | `samples/hello/Makefile` | cargo + `ld --whole-archive` + `make -C` + `test` target |
 | Cargo config | `samples/hello/cargo-kernel.toml` | Kernel rustflags + `build-std` (passed via `--config`) |
-| Sample module | `samples/hello/hello.rs` | init/exit + `pr_info!`, builds to `hello.ko` |
-| Test scripts | `scripts/init.sh`, `make-initramfs.sh`, `run-qemu-test.sh` | QEMU-based automated testing |
+| Hello sample | `samples/hello/hello.rs` | init/exit + `pr_info!`, builds to `hello.ko` |
+| KVec test | `samples/kvec_test/` | 7-test KVec exercise module, builds to `kvec_test.ko` |
+| Test scripts | `scripts/init.sh`, `init-kvec-test.sh`, `make-initramfs.sh`, `run-qemu-test.sh` | QEMU-based automated testing |
+| C helpers | `rko-sys/src/helpers.c`, `helpers.h` | Infrastructure for future macro/inline wrappers (currently empty) |
 
 ## Crate Structure
 
 | Crate | Purpose |
 |---|---|
-| `rko-sys` | Generated FFI bindings (types, errno) — `#![no_std]` |
+| `rko-sys` | Generated FFI bindings (types, errno, slab, gfp) — `#![no_std]` |
 | `rko-sys-gen` | Generator crate (bnd-winmd + windows-bindgen) |
-| `rko-core` | Hand-written wrappers (printk, module macros) — `#![no_std]`, depends on `rko-sys` |
+| `rko-core` | Hand-written wrappers (printk, module, alloc) — `#![no_std]`, depends on `rko-sys` + `bitflags` |
 
 ## Design Decisions
 
@@ -39,11 +44,14 @@ See `samples/hello/` for the full working example.
 
 - **`rko.types`** — `linux/types.h`: kernel typedefs (`__u8`–`__u64`, `pid_t`, `gfp_t`, …), structs (`atomic_t`, `list_head`, `callback_head`, …)
 - **`rko.err`** — `linux/errno.h`: all `E*` constants including kernel-internal (ERESTARTSYS, EPROBE_DEFER, …)
+- **`rko.slab`** — `linux/slab.h`: 60 slab allocator functions (`kfree`, `krealloc_node_align_noprof`, `kmalloc_noprof`, …), types (`kmem_cache_args`, …), constants
+- **`rko.gfp`** — `linux/gfp_types.h`: 29 `___GFP_*_BIT` bit-position constants
 
 ### What is hand-written (rko-core)
 
 - **`printk.rs`** — `_printk` extern, `KERN_*` constants, `RawFormatter`, `rust_fmt_argument` (`%pA` callback), `call_printk`, `set_log_prefix`, `pr_info!` through `pr_cont!`
 - **`module.rs`** — `.modinfo` section macros using `global_asm!`
+- **`alloc/`** — `Flags` (bitflags over generated `___GFP_*_BIT`), `AllocError`, `Allocator` trait, `Kmalloc` (calls generated `krealloc_node_align_noprof` + `kfree`), `Vec<T, A>`, `KVec<T>`
 
 ### What the module author provides
 
@@ -65,5 +73,6 @@ See `docs/design/bugs/` for details:
 ## Next Steps
 
 - Add `rko.module` partition (`struct module`) for device/filesystem registration
-- Add `slab`, `fs` partitions for richer kernel API coverage
+- Add `VVec<T>` (vmalloc) and `KVVec<T>` (kvmalloc) allocator variants
+- Add `KBox<T>` — single-element kernel-allocated box
 - Reduce `.ko` size by using kernel's pre-compiled core instead of build-std

@@ -56,6 +56,21 @@ add_custom_target(hello_ko_clean
   USES_TERMINAL
 )
 
+# Build kvec_test.ko sample kernel module
+add_custom_target(kvec_test_ko ALL
+  COMMAND RUSTC_BOOTSTRAP=1 $(MAKE) KSRC=${KDIR_ROOT} KOUT=${KBIN_ROOT}
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/samples/kvec_test
+  COMMENT "Building kvec_test.ko kernel module"
+  USES_TERMINAL
+)
+
+add_custom_target(kvec_test_ko_clean
+  COMMAND $(MAKE) KSRC=${KDIR_ROOT} KOUT=${KBIN_ROOT} clean
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/samples/kvec_test
+  COMMENT "Cleaning kvec_test.ko build artifacts"
+  USES_TERMINAL
+)
+
 # QEMU tests
 option(ENABLE_KVM "Enable KVM acceleration for QEMU tests" ON)
 if(ENABLE_KVM)
@@ -76,4 +91,16 @@ add_custom_target(hello_ko_test
 add_test(
   NAME hello_ko
   COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target hello_ko_test
+)
+
+add_custom_target(kvec_test_ko_test
+  COMMAND RUSTC_BOOTSTRAP=1 $(MAKE) KSRC=${KDIR_ROOT} KOUT=${KBIN_ROOT} ${KVM_FLAG} test
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/samples/kvec_test
+  COMMENT "Testing kvec_test.ko in QEMU"
+  USES_TERMINAL
+)
+
+add_test(
+  NAME kvec_test_ko
+  COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target kvec_test_ko_test
 )

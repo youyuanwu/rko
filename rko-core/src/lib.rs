@@ -6,5 +6,6 @@
 
 #![no_std]
 
+pub mod alloc;
 pub mod module;
 pub mod printk;

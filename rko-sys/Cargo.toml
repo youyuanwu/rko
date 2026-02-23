@@ -7,8 +7,10 @@ edition = "2024"
 windows-link = "0.2"
 
 [features]
-default = ["types", "err"]
+default = ["types", "err", "gfp", "slab"]
 Foundation = []
 # generated features
 types = ["Foundation"]
 err = ["Foundation"]
+gfp = ["Foundation"]
+slab = ["Foundation", "types"]

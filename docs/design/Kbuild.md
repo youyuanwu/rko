@@ -67,7 +67,7 @@ use `LLVM=1` to compile `hello.mod.c` with the correct compiler flags.
 
 ## Rustc Flags
 
-See `samples/hello/.cargo/config.toml`. Flags replicate kernel's
+Flags in `samples/hello/cargo-kernel.toml` replicate kernel's
 `KBUILD_RUSTFLAGS` from `scripts/Makefile.build`:
 
 | Flag | Why |
@@ -86,11 +86,19 @@ See `samples/hello/.cargo/config.toml`. Flags replicate kernel's
 ## Build Workflow
 
 ```sh
+# Hello module
 cd samples/hello
 make                # builds libhello.a → hello_rust.o → build/hello.ko
 make test           # builds + runs QEMU test (KVM=1 by default)
 make KVM=0 test     # QEMU test without KVM (for CI)
 make clean          # removes all artifacts
+
+# KVec test module
+cd samples/kvec_test
+make                # builds libkvec_test.a → kvec_test_rust.o → build/kvec_test.ko
+make test           # builds + runs QEMU test (7 sub-tests)
+make KVM=0 test     # QEMU test without KVM (for CI)
+make clean
 ```
 
 Or step-by-step:
@@ -144,12 +152,12 @@ directives:
 );
 ```
 
-### Module excluded from workspace
+### Modules excluded from workspace
 
-`samples/hello` is listed in `Cargo.toml` `exclude` — it cannot be a
-workspace member because its `cargo-kernel.toml` sets a kernel target
-and kernel-specific rustflags that would break host builds of `rko-sys`,
-`rko-sys-gen`, and `rko-core`.
+`samples/hello` and `samples/kvec_test` are listed in `Cargo.toml` `exclude`
+— they cannot be workspace members because their `cargo-kernel.toml` sets a
+kernel target and kernel-specific rustflags that would break host builds of
+`rko-sys`, `rko-sys-gen`, and `rko-core`.
 
 ### objtool warnings
 
