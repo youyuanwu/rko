@@ -1,17 +1,18 @@
 # cmake/kernel_module.cmake — reusable function for building kernel modules
 #
-# Usage:
+# Usage (from a sample's CMakeLists.txt):
 #   add_kernel_module(
-#     NAME hello
 #     CHECKS "hello: module loaded" "hello: module unloaded"
 #   )
 #
+# NAME is inferred from the directory name (CMAKE_CURRENT_SOURCE_DIR).
 # Expects KDIR_ROOT, KBIN_ROOT, KVM_FLAG to be set by the parent CMakeLists.txt.
 
 function(add_kernel_module)
-  cmake_parse_arguments(KM "" "NAME" "CHECKS" ${ARGN})
+  cmake_parse_arguments(KM "" "" "CHECKS" ${ARGN})
 
-  set(SAMPLE_DIR ${CMAKE_SOURCE_DIR}/samples/${KM_NAME})
+  get_filename_component(KM_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+  set(SAMPLE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
   set(BUILD_DIR ${SAMPLE_DIR}/build)
   set(SAMPLES_DIR ${CMAKE_SOURCE_DIR}/samples)
 

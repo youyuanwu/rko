@@ -54,12 +54,5 @@ enable_testing()
 # Kernel module build function
 include(cmake/kernel_module.cmake)
 
-add_kernel_module(
-  NAME hello
-  CHECKS "hello: module loaded" "hello: module unloaded"
-)
-
-add_kernel_module(
-  NAME kvec_test
-  CHECKS "kvec_test: all kvec tests passed" "kvec_test: module unloaded"
-)
+add_subdirectory(samples/hello)
+add_subdirectory(samples/kvec_test)

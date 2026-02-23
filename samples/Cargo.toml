@@ -1,3 +1,13 @@
 [workspace]
 resolver = "2"
+
 members = ["hello", "kvec_test"]
+
+[workspace.dependencies]
+rko-core = { path = "../rko-core" }
+
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+panic = "abort"

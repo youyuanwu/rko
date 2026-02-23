@@ -12,4 +12,4 @@ test = false
 bench = false
 
 [dependencies]
-rko-core = { path = "../../rko-core" }
+rko-core.workspace = true

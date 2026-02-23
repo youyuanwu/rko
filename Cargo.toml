@@ -3,3 +3,12 @@ resolver = "2"
 
 members = ["rko-sys", "rko-sys-gen", "rko-core"]
 exclude = ["samples"]
+
+[workspace.dependencies]
+rko-sys = { path = "rko-sys" }
+rko-core = { path = "rko-core" }
+bitflags = "2"
+bnd-winmd = "0.0.3"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+windows-bindgen = "0.66"
+windows-link = "0.2"

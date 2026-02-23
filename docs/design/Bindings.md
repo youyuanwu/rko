@@ -13,6 +13,13 @@ kernel headers ──→ libclang ──→ bnd-winmd ──→ .winmd ──→
 
 ```
 rko/
+├── Cargo.toml                 # Root workspace: rko-sys, rko-sys-gen, rko-core
+├── CMakeLists.txt             # Build orchestrator (includes samples via add_subdirectory)
+├── cmake/
+│   └── kernel_module.cmake    # add_kernel_module() function
+├── scripts/
+│   └── run-module-test.sh     # All-in-one QEMU test (initramfs + run + check)
+│
 ├── rko-sys/                   # Output crate (#![no_std], committed)
 │   ├── Cargo.toml             # features: types, err, slab, gfp
 │   ├── src/
@@ -46,29 +53,33 @@ rko/
 │   ├── src/main.rs            # CLI entry point
 │   └── rko.toml               # Partition config + kernel clang args
 │
-├── samples/hello/             # Minimal kernel module sample
-│   ├── cargo-kernel.toml     # Kernel rustflags + build-std (passed via --config)
-│   ├── Cargo.toml            # staticlib, excluded from workspace
-│   ├── Kbuild                # obj-m := hello.o
-│   ├── Makefile              # cargo + ld --whole-archive + make -C + test
-│   └── hello.rs              # Module source → hello.ko
-│
-├── samples/kvec_test/         # KVec test kernel module
-│   ├── cargo-kernel.toml     # Kernel rustflags + build-std
-│   ├── Cargo.toml            # staticlib, excluded from workspace
-│   ├── Kbuild                # obj-m := kvec_test.o
-│   ├── Makefile              # cargo + ld --whole-archive + make -C + test
-│   └── kvec_test.rs          # 7 sub-tests → kvec_test.ko
-│
-├── scripts/                   # Build and test scripts
-│   ├── init.sh               # Initramfs /init test harness (hello)
-│   ├── init-kvec-test.sh     # Initramfs /init test harness (kvec_test)
-│   ├── make-initramfs.sh     # Builds initramfs with busybox + .ko
-│   └── run-qemu-test.sh      # Runs QEMU test with timeout
+├── samples/                   # Separate workspace (panic = "abort")
+│   ├── Cargo.toml             # Workspace: hello, kvec_test + [workspace.dependencies]
+│   ├── cargo-kernel.toml      # Shared kernel build config (build-std, rustflags)
+│   ├── hello/
+│   │   ├── Cargo.toml         # staticlib, deps via workspace
+│   │   ├── CMakeLists.txt     # add_kernel_module(CHECKS ...)
+│   │   └── hello.rs           # Module source → hello.ko
+│   └── kvec_test/
+│       ├── Cargo.toml         # staticlib, deps via workspace
+│       ├── CMakeLists.txt     # add_kernel_module(CHECKS ...)
+│       └── kvec_test.rs       # 7 sub-tests → kvec_test.ko
 │
 ├── linux/                     # Kernel source tree (symlink)
 └── linux_bin/                 # Kernel build output (symlink)
 ```
+
+## Workspaces
+
+Two separate Cargo workspaces keep host and kernel concerns isolated:
+
+| Workspace | Members | Panic strategy | Purpose |
+|-----------|---------|---------------|---------|
+| Root (`Cargo.toml`) | rko-sys, rko-sys-gen, rko-core | default (unwind) | Host-target libraries and generator |
+| Samples (`samples/Cargo.toml`) | hello, kvec_test | abort | Kernel-target staticlib modules |
+
+Both use `[workspace.dependencies]` to centralize dependency versions.
+Samples are listed in the root workspace's `exclude` list.
 
 ## Key Files
 
@@ -83,6 +94,9 @@ rko/
 | `rko-core/src/alloc/kvec.rs` | `Vec<T, A>`, `KVec<T>` type alias, `IntoIter` |
 | `samples/hello/hello.rs` | Working init/exit module with `pr_info!`, `.modinfo`, ELF section annotations |
 | `samples/kvec_test/kvec_test.rs` | 7-test KVec exercise module (push, pop, indexing, capacity, extend, clear, into_iter) |
+| `samples/cargo-kernel.toml` | Shared kernel rustflags + `build-std = ["core"]` (passed via `cargo --config`) |
+| `cmake/kernel_module.cmake` | `add_kernel_module()` — cargo + ld + Kbuild + test orchestration |
+| `scripts/run-module-test.sh` | All-in-one QEMU test (initramfs + run + check) |
 
 ## Library Name: `"kernel"`
 
@@ -110,11 +124,15 @@ See `docs/design/bugs/` for full bug reports.
 # 1. Generate rko-sys source (run once, or after header changes)
 cargo run -p rko-sys-gen
 
-# 2. Build the workspace (host target — rko-sys + rko-sys-gen)
+# 2. Build the workspace (host target — rko-sys + rko-sys-gen + rko-core)
 cargo build
 
-# 3. Build the kernel module (kernel target → hello.ko)
-cd samples/hello && make
+# 3. Build all kernel modules (via CMake)
+cmake -B build
+cmake --build build
+
+# 4. Test all modules in QEMU
+ctest --test-dir build
 ```
 
 See `docs/design/Kbuild.md` for full Kbuild integration details.

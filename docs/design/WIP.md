@@ -6,7 +6,7 @@ kernel module with `module_init` / `module_exit`.
 ## Status: ✅ Complete
 
 All steps done. `hello.ko` and `kvec_test.ko` build end-to-end (cargo + Kbuild).
-Automated QEMU testing via `make test` / `ctest`.
+Automated QEMU testing via CMake (`cmake --build build`, `ctest --test-dir build`).
 See `samples/hello/` and `samples/kvec_test/` for working examples.
 
 ## What Was Built
@@ -22,12 +22,11 @@ See `samples/hello/` and `samples/kvec_test/` for working examples.
 | Printk | `rko-core/src/printk.rs` | `_printk` extern, `KERN_*`, `pr_info!` macro family, `RawFormatter`, `rust_fmt_argument` |
 | Module macros | `rko-core/src/module.rs` | `global_asm!`-based modinfo macros |
 | Alloc | `rko-core/src/alloc/` | `Flags` (bitflags), `AllocError`, `Allocator` trait, `Kmalloc`, `Vec<T,A>`, `KVec<T>` |
-| Kbuild config | `samples/hello/Kbuild` | Module object declaration |
-| Build wrapper | `samples/hello/Makefile` | cargo + `ld --whole-archive` + `make -C` + `test` target |
-| Cargo config | `samples/hello/cargo-kernel.toml` | Kernel rustflags + `build-std` (passed via `--config`) |
+| Build system | `cmake/kernel_module.cmake` | `add_kernel_module()` — cargo + ld + Kbuild + QEMU test |
+| Kernel config | `samples/cargo-kernel.toml` | Shared kernel rustflags + `build-std` (passed via `--config`) |
+| Test runner | `scripts/run-module-test.sh` | All-in-one QEMU test (initramfs + run + check) |
 | Hello sample | `samples/hello/hello.rs` | init/exit + `pr_info!`, builds to `hello.ko` |
 | KVec test | `samples/kvec_test/` | 7-test KVec exercise module, builds to `kvec_test.ko` |
-| Test scripts | `scripts/init.sh`, `init-kvec-test.sh`, `make-initramfs.sh`, `run-qemu-test.sh` | QEMU-based automated testing |
 | C helpers | `rko-sys/src/helpers.c`, `helpers.h` | Infrastructure for future macro/inline wrappers (currently empty) |
 
 ## Crate Structure
