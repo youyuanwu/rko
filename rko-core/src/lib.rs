@@ -7,5 +7,7 @@
 #![no_std]
 
 pub mod alloc;
+pub mod error;
 pub mod module;
+pub mod prelude;
 pub mod printk;

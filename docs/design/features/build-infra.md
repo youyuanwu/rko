@@ -1,403 +1,50 @@
-# Feature: Unified Sample Build & Test Infrastructure
+# Feature: Unified Build & Test Infrastructure
 
-## Problem
+## Status: ✅ Implemented
 
-Each kernel module sample duplicates ~95% of its build infrastructure.
-Adding a new sample (`kvec_test`) required copying and editing 5 files
-from `hello/`, plus creating a dedicated init script and adding 3
-CMake targets. This doesn't scale — every new sample needs:
-
-- `Makefile` (identical except module name)
-- `cargo-kernel.toml` (100% identical)
-- `Cargo.toml` (identical except name/path)
-- `Kbuild` (2-line template, name-substituted)
-- `scripts/init-<name>.sh` (identical except module name + expected dmesg)
-- 3 CMake targets (build, clean, test) copy-pasted per sample
-
-## Goals
-
-1. **Zero-copy new sample**: adding a module should require only the `.rs`
-   source file and a small config (name + test expectations)
-2. **Single `cargo-kernel.toml`**: shared across all samples
-3. **Single `Makefile`** (or `Makefile.inc`): parameterized by module name
-4. **Single init script**: generic, works for any module
-5. **Auto-discovered CMake targets**: loop over samples directory
-6. **Investigate workspace membership**: can samples join the main workspace?
-
-## Analysis
-
-### What's duplicated
-
-| File | Identical? | Only differs in |
-|------|-----------|-----------------|
-| `cargo-kernel.toml` | 100% | — |
-| `Makefile` | ~95% | module name (5 occurrences) |
-| `Cargo.toml` | ~90% | `name`, `path` |
-| `Kbuild` | template | module name |
-| `init-*.sh` | ~90% | module name, dmesg expectations |
-| CMake targets | template | module name, working dir |
-
-### Workspace membership
-
-**Samples use a separate Cargo workspace.** They cannot join the root
-workspace because `staticlib` + `no_std` crates require `panic = "abort"`,
-and Cargo profile settings are workspace-wide. Applying `panic = "abort"`
-to the root workspace would affect host-target crates like `rko-sys-gen`.
-Using `-Zbuild-std` workspace-wide also fails — it rebuilds `core` from
-source, causing "duplicate lang item" conflicts with `std`-using crates.
-
-**Solution**: two workspaces with `[workspace.dependencies]` in each:
-
-| Workspace | Members | Panic | Purpose |
-|-----------|---------|-------|---------|
-| Root (`Cargo.toml`) | rko-sys, rko-sys-gen, rko-core | unwind (default) | Host-target libs + generator |
-| Samples (`samples/Cargo.toml`) | hello, kvec_test | abort | Kernel-target staticlib modules |
-
-Samples are listed in the root workspace's `exclude`.
-
-### Shared workspace for samples only
-
-An alternative: samples could share a **separate** Cargo workspace among
-themselves (not the host workspace). This would:
-
-- Deduplicate `cargo-kernel.toml` to one file at `samples/cargo-kernel.toml`
-- Share `Cargo.lock` across samples
-- Allow `cargo build -p hello -p kvec_test` in one invocation
-
-```
-samples/
-├── Cargo.toml           # workspace: members = ["hello", "kvec_test"]
-├── Cargo.lock
-├── cargo-kernel.toml    # shared kernel config
-├── hello/
-│   ├── Cargo.toml       # [package] only, no build config
-│   └── hello.rs
-└── kvec_test/
-    ├── Cargo.toml
-    └── kvec_test.rs
-```
-
-This is viable because all samples share the same target, rustflags, and
-`build-std` configuration. They only differ in package name and source file.
+See `cmake/kernel_module.cmake`, `scripts/run-module-test.sh`,
+`CMakeLists.txt`, and per-sample `CMakeLists.txt` files.
 
 ## Design
 
-### 1. Samples workspace (`samples/Cargo.toml`)
+CMake is the sole build orchestrator. No per-sample Makefiles.
 
-```toml
-[workspace]
-resolver = "2"
-members = ["hello", "kvec_test"]
+### Two workspaces
 
-[workspace.dependencies]
-rko-core = { path = "../rko-core" }
+| Workspace | Members | Panic | Purpose |
+|-----------|---------|-------|---------|
+| Root (`Cargo.toml`) | rko-sys, rko-sys-gen, rko-core | unwind | Host libs + generator |
+| Samples (`samples/Cargo.toml`) | hello, kvec_test | abort | Kernel staticlib modules |
 
-[profile.dev]
-panic = "abort"
+Separate workspaces because `staticlib` + `no_std` needs `panic = "abort"`,
+which can't be set per-crate. `build-std` workspace-wide also fails
+(duplicate `core` lang items with `std`-using crates).
 
-[profile.release]
-panic = "abort"
-```
+Both use `[workspace.dependencies]` to centralize versions.
 
-All samples share one `cargo-kernel.toml` at the `samples/` level.
-Each sample's `Cargo.toml` is minimal, using workspace dependencies:
+### `add_kernel_module()` CMake function
 
-```toml
-[package]
-name = "hello"
-version = "0.1.0"
-edition = "2024"
-publish = false
+Handles per sample: Kbuild generation (configure time), cargo build,
+`ld --whole-archive`, Kbuild modules, QEMU test, clean.
 
-[lib]
-name = "hello"
-path = "hello.rs"
-crate-type = ["staticlib"]
-test = false
-bench = false
+### Adding a new sample
 
-[dependencies]
-rko-core.workspace = true
-```
-
-### 2. CMake as sole build orchestrator (eliminate per-sample Makefiles)
-
-Instead of a shared `Makefile.inc`, move **all** build orchestration into
-the top-level `CMakeLists.txt`. CMake already invokes Make for Kbuild —
-it can also invoke cargo and ld directly. This eliminates the per-sample
-Makefile entirely.
-
-Each sample only needs:
-- `Cargo.toml` (package metadata)
-- `<name>.rs` (source code)
-
-`Kbuild` is generated by CMake at configure time. Test expectations are
-declared in `CMakeLists.txt` via the `CHECKS` argument.
-
-#### CMake function: `add_kernel_module`
-
-```cmake
-# cmake/kernel_module.cmake — reusable function for building kernel modules
-
-function(add_kernel_module)
-  cmake_parse_arguments(KM "" "NAME" "CHECKS" ${ARGN})
-
-  set(SAMPLE_DIR ${CMAKE_SOURCE_DIR}/samples/${KM_NAME})
-  set(BUILD_DIR ${SAMPLE_DIR}/build)
-
-  # Generate Kbuild at configure time
-  file(WRITE ${SAMPLE_DIR}/Kbuild
-    "obj-m := ${KM_NAME}.o\n"
-    "${KM_NAME}-y := ${KM_NAME}_rust.o\n"
-  )
-
-  # Step 1: cargo build → lib<name>.a
-  add_custom_command(
-    OUTPUT ${BUILD_DIR}/lib${KM_NAME}.a
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${BUILD_DIR}
-    COMMAND ${CMAKE_COMMAND} -E env RUSTC_BOOTSTRAP=1
-      cargo
-        --config ${CMAKE_SOURCE_DIR}/samples/cargo-kernel.toml
-        --config "build.target=\"${KBIN_ROOT}/scripts/target.json\""
-        -Z unstable-options build --release
-        -p ${KM_NAME}
-        --manifest-path ${SAMPLE_DIR}/Cargo.toml
-        --artifact-dir ${BUILD_DIR}
-    WORKING_DIRECTORY ${SAMPLE_DIR}
-    DEPENDS ${SAMPLE_DIR}/${KM_NAME}.rs ${SAMPLE_DIR}/Cargo.toml
-    COMMENT "cargo build ${KM_NAME}"
-  )
-
-  # Step 2: ld -r --whole-archive → <name>_rust.o
-  add_custom_command(
-    OUTPUT ${BUILD_DIR}/${KM_NAME}_rust.o
-    COMMAND ld -r --whole-archive ${BUILD_DIR}/lib${KM_NAME}.a
-            -o ${BUILD_DIR}/${KM_NAME}_rust.o
-    DEPENDS ${BUILD_DIR}/lib${KM_NAME}.a
-    COMMENT "ld --whole-archive ${KM_NAME}"
-  )
-
-  # Step 3: Kbuild → <name>.ko
-  add_custom_target(${KM_NAME}_ko ALL
-    COMMAND $(MAKE) -C ${KDIR_ROOT} O=${KBIN_ROOT}
-            M=${SAMPLE_DIR} MO=${BUILD_DIR} LLVM=1 modules
-    DEPENDS ${BUILD_DIR}/${KM_NAME}_rust.o
-    COMMENT "Kbuild ${KM_NAME}.ko"
-    USES_TERMINAL
-  )
-
-  # Clean target
-  add_custom_target(${KM_NAME}_ko_clean
-    COMMAND ${CMAKE_COMMAND} -E rm -rf ${BUILD_DIR}
-    COMMENT "Cleaning ${KM_NAME}.ko"
-  )
-
-  # Test target (QEMU)
-  add_custom_target(${KM_NAME}_ko_test
-    COMMAND ${CMAKE_SOURCE_DIR}/scripts/run-module-test.sh
-            ${KM_NAME}
-            ${BUILD_DIR}/${KM_NAME}.ko
-            ${KBIN_ROOT}/arch/x86/boot/bzImage
-            ${BUILD_DIR}
-            ${KVM_FLAG}
-            ${KM_CHECKS}
-    DEPENDS ${KM_NAME}_ko
-    COMMENT "Testing ${KM_NAME}.ko in QEMU"
-    USES_TERMINAL
-  )
-
-  add_test(
-    NAME ${KM_NAME}_ko
-    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}
-            --target ${KM_NAME}_ko_test
-  )
-endfunction()
-```
-
-#### Usage in `CMakeLists.txt`
-
-```cmake
-include(cmake/kernel_module.cmake)
-
-add_kernel_module(
-  NAME hello
-  CHECKS "hello: module loaded" "hello: module unloaded"
-)
-
-add_kernel_module(
-  NAME kvec_test
-  CHECKS "kvec_test: all kvec tests passed" "kvec_test: module unloaded"
-)
-```
-
-Adding a new sample: one `add_kernel_module()` call.
-
-### 3. Generic test script (`scripts/run-module-test.sh`)
-
-A single script that replaces `run-qemu-test.sh` + `make-initramfs.sh` +
-all per-module `init-*.sh` scripts. It takes the module name, .ko path,
-kernel image, and dmesg check strings as arguments:
-
-```sh
-#!/bin/bash
-# Usage: run-module-test.sh <name> <ko> <bzImage> <build_dir> <kvm> <checks...>
-set -uo pipefail
-
-MODULE="$1"; shift
-KO_FILE="$1"; shift
-KERNEL="$1"; shift
-BUILD_DIR="$1"; shift
-KVM="$1"; shift
-CHECKS=("$@")  # remaining args are dmesg check strings
-
-# 1. Build initramfs with generic init + test.conf
-TMPDIR=$(mktemp -d)
-trap "rm -rf $TMPDIR" EXIT
-
-mkdir -p "$TMPDIR"/{bin,lib/modules,proc,sys,dev,etc}
-BUSYBOX=$(which busybox)
-cp "$BUSYBOX" "$TMPDIR/bin/busybox"
-for cmd in sh mount insmod rmmod dmesg grep poweroff; do
-    ln -s busybox "$TMPDIR/bin/$cmd"
-done
-
-cp "$KO_FILE" "$TMPDIR/lib/modules/"
-
-# Write test config
-printf 'MODULE=%s\n' "$MODULE" > "$TMPDIR/etc/test.conf"
-printf 'CHECKS="%s"\n' "${CHECKS[*]}" >> "$TMPDIR/etc/test.conf"
-
-# Write generic init
-cat > "$TMPDIR/init" << 'INIT_EOF'
-#!/bin/sh
-set -e
-export PATH=/bin
-mount -t proc proc /proc
-mount -t sysfs sysfs /sys
-mount -t devtmpfs devtmpfs /dev
-. /etc/test.conf
-PASS=0; FAIL=0
-check() {
-    if dmesg | grep -q "$1"; then
-        echo "PASS: found '$1'"
-        PASS=$((PASS + 1))
-    else
-        echo "FAIL: expected '$1' in dmesg"
-        FAIL=$((FAIL + 1))
-    fi
-}
-echo "=== TEST: insmod ${MODULE}.ko ==="
-insmod /lib/modules/${MODULE}.ko
-echo "=== TEST: rmmod ${MODULE} ==="
-rmmod ${MODULE}
-for chk in $CHECKS; do check "$chk"; done
-echo ""
-echo "=== RESULTS: $PASS passed, $FAIL failed ==="
-if [ "$FAIL" -eq 0 ]; then echo "ALL TESTS PASSED"; else echo "SOME TESTS FAILED"; fi
-poweroff -f
-INIT_EOF
-chmod +x "$TMPDIR/init"
-
-INITRAMFS="$BUILD_DIR/initramfs.cpio.gz"
-(cd "$TMPDIR" && find . | cpio -o -H newc --quiet | gzip) > "$INITRAMFS"
-
-# 2. Run QEMU
-KVM_ARGS=""
-[ "$KVM" = "1" ] && KVM_ARGS="-enable-kvm -cpu host"
-
-LOGFILE="$BUILD_DIR/test.log"
-timeout --foreground 60 qemu-system-x86_64 \
-    -kernel "$KERNEL" -initrd "$INITRAMFS" \
-    -nographic -no-reboot -m 256M \
-    -append "console=ttyS0 panic=-1" \
-    $KVM_ARGS > "$LOGFILE" 2>&1 || true
-
-cat "$LOGFILE"
-
-if grep -q "ALL TESTS PASSED" "$LOGFILE"; then
-    echo "TEST OK"
-else
-    echo "TEST FAILED"; exit 1
-fi
-```
-
-This eliminates `make-initramfs.sh`, `init.sh`, and `init-kvec-test.sh`.
-
-### 4. Kbuild generation at CMake configure time
-
-Each sample needs a `Kbuild` file in its source directory — the kernel
-build system reads it to know which `.o` files to link. Instead of
-maintaining one per sample, CMake generates them at configure time:
-
-```cmake
-# Inside add_kernel_module():
-file(WRITE ${SAMPLE_DIR}/Kbuild
-  "obj-m := ${KM_NAME}.o\n"
-  "${KM_NAME}-y := ${KM_NAME}_rust.o\n"
-)
-```
-
-This runs once during `cmake -B build` and produces:
-
-```makefile
-obj-m := hello.o
-hello-y := hello_rust.o
-```
-
-The generated `Kbuild` files should be `.gitignore`'d since they're
-derived from the CMake configuration. A `samples/.gitignore` with
-`Kbuild` (or `*/Kbuild`) keeps the repo clean.
-
-### 5. Build and test commands
-
-All builds go through CMake — no per-sample Makefiles:
-
-```sh
-cmake -B build                                   # configure (generates Kbuild files)
-cmake --build build                              # build all modules
-cmake --build build --target hello_ko            # build one
-cmake --build build --target hello_ko_test       # test one
-ctest --test-dir build                           # test all
-cmake --build build --target hello_ko_clean      # clean one
-```
-
-## Summary: what changes per sample
-
-**Before** (5 files + cmake + init script):
 ```
 samples/new_module/
-├── Cargo.toml            # copy + edit name
-├── cargo-kernel.toml     # copy (identical)
-├── Kbuild                # copy + edit name
-├── Makefile              # copy + edit name (5 places)
-└── new_module.rs         # actual source
-scripts/init-new-module.sh  # copy + edit checks
-CMakeLists.txt              # add 3 targets
+├── Cargo.toml            # name + rko-core.workspace = true
+├── CMakeLists.txt        # add_kernel_module(CHECKS "expected output")
+└── new_module.rs
 ```
 
-**After** (3 files, no root cmake changes):
+Plus: add to `samples/Cargo.toml` members, add `add_subdirectory` in
+root `CMakeLists.txt`.
+
+### Build commands
+
+```sh
+cmake -B build [-DENABLE_KVM=OFF]
+cmake --build build                          # all modules
+cmake --build build --target hello_ko        # one module
+ctest --test-dir build                       # test all
+cmake --build build --target hello_ko_clean  # clean one
 ```
-samples/new_module/
-├── Cargo.toml            # minimal: name + deps (workspace)
-├── CMakeLists.txt        # add_kernel_module(CHECKS ...)
-└── new_module.rs         # actual source
-CMakeLists.txt            # add 1 line: add_subdirectory(samples/new_module)
-```
-
-`Kbuild` is generated by CMake at configure time. No Makefile, no
-cargo-kernel.toml, no init script per sample.
-
-## Implementation Plan
-
-| Step | Description |
-|------|-------------|
-| 1 | Create `samples/Cargo.toml` workspace + move `cargo-kernel.toml` to `samples/` |
-| 2 | Create `cmake/kernel_module.cmake` with `add_kernel_module()` function |
-| 3 | Create `scripts/run-module-test.sh` (all-in-one test script) |
-| 4 | Update `CMakeLists.txt` to use `add_kernel_module()` calls |
-| 5 | Remove per-sample `Makefile`, `cargo-kernel.toml`, `Kbuild` |
-| 6 | Remove old scripts (`init.sh`, `init-kvec-test.sh`, `make-initramfs.sh`, `run-qemu-test.sh`) |
-| 7 | Add `samples/.gitignore` for generated `Kbuild` and `build/` dirs |
-| 8 | Update root `Cargo.toml` exclude list |
-| 9 | Update CI workflow if needed |
-| 10 | Verify: `cmake --build build`, `ctest --test-dir build`, `cargo clippy` |

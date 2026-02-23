@@ -140,6 +140,16 @@ modinfo hello/build/hello.ko   # license=GPL, author=rko, vermagic=6.19.0 ...
 
 ## Implementation Notes
 
+### `module!` macro generates entry points
+
+The `module!` macro in `rko-core/src/module.rs` generates all module
+boilerplate: `.modinfo` entries via `global_asm!`, `init_module` /
+`cleanup_module` with correct link sections and addressability markers,
+`MaybeUninit` storage for the module instance, and a `#[panic_handler]`.
+
+The module author implements the `Module` trait (`init` + `exit`
+callbacks) and invokes `module!` — no `unsafe` annotations needed.
+
 ### `.modinfo` sections use `global_asm!`
 
 The `module_license!`, `module_author!`, `module_description!` macros

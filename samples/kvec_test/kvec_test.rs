@@ -3,29 +3,35 @@
 #![no_std]
 
 use rko_core::alloc::{Flags, KVec};
-use rko_core::{module_author, module_description, module_license, pr_info};
+use rko_core::prelude::*;
 
-module_license!("GPL");
-module_author!("rko");
-module_description!("KVec test kernel module");
+struct KvecTest;
 
-/// # Safety
-///
-/// Called by the kernel module loader. Must not be called manually.
-#[unsafe(no_mangle)]
-#[unsafe(link_section = ".init.text")]
-pub unsafe extern "C" fn init_module() -> core::ffi::c_int {
-    unsafe { rko_core::printk::set_log_prefix(b"kvec_test\0") };
-    match test_kvec() {
-        Ok(()) => {
-            pr_info!("all kvec tests passed\n");
-            0
-        }
-        Err(()) => {
-            pr_info!("kvec test FAILED\n");
-            -1
+impl Module for KvecTest {
+    fn init() -> Result<Self, Error> {
+        match test_kvec() {
+            Ok(()) => {
+                pr_info!("all kvec tests passed\n");
+                Ok(KvecTest)
+            }
+            Err(()) => {
+                pr_info!("kvec test FAILED\n");
+                Err(Error::EINVAL)
+            }
         }
     }
+
+    fn exit(&self) {
+        pr_info!("module unloaded\n");
+    }
+}
+
+module! {
+    type: KvecTest,
+    name: "kvec_test",
+    license: "GPL",
+    author: "rko",
+    description: "KVec test kernel module",
 }
 
 fn test_kvec() -> Result<(), ()> {
@@ -99,26 +105,4 @@ fn test_kvec() -> Result<(), ()> {
     pr_info!("PASS: into_iter\n");
 
     Ok(())
-}
-
-#[used]
-#[unsafe(link_section = ".init.data")]
-#[allow(non_upper_case_globals)]
-static __UNIQUE_ID___ADDRESSABLE_INIT_MODULE: unsafe extern "C" fn() -> core::ffi::c_int =
-    init_module;
-
-#[unsafe(no_mangle)]
-#[unsafe(link_section = ".exit.text")]
-pub extern "C" fn cleanup_module() {
-    pr_info!("module unloaded\n");
-}
-
-#[used]
-#[unsafe(link_section = ".exit.data")]
-#[allow(non_upper_case_globals)]
-static __UNIQUE_ID___ADDRESSABLE_CLEANUP_MODULE: extern "C" fn() = cleanup_module;
-
-#[panic_handler]
-fn panic(_info: &core::panic::PanicInfo) -> ! {
-    loop {}
 }

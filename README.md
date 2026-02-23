@@ -12,7 +12,7 @@ linking. CMake orchestrates the two phases.
 | Crate | Description |
 |-------|-------------|
 | `rko-sys` | Generated FFI bindings for kernel-internal headers (`#![no_std]`) |
-| `rko-core` | Kernel wrappers: `pr_info!`, module macros, `KVec<T>` allocator |
+| `rko-core` | Kernel wrappers: `Module` trait, `module!` macro, `pr_info!`, `KVec<T>`, `Error` |
 | `rko-sys-gen` | Generator: kernel headers → [bnd-winmd](https://github.com/youyuanwu/bnd) → Rust FFI |
 
 ## Quick Start

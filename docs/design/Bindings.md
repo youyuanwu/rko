@@ -39,8 +39,10 @@ rko/
 │   ├── Cargo.toml             # depends on rko-sys, bitflags
 │   └── src/
 │       ├── lib.rs
+│       ├── error.rs           # Error type (wraps negative errno)
+│       ├── prelude.rs         # Convenience re-exports for module authors
 │       ├── printk.rs          # _printk extern, KERN_*, pr_info! macros, RawFormatter
-│       ├── module.rs          # module_license! etc macros (global_asm!)
+│       ├── module.rs          # Module trait, module! macro, modinfo macros
 │       └── alloc/             # Kernel memory allocation
 │           ├── mod.rs         # Flags (bitflags), AllocError, Allocator trait
 │           ├── allocator.rs   # Kmalloc impl
@@ -88,7 +90,9 @@ Samples are listed in the root workspace's `exclude` list.
 | `rko-sys-gen/rko.toml` | Partition config with kernel include paths (`LINUXINCLUDE` + `USERINCLUDE` order) and clang args (`-nostdinc`, `-D__KERNEL__`, `-DMODULE`, etc.) |
 | `rko-sys-gen/src/lib.rs` | Two-step generate: bnd-winmd → .winmd → windows-bindgen `--package --no-toml` |
 | `rko-core/src/printk.rs` | `_printk` extern, `KERN_*` constants, `RawFormatter`, `rust_fmt_argument`, `pr_info!` macros |
-| `rko-core/src/module.rs` | `module_license!`, `module_author!`, `module_description!` macros using `global_asm!` |
+| `rko-core/src/error.rs` | `Error` type wrapping negative errno codes |
+| `rko-core/src/module.rs` | `Module` trait, `module!` macro, `module_license!`/`module_author!`/`module_description!` |
+| `rko-core/src/prelude.rs` | Re-exports: `Module`, `Error`, `module!`, `pr_info!`, etc. |
 | `rko-core/src/alloc/mod.rs` | `Flags` (bitflags), `AllocError`, `Allocator` trait |
 | `rko-core/src/alloc/allocator.rs` | `Kmalloc` — calls `krealloc_node_align_noprof` + `kfree` from `rko.slab` partition |
 | `rko-core/src/alloc/kvec.rs` | `Vec<T, A>`, `KVec<T>` type alias, `IntoIter` |
