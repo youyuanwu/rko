@@ -16,6 +16,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "kvec_test"
+version = "0.1.0"
+dependencies = [
+ "rko-core",
+]
+
+[[package]]
 name = "rko-core"
 version = "0.1.0"
 dependencies = [

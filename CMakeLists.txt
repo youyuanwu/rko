@@ -41,66 +41,25 @@ add_custom_target(make_linux
   WORKING_DIRECTORY ${KDIR_ROOT}
 )
 
-# Build hello.ko sample kernel module
-add_custom_target(hello_ko ALL
-  COMMAND RUSTC_BOOTSTRAP=1 $(MAKE) KSRC=${KDIR_ROOT} KOUT=${KBIN_ROOT}
-  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/samples/hello
-  COMMENT "Building hello.ko kernel module"
-  USES_TERMINAL
-)
-
-add_custom_target(hello_ko_clean
-  COMMAND $(MAKE) KSRC=${KDIR_ROOT} KOUT=${KBIN_ROOT} clean
-  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/samples/hello
-  COMMENT "Cleaning hello.ko build artifacts"
-  USES_TERMINAL
-)
-
-# Build kvec_test.ko sample kernel module
-add_custom_target(kvec_test_ko ALL
-  COMMAND RUSTC_BOOTSTRAP=1 $(MAKE) KSRC=${KDIR_ROOT} KOUT=${KBIN_ROOT}
-  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/samples/kvec_test
-  COMMENT "Building kvec_test.ko kernel module"
-  USES_TERMINAL
-)
-
-add_custom_target(kvec_test_ko_clean
-  COMMAND $(MAKE) KSRC=${KDIR_ROOT} KOUT=${KBIN_ROOT} clean
-  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/samples/kvec_test
-  COMMENT "Cleaning kvec_test.ko build artifacts"
-  USES_TERMINAL
-)
-
-# QEMU tests
+# QEMU test options
 option(ENABLE_KVM "Enable KVM acceleration for QEMU tests" ON)
 if(ENABLE_KVM)
-  set(KVM_FLAG "KVM=1")
+  set(KVM_FLAG "1")
 else()
-  set(KVM_FLAG "KVM=0")
+  set(KVM_FLAG "0")
 endif()
 
 enable_testing()
 
-add_custom_target(hello_ko_test
-  COMMAND RUSTC_BOOTSTRAP=1 $(MAKE) KSRC=${KDIR_ROOT} KOUT=${KBIN_ROOT} ${KVM_FLAG} test
-  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/samples/hello
-  COMMENT "Testing hello.ko in QEMU"
-  USES_TERMINAL
+# Kernel module build function
+include(cmake/kernel_module.cmake)
+
+add_kernel_module(
+  NAME hello
+  CHECKS "hello: module loaded" "hello: module unloaded"
 )
 
-add_test(
-  NAME hello_ko
-  COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target hello_ko_test
-)
-
-add_custom_target(kvec_test_ko_test
-  COMMAND RUSTC_BOOTSTRAP=1 $(MAKE) KSRC=${KDIR_ROOT} KOUT=${KBIN_ROOT} ${KVM_FLAG} test
-  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/samples/kvec_test
-  COMMENT "Testing kvec_test.ko in QEMU"
-  USES_TERMINAL
-)
-
-add_test(
-  NAME kvec_test_ko
-  COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target kvec_test_ko_test
+add_kernel_module(
+  NAME kvec_test
+  CHECKS "kvec_test: all kvec tests passed" "kvec_test: module unloaded"
 )
