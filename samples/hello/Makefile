@@ -21,7 +21,7 @@ KMAKE = $(MAKE) -C $(KSRC) O=$(KOUT) M=$(CURDIR) MO=$(MOUT) LLVM=1
 
 # Rust source files that the static library depends on
 RUST_SRCS := $(CURDIR)/hello.rs $(CURDIR)/Cargo.toml $(CURDIR)/cargo-kernel.toml \
-	$(shell find $(CURDIR)/../../rko-sys/src -name '*.rs')
+	$(shell find $(CURDIR)/../../rko-core/src $(CURDIR)/../../rko-sys/src -name '*.rs')
 
 .PHONY: all clean
 

@@ -44,8 +44,8 @@ RawFormatter::write_fmt(*ptr)  ──►  bytes written into vsprintf buffer
 
 | File | What |
 |------|------|
-| `rko-sys/src/printk.rs` | `RawFormatter`, `call_printk`, `rust_fmt_argument`, format strings, `print_macro!` |
-| `rko-sys/src/lib.rs` | Re-export `pr_info!`, `pr_err!`, etc. |
+| `rko-core/src/printk.rs` | `RawFormatter`, `call_printk`, `rust_fmt_argument`, format strings, `print_macro!` |
+| `rko-core/src/lib.rs` | Re-export `pr_info!`, `pr_err!`, etc. |
 
 ### 1. `RawFormatter`
 
@@ -88,7 +88,7 @@ Pre-built `[u8; 10]` constants combining `KERN_*` prefix with `%s: %pA\0`:
 KERN_INFO + "%s: %pA\0"  →  "\x016%s: %pA\0"
 ```
 
-The `%s` is the module name (from `__LOG_PREFIX`). The `%pA` is the
+The `%s` is the module name (from `LOG_PREFIX` global). The `%pA` is the
 Rust `fmt::Arguments` pointer.
 
 For `KERN_CONT`, the format is just `"\x01c%pA\0"` (no module prefix).
@@ -107,7 +107,7 @@ Reads the global `LOG_PREFIX` pointer and calls
 
 ### 5. Log prefix
 
-A global `static mut` pointer in `rko-sys`, set once during module init:
+A global `static mut` pointer in `rko-core`, set once during module init:
 
 ```rust
 static mut LOG_PREFIX: *const u8 = b"<unknown>\0".as_ptr();
@@ -125,7 +125,7 @@ pub unsafe fn set_log_prefix(prefix: &'static [u8]) {
 }
 ```
 
-Modules call `unsafe { rko_sys::set_log_prefix(b"hello\0") }` in
+Modules call `unsafe { rko_core::set_log_prefix(b"hello\0") }` in
 `init_module`. This avoids requiring a `__LOG_PREFIX` constant in scope
 at every macro call site.
 
@@ -157,7 +157,7 @@ macro_rules! pr_info {
 ## Example usage
 
 ```rust
-use rko_sys::{pr_info, pr_err, printk};
+use rko_core::{pr_info, pr_err, printk};
 
 unsafe extern "C" fn init_module() -> core::ffi::c_int {
     unsafe { printk::set_log_prefix(b"hello\0"); }

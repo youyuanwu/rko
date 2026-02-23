@@ -6,6 +6,13 @@ version = 4
 name = "hello"
 version = "0.1.0"
 dependencies = [
+ "rko-core",
+]
+
+[[package]]
+name = "rko-core"
+version = "0.1.0"
+dependencies = [
  "rko-sys",
 ]
 

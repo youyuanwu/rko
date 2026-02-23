@@ -1,10 +1,10 @@
-//! Minimal "hello world" out-of-tree kernel module using rko-sys.
+//! Minimal "hello world" out-of-tree kernel module using rko-core.
 //!
 //! Build with the kernel build system (Kbuild), not `cargo build` directly.
 
 #![no_std]
 
-use rko_sys::{module_author, module_description, module_license, printk};
+use rko_core::{module_author, module_description, module_license, pr_info};
 
 module_license!("GPL");
 module_author!("rko");
@@ -16,7 +16,8 @@ module_description!("Hello world kernel module using rko-sys");
 #[unsafe(no_mangle)]
 #[unsafe(link_section = ".init.text")]
 pub unsafe extern "C" fn init_module() -> core::ffi::c_int {
-    printk::_printk(c"\x016hello: module loaded\n".as_ptr());
+    unsafe { rko_core::printk::set_log_prefix(b"hello\0"); }
+    pr_info!("module loaded\n");
     0
 }
 
@@ -29,7 +30,7 @@ static __UNIQUE_ID___ADDRESSABLE_INIT_MODULE: unsafe extern "C" fn() -> core::ff
 #[unsafe(no_mangle)]
 #[unsafe(link_section = ".exit.text")]
 pub extern "C" fn cleanup_module() {
-    printk::_printk(c"\x016hello: module unloaded\n".as_ptr());
+    pr_info!("module unloaded\n");
 }
 
 #[used]

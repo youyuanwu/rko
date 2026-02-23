@@ -12,4 +12,4 @@ test = false
 bench = false
 
 [dependencies]
-rko-sys = { path = "../../rko-sys" }
+rko-core = { path = "../../rko-core" }
