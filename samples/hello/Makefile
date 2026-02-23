@@ -30,7 +30,7 @@ all: $(MOUT)/hello_rust.o
 
 $(MOUT)/libhello.a: $(RUST_SRCS)
 	@mkdir -p $(MOUT)
-	RUSTC_BOOTSTRAP=1 $(CARGO) --config $(CURDIR)/cargo-kernel.toml -Z unstable-options build --release -p hello --manifest-path $(CURDIR)/Cargo.toml --artifact-dir $(MOUT)
+	RUSTC_BOOTSTRAP=1 $(CARGO) --config $(CURDIR)/cargo-kernel.toml --config 'build.target="$(KOUT)/scripts/target.json"' -Z unstable-options build --release -p hello --manifest-path $(CURDIR)/Cargo.toml --artifact-dir $(MOUT)
 
 $(MOUT)/hello_rust.o: $(MOUT)/libhello.a
 	$(LD) -r --whole-archive $< -o $@

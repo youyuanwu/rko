@@ -1,0 +1,72 @@
+name: build
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-latest ]
+    env:
+      SCCACHE_GHA_ENABLED: "true"
+      RUSTC_WRAPPER: "sccache"
+      CMAKE_C_COMPILER_LAUNCHER: "sccache"
+      CMAKE_CXX_COMPILER_LAUNCHER: "sccache"
+    steps:
+    - uses: actions/checkout@v5
+
+    - name: Run sccache-cache
+      uses: mozilla-actions/sccache-action@v0.0.9
+      with:
+        version: "v0.10.0"
+
+    - name: Install rust stable
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        toolchain: 1.93.0
+        components: rustfmt, clippy, rust-src
+
+    - name: Set rust version
+      run: rustup override set 1.93.0
+
+    - uses: taiki-e/install-action@v2
+      with:
+        tool: bindgen-cli
+
+    - name: Install LLVM toolchain
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y clang llvm lld libelf-dev libssl-dev libclang-dev
+
+    - name: Clone linux to /linux dir with commit
+      run: |
+        git clone --branch ${{ env.TAG }} --depth 1 https://github.com/torvalds/linux.git ./linux
+      env:
+        TAG: v6.19
+
+    - name: Configure cmake
+      run: cmake -S . -B build
+
+    - name: configure linux
+      run: cmake --build build --target configure_linux --verbose
+
+    - name: Build linux
+      run: cmake --build build --target make_linux --parallel 4 --verbose
+
+    - name: Check build artifacts
+      run: |
+        cargo --version
+        ls -la linux_bin/scripts/
+
+    - name: Run cargo check
+      run: cargo check
+
+    - name: Run cargo fmt
+      run: cargo fmt --all -- --check
+    
+    - name: Run cargo clippy
+      run: cargo clippy --all-targets -- -D warnings
+
+    - name: Build all kmods
+      run: cmake --build build --target all

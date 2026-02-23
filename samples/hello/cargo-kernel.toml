@@ -1,5 +1,4 @@
 [build]
-target = "../../linux_bin/scripts/target.json"
 
 [unstable]
 build-std = ["core"]
