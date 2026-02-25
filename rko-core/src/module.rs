@@ -19,6 +19,20 @@ pub trait Module: Sized + Send + Sync {
     fn exit(&self) {}
 }
 
+/// Trait for modules that require in-place (pinned) initialization.
+///
+/// Use this when the module state contains pinned fields (e.g. kernel
+/// registrations, mutexes) that cannot be moved after initialization.
+/// The `module!` macro with `init: pin` stores the instance in a
+/// `Pin<KBox<T>>`.
+pub trait InPlaceModule: Send + Sync {
+    /// Returns a pin-initializer for the module.
+    fn init() -> impl pinned_init::PinInit<Self, crate::error::Error>;
+
+    /// Called on module unload, before the instance is dropped.
+    fn exit(&self) {}
+}
+
 /// Declare the module license (`.modinfo` section). Required.
 #[macro_export]
 macro_rules! module_license {
@@ -132,6 +146,72 @@ macro_rules! module {
             unsafe {
                 __MOD.assume_init_ref().exit();
                 __MOD.assume_init_drop();
+            }
+        }
+
+        #[used]
+        #[unsafe(link_section = ".exit.data")]
+        #[allow(non_upper_case_globals)]
+        static __UNIQUE_ID___ADDRESSABLE_CLEANUP_MODULE: extern "C" fn() = cleanup_module;
+
+        #[panic_handler]
+        fn panic(_info: &::core::panic::PanicInfo) -> ! {
+            loop {}
+        }
+    };
+
+    // In-place (pinned) module variant — for types implementing InPlaceModule.
+    (
+        type: $type:ty,
+        name: $name:literal,
+        init: pin,
+        license: $license:literal,
+        author: $author:literal,
+        description: $desc:literal $(,)?
+    ) => {
+        $crate::module_license!($license);
+        $crate::module_author!($author);
+        $crate::module_description!($desc);
+
+        /// Pinned module instance storage.
+        static mut __MOD: ::core::option::Option<::core::pin::Pin<$crate::alloc::KBox<$type>>> =
+            None;
+
+        /// # Safety
+        ///
+        /// Called by the kernel module loader. Must not be called manually.
+        #[unsafe(no_mangle)]
+        #[unsafe(link_section = ".init.text")]
+        pub unsafe extern "C" fn init_module() -> ::core::ffi::c_int {
+            unsafe {
+                $crate::printk::set_log_prefix(concat!($name, "\0").as_bytes());
+            }
+            match $crate::alloc::KBox::pin_init(
+                <$type as $crate::module::InPlaceModule>::init(),
+                $crate::alloc::Flags::GFP_KERNEL,
+            ) {
+                Ok(b) => {
+                    unsafe { __MOD = Some(b) };
+                    0
+                }
+                Err(e) => e.to_errno(),
+            }
+        }
+
+        #[used]
+        #[unsafe(link_section = ".init.data")]
+        #[allow(non_upper_case_globals)]
+        static __UNIQUE_ID___ADDRESSABLE_INIT_MODULE: unsafe extern "C" fn() -> ::core::ffi::c_int =
+            init_module;
+
+        #[unsafe(no_mangle)]
+        #[unsafe(link_section = ".exit.text")]
+        pub extern "C" fn cleanup_module() {
+            unsafe {
+                if let Some(ref m) = __MOD {
+                    m.as_ref().get_ref().exit();
+                }
+                __MOD = None; // Drop the KBox
             }
         }
 

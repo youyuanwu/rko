@@ -4,5 +4,6 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-rko-sys.workspace = true
+rko-sys = { workspace = true, features = ["fs", "fs_context", "helpers", "pagemap", "dcache", "slab", "gfp"] }
 bitflags.workspace = true
+pinned-init.workspace = true

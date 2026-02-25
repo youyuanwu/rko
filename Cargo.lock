@@ -75,9 +75,9 @@ checksum = "843867be96c8daad0d758b57df9392b6d8d271134fce549de6ce169ff98a92af"
 
 [[package]]
 name = "bnd-winmd"
-version = "0.0.3"
+version = "0.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e3f4343bee7e4966d3eed81b95724d2c6f1fb0aa4944bffdc550eafe8a929adf"
+checksum = "5f7c891e16c1edf9bb5991c9fca4ae63186a3e80769d9ba73aaf55d726668dc9"
 dependencies = [
  "anyhow",
  "clang",
@@ -262,10 +262,38 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "384b8ab6d37215f3c5301a95a4accb5d64aa607f1fcb26a11b5303878451b4fe"
 
 [[package]]
+name = "paste"
+version = "1.0.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "57c0d7b74b563b49d38dae00a0c37d4d6de9b432382b2892f0574ddcae73fd0a"
+
+[[package]]
 name = "pin-project-lite"
 version = "0.2.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3b3cff922bd51709b605d9ead9aa71031d81447142d828eb4a6eba76fe619f9b"
+
+[[package]]
+name = "pinned-init"
+version = "0.0.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e82ef52a6d0cd8fb1282340a1c6fb773f64cd28332b03f58d5428e821798153d"
+dependencies = [
+ "paste",
+ "pinned-init-macro",
+ "rustc_version",
+]
+
+[[package]]
+name = "pinned-init-macro"
+version = "0.0.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3d449b713caa03c1db93b217633063bb185412bd24e11564db0f326a890d8dad"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "rustc_version",
+]
 
 [[package]]
 name = "proc-macro2"
@@ -307,6 +335,7 @@ name = "rko-core"
 version = "0.1.0"
 dependencies = [
  "bitflags",
+ "pinned-init",
  "rko-sys",
 ]
 
@@ -325,6 +354,21 @@ dependencies = [
  "tracing-subscriber",
  "windows-bindgen",
 ]
+
+[[package]]
+name = "rustc_version"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cfcb3a22ef46e85b45de6ee7e79d063319ebb6594faafcf1c225ea92ab6e9b92"
+dependencies = [
+ "semver",
+]
+
+[[package]]
+name = "semver"
+version = "1.0.27"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d767eb0aabc880b29956c35734170f26ed551a859dbd361d140cdbeca61ab1e2"
 
 [[package]]
 name = "serde"

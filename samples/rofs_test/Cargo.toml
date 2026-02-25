@@ -1,0 +1,15 @@
+[package]
+name = "rofs_test"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[lib]
+name = "rofs_test"
+path = "rofs_test.rs"
+crate-type = ["staticlib"]
+test = false
+bench = false
+
+[dependencies]
+rko-core.workspace = true

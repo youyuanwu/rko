@@ -4,10 +4,12 @@
 //! `Vec<T, A>` / `KVec<T>` backed by kernel allocators.
 
 mod allocator;
+mod kbox;
 mod kvec;
 mod layout;
 
 pub use allocator::Kmalloc;
+pub use kbox::KBox;
 pub use kvec::{KVec, Vec};
 
 use core::ptr::NonNull;

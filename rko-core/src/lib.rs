@@ -8,6 +8,8 @@
 
 pub mod alloc;
 pub mod error;
+pub mod fs;
 pub mod module;
 pub mod prelude;
 pub mod printk;
+pub mod types;

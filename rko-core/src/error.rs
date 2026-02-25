@@ -30,3 +30,9 @@ impl core::fmt::Debug for Error {
         write!(f, "Error({})", self.0)
     }
 }
+
+impl From<crate::alloc::AllocError> for Error {
+    fn from(_: crate::alloc::AllocError) -> Self {
+        Error::ENOMEM
+    }
+}

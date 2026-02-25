@@ -56,3 +56,4 @@ include(cmake/kernel_module.cmake)
 
 add_subdirectory(samples/hello)
 add_subdirectory(samples/kvec_test)
+add_subdirectory(samples/rofs_test)

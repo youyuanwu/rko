@@ -1,2 +1,0 @@
-obj-m := hello.o
-hello-y := hello_rust.o

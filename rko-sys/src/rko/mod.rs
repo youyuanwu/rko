@@ -8,10 +8,22 @@
     clippy::all
 )]
 
+#[cfg(feature = "dcache")]
+pub mod dcache;
 #[cfg(feature = "err")]
 pub mod err;
+#[cfg(feature = "fs")]
+pub mod fs;
+#[cfg(feature = "fs_context")]
+pub mod fs_context;
 #[cfg(feature = "gfp")]
 pub mod gfp;
+#[cfg(feature = "helpers")]
+pub mod helpers;
+#[cfg(feature = "highmem")]
+pub mod highmem;
+#[cfg(feature = "pagemap")]
+pub mod pagemap;
 #[cfg(feature = "slab")]
 pub mod slab;
 #[cfg(feature = "types")]
