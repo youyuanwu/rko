@@ -26,16 +26,59 @@ endif()
 
 
 add_custom_target(configure_linux
-  COMMAND $(MAKE) LLVM=1 defconfig O=${KBIN_ROOT}
+  # Start from tinyconfig (minimal kernel) and enable only what QEMU tests need
+  COMMAND $(MAKE) LLVM=1 tinyconfig O=${KBIN_ROOT}
+  # 64-bit, ELF, modules, Rust
+  COMMAND scripts/config --set-val CONFIG_64BIT y --file ${KBIN_ROOT}/.config
+  COMMAND scripts/config --set-val CONFIG_MODULES y --file ${KBIN_ROOT}/.config
+  COMMAND scripts/config --set-val CONFIG_MODULE_UNLOAD y --file ${KBIN_ROOT}/.config
   COMMAND scripts/config --set-val CONFIG_RUST y --file ${KBIN_ROOT}/.config
-  COMMAND scripts/config --set-val CONFIG_NETDEVICES n --file ${KBIN_ROOT}/.config
   COMMAND scripts/config --set-val CONFIG_LTO_NONE y --file ${KBIN_ROOT}/.config
+  COMMAND scripts/config --set-val CONFIG_BINFMT_ELF y --file ${KBIN_ROOT}/.config
+  COMMAND scripts/config --set-val CONFIG_BINFMT_SCRIPT y --file ${KBIN_ROOT}/.config
+  # Serial console for QEMU -nographic
+  COMMAND scripts/config --set-val CONFIG_TTY y --file ${KBIN_ROOT}/.config
+  COMMAND scripts/config --set-val CONFIG_SERIAL_8250 y --file ${KBIN_ROOT}/.config
+  COMMAND scripts/config --set-val CONFIG_SERIAL_8250_CONSOLE y --file ${KBIN_ROOT}/.config
+  COMMAND scripts/config --set-val CONFIG_PRINTK y --file ${KBIN_ROOT}/.config
+  # Filesystems needed by init / test scripts
+  COMMAND scripts/config --set-val CONFIG_PROC_FS y --file ${KBIN_ROOT}/.config
+  COMMAND scripts/config --set-val CONFIG_SYSFS y --file ${KBIN_ROOT}/.config
+  COMMAND scripts/config --set-val CONFIG_DEVTMPFS y --file ${KBIN_ROOT}/.config
+  COMMAND scripts/config --set-val CONFIG_DEVTMPFS_MOUNT y --file ${KBIN_ROOT}/.config
+  COMMAND scripts/config --set-val CONFIG_TMPFS y --file ${KBIN_ROOT}/.config
+  # Block layer (needed for initramfs / general kernel infra)
+  COMMAND scripts/config --set-val CONFIG_BLOCK y --file ${KBIN_ROOT}/.config
+  COMMAND scripts/config --set-val CONFIG_BLK_DEV_INITRD y --file ${KBIN_ROOT}/.config
+  # Minimal hardware for QEMU x86_64
+  COMMAND scripts/config --set-val CONFIG_PCI y --file ${KBIN_ROOT}/.config
+  COMMAND scripts/config --set-val CONFIG_ATA y --file ${KBIN_ROOT}/.config
+  COMMAND scripts/config --set-val CONFIG_ATA_PIIX y --file ${KBIN_ROOT}/.config
+  # ACPI needed for QEMU power off
+  COMMAND scripts/config --set-val CONFIG_PM y --file ${KBIN_ROOT}/.config
+  COMMAND scripts/config --set-val CONFIG_ACPI y --file ${KBIN_ROOT}/.config
+  # Busybox needs these
+  COMMAND scripts/config --set-val CONFIG_FUTEX y --file ${KBIN_ROOT}/.config
+  COMMAND scripts/config --set-val CONFIG_EPOLL y --file ${KBIN_ROOT}/.config
+  COMMAND scripts/config --set-val CONFIG_SIGNALFD y --file ${KBIN_ROOT}/.config
+  COMMAND scripts/config --set-val CONFIG_TIMERFD y --file ${KBIN_ROOT}/.config
+  COMMAND scripts/config --set-val CONFIG_EVENTFD y --file ${KBIN_ROOT}/.config
+  # SMP required for standard spinlock / mutex types used by bindings
+  COMMAND scripts/config --set-val CONFIG_SMP y --file ${KBIN_ROOT}/.config
+  # Full SLUB allocator (tinyconfig enables SLUB_TINY which stubs out SLAB_RECLAIM_ACCOUNT)
+  COMMAND scripts/config --set-val CONFIG_SLUB_TINY n --file ${KBIN_ROOT}/.config
+  COMMAND scripts/config --set-val CONFIG_SLUB y --file ${KBIN_ROOT}/.config
+  # Rust emits retpoline thunks and stack-protector calls; kernel must export them
+  COMMAND scripts/config --set-val CONFIG_CPU_MITIGATIONS y --file ${KBIN_ROOT}/.config
+  COMMAND scripts/config --set-val CONFIG_STACKPROTECTOR y --file ${KBIN_ROOT}/.config
+  COMMAND scripts/config --set-val CONFIG_STACKPROTECTOR_STRONG y --file ${KBIN_ROOT}/.config
+  # Resolve dependencies and verify Rust
   COMMAND $(MAKE) LLVM=1 olddefconfig O=${KBIN_ROOT}
   COMMAND $(MAKE) LLVM=1 rustavailable
   WORKING_DIRECTORY ${KDIR_ROOT}
 )
 
-# disable net device to avoid driver conflicts.
+# Build the minimal QEMU kernel
 add_custom_target(make_linux
   COMMAND $(MAKE) LLVM=1 O=${KBIN_ROOT} CC=${K_CC}
   WORKING_DIRECTORY ${KDIR_ROOT}
@@ -51,9 +94,23 @@ endif()
 
 enable_testing()
 
+# Run rko-sys-gen to regenerate rko-sys bindings from kernel headers
+add_custom_target(generate_bindings
+  COMMAND cargo run -p rko-sys-gen
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  COMMENT "Generating rko-sys bindings (bnd-winmd → windows-bindgen)"
+  USES_TERMINAL
+)
+
 # Kernel module build function
 include(cmake/kernel_module.cmake)
 
 add_subdirectory(samples/hello)
 add_subdirectory(samples/kvec_test)
 add_subdirectory(samples/rofs_test)
+
+# Clean all sample build directories
+add_custom_target(clean_samples
+  DEPENDS hello_ko_clean kvec_test_ko_clean rofs_test_ko_clean
+  COMMENT "Cleaning all sample modules"
+)

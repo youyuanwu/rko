@@ -278,8 +278,6 @@ windows_link::link!("kernel" "C" fn collect_paths(param0 : *const path, param1 :
 #[cfg(all(feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn commit_creds(param0 : *mut cred) -> i32);
 #[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn compat_ptr_ioctl(file : *mut file, cmd : u32, arg : u64) -> i64);
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn compat_vma_mmap(file : *mut file, vma : *mut vm_area_struct) -> i32);
 #[cfg(all(feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn complete(param0 : *mut completion));
@@ -657,13 +655,9 @@ windows_link::link!("kernel" "C" fn getname_kernel(param0 : *const i8) -> *mut f
 windows_link::link!("kernel" "C" fn getname_maybe_null(name : *const i8, flags : i32) -> *mut filename);
 windows_link::link!("kernel" "C" fn getname_uflags(param0 : *const i8, param1 : i32) -> *mut filename);
 #[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn groups_alloc(param0 : i32) -> *mut group_info);
+windows_link::link!("kernel" "C" fn groups_free(group_info : *mut group_info));
 #[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn groups_free(param0 : *mut group_info));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn groups_search(param0 : *const group_info, param1 : kgid_t) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn groups_sort(param0 : *mut group_info));
+windows_link::link!("kernel" "C" fn groups_search(group_info : *const group_info, grp : kgid_t) -> i32);
 windows_link::link!("kernel" "C" fn has_capability_noaudit(t : *mut task_struct, cap : i32) -> bool);
 windows_link::link!("kernel" "C" fn has_ns_capability(t : *mut task_struct, ns : *mut core::ffi::c_void, cap : i32) -> bool);
 windows_link::link!("kernel" "C" fn has_ns_capability_noaudit(t : *mut task_struct, ns : *mut core::ffi::c_void, cap : i32) -> bool);
@@ -763,10 +757,10 @@ windows_link::link!("kernel" "C" fn ilookup5_nowait(sb : *mut super_block, hashv
 windows_link::link!("kernel" "C" fn imajor(inode : *const inode) -> u32);
 #[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn iminor(inode : *const inode) -> u32);
-windows_link::link!("kernel" "C" fn in_egroup_p(param0 : kgid_t) -> i32);
+windows_link::link!("kernel" "C" fn in_egroup_p(grp : kgid_t) -> i32);
 #[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn in_group_or_capable(idmap : *mut core::ffi::c_void, inode : *const inode, vfsgid : vfsgid_t) -> bool);
-windows_link::link!("kernel" "C" fn in_group_p(param0 : kgid_t) -> i32);
+windows_link::link!("kernel" "C" fn in_group_p(grp : kgid_t) -> i32);
 #[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn inc_nlink(inode : *mut inode));
 #[cfg(feature = "types")]
@@ -1181,7 +1175,6 @@ windows_link::link!("kernel" "C" fn may_delete_dentry(idmap : *mut core::ffi::c_
 windows_link::link!("kernel" "C" fn may_open_dev(path : *const path) -> bool);
 #[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn may_setattr(idmap : *mut core::ffi::c_void, inode : *mut inode, ia_valid : u32) -> i32);
-windows_link::link!("kernel" "C" fn may_setgroups() -> bool);
 #[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn may_umount(param0 : *mut vfsmount) -> i32);
 #[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
@@ -1504,11 +1497,7 @@ windows_link::link!("kernel" "C" fn set_anon_super_fc(s : *mut super_block, fc :
 windows_link::link!("kernel" "C" fn set_create_files_as(param0 : *mut cred, param1 : *mut inode) -> i32);
 #[cfg(all(feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn set_cred_ucounts(param0 : *mut cred) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn set_current_groups(param0 : *mut group_info) -> i32);
 windows_link::link!("kernel" "C" fn set_delayed_call(call : *mut delayed_call, r#fn : *mut isize, arg : *mut core::ffi::c_void));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn set_groups(param0 : *mut cred, param1 : *mut group_info));
 #[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn set_nlink(inode : *mut inode, nlink : u32));
 #[cfg(feature = "types")]
@@ -1905,7 +1894,7 @@ windows_link::link!("kernel" "C" fn xa_find_after(xa : *mut xarray, index : *mut
 #[cfg(all(feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn xa_get_mark(param0 : *mut xarray, index : u64, param2 : xa_mark_t) -> bool);
 #[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_get_order(param0 : *mut xarray, index : u64) -> i32);
+windows_link::link!("kernel" "C" fn xa_get_order(xa : *mut xarray, index : u64) -> i32);
 #[cfg(all(feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn xa_head(xa : *const xarray) -> *mut core::ffi::c_void);
 #[cfg(all(feature = "sync", feature = "types"))]
@@ -2032,9 +2021,9 @@ windows_link::link!("kernel" "C" fn xas_set_order(xas : *mut xa_state, index : u
 #[cfg(all(feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn xas_set_update(xas : *mut xa_state, update : xa_update_node_t));
 #[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xas_split(param0 : *mut xa_state, entry : *mut core::ffi::c_void, order : u32));
+windows_link::link!("kernel" "C" fn xas_split(xas : *mut xa_state, entry : *mut core::ffi::c_void, order : u32));
 #[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xas_split_alloc(param0 : *mut xa_state, entry : *mut core::ffi::c_void, order : u32, param3 : super::types:: gfp_t));
+windows_link::link!("kernel" "C" fn xas_split_alloc(xas : *mut xa_state, entry : *mut core::ffi::c_void, order : u32, gfp : super::types:: gfp_t));
 #[cfg(all(feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn xas_store(param0 : *mut xa_state, entry : *mut core::ffi::c_void) -> *mut core::ffi::c_void);
 #[cfg(all(feature = "sync", feature = "types"))]
@@ -2386,12 +2375,6 @@ pub struct cred {
     pub cap_effective: kernel_cap_t,
     pub cap_bset: kernel_cap_t,
     pub cap_ambient: kernel_cap_t,
-    pub jit_keyring: u8,
-    pub session_keyring: *mut key,
-    pub process_keyring: *mut key,
-    pub thread_keyring: *mut key,
-    pub request_key_auth: *mut key,
-    pub security: *mut core::ffi::c_void,
     pub user: *mut user_struct,
     pub user_ns: *mut core::ffi::c_void,
     pub ucounts: *mut core::ffi::c_void,
@@ -2555,7 +2538,6 @@ pub struct file {
     pub file__anon_0: file__anon_0,
     pub file__anon_1: file__anon_1,
     pub f_pos: super::types::loff_t,
-    pub f_security: *mut core::ffi::c_void,
     pub f_wb_err: u32,
     pub f_sb_err: u32,
     pub f_ep: *mut super::types::hlist_head,
@@ -2860,14 +2842,11 @@ pub struct inode {
     pub i_mode: super::types::umode_t,
     pub i_opflags: u16,
     pub i_flags: u32,
-    pub i_acl: *mut core::ffi::c_void,
-    pub i_default_acl: *mut core::ffi::c_void,
     pub i_uid: kuid_t,
     pub i_gid: kgid_t,
     pub i_op: *mut inode_operations,
     pub i_sb: *mut super_block,
     pub i_mapping: *mut address_space,
-    pub i_security: *mut core::ffi::c_void,
     pub i_ino: u64,
     pub inode__anon_0: inode__anon_0,
     pub i_rdev: super::types::dev_t,
@@ -2899,14 +2878,11 @@ pub struct inode {
     pub i_count: super::types::atomic_t,
     pub i_dio_count: super::types::atomic_t,
     pub i_writecount: super::types::atomic_t,
-    pub i_readcount: super::types::atomic_t,
     pub inode__anon_2: inode__anon_2,
     pub i_flctx: *mut core::ffi::c_void,
     pub i_data: address_space,
     pub inode__anon_3: inode__anon_3,
     pub inode__anon_4: inode__anon_4,
-    pub i_fsnotify_mask: super::types::__u32,
-    pub i_fsnotify_marks: *mut core::ffi::c_void,
     pub i_private: *mut core::ffi::c_void,
 }
 #[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
@@ -4077,7 +4053,6 @@ pub struct super_block {
     pub s_umount: super::sync::rw_semaphore,
     pub s_count: i32,
     pub s_active: super::types::atomic_t,
-    pub s_security: *mut core::ffi::c_void,
     pub s_xattr: *mut *mut core::ffi::c_void,
     pub s_roots: super::dcache::hlist_bl_head,
     pub s_mounts: *mut core::ffi::c_void,
@@ -4093,8 +4068,6 @@ pub struct super_block {
     pub s_time_gran: u32,
     pub s_time_min: time64_t,
     pub s_time_max: time64_t,
-    pub s_fsnotify_mask: u32,
-    pub s_fsnotify_info: *mut core::ffi::c_void,
     pub s_id: [i8; 32],
     pub s_uuid: uuid_t,
     pub s_uuid_len: u8,
@@ -4152,9 +4125,6 @@ pub struct super_operations {
     pub show_devname: *mut isize,
     pub show_path: *mut isize,
     pub show_stats: *mut isize,
-    pub quota_read: *mut isize,
-    pub quota_write: *mut isize,
-    pub get_dquots: *mut isize,
     pub nr_cached_objects: *mut isize,
     pub free_cached_objects: *mut isize,
     pub remove_bdev: *mut isize,

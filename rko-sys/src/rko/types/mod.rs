@@ -179,8 +179,6 @@ pub type mode_t = __kernel_mode_t;
 pub type mqd_t = __kernel_mqd_t;
 pub type nlink_t = u32;
 pub type off_t = __kernel_off_t;
-pub type old_gid_t = __kernel_old_gid_t;
-pub type old_uid_t = __kernel_old_uid_t;
 pub type phys_addr_t = u64;
 #[repr(C, packed(8))]
 #[derive(Clone, Copy, Default)]

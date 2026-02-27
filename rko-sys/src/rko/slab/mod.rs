@@ -107,13 +107,13 @@ windows_link::link!("kernel" "C" fn kvrealloc_node_align_noprof(p : *const core:
 windows_link::link!("kernel" "C" fn kzalloc_noprof(size : super::types:: size_t, flags : super::types:: gfp_t) -> *mut core::ffi::c_void);
 windows_link::link!("kernel" "C" fn slab_is_available() -> bool);
 pub const KMALLOC_CGROUP: u32 = 0u32;
-pub const KMALLOC_DMA: u32 = 2u32;
+pub const KMALLOC_DMA: u32 = 0u32;
 pub const KMALLOC_NORMAL: u32 = 0u32;
 pub const KMALLOC_RANDOM_END: u32 = 0u32;
 pub const KMALLOC_RANDOM_START: u32 = 0u32;
 pub const KMALLOC_RECLAIM: u32 = 1u32;
 pub const KMALLOC_SHIFT_LOW: i32 = 3i32;
-pub const NR_KMALLOC_TYPES: u32 = 3u32;
+pub const NR_KMALLOC_TYPES: u32 = 2u32;
 pub const RANDOM_KMALLOC_CACHES_NR: i32 = 0i32;
 pub const _SLAB_CACHE_DMA: u32 = 5u32;
 pub const _SLAB_CACHE_DMA32: u32 = 6u32;

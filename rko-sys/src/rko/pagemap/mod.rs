@@ -268,13 +268,6 @@ windows_link::link!("kernel" "C" fn filemap_lock_folio(mapping : *mut super::fs:
     feature = "sync",
     feature = "types"
 ))]
-windows_link::link!("kernel" "C" fn filemap_migrate_folio(mapping : *mut super::fs:: address_space, dst : *mut super::fs:: folio, src : *mut super::fs:: folio, mode : super::fs:: migrate_mode) -> i32);
-#[cfg(all(
-    feature = "dcache",
-    feature = "fs",
-    feature = "sync",
-    feature = "types"
-))]
 windows_link::link!("kernel" "C" fn filemap_nr_thps(mapping : *const super::fs:: address_space) -> i32);
 #[cfg(all(
     feature = "dcache",

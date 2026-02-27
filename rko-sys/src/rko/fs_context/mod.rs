@@ -319,9 +319,7 @@ pub const FS_CONTEXT_RECONFIGURING: u32 = 5u32;
 pub const FS_CONTEXT_RECONF_PARAMS: u32 = 4u32;
 pub const GET_TREE_BDEV_QUIET_LOOKUP: i32 = 1i32;
 pub const UCOUNT_CGROUP_NAMESPACES: u32 = 6u32;
-pub const UCOUNT_COUNTS: u32 = 10u32;
-pub const UCOUNT_INOTIFY_INSTANCES: u32 = 8u32;
-pub const UCOUNT_INOTIFY_WATCHES: u32 = 9u32;
+pub const UCOUNT_COUNTS: u32 = 8u32;
 pub const UCOUNT_IPC_NAMESPACES: u32 = 3u32;
 pub const UCOUNT_MNT_NAMESPACES: u32 = 5u32;
 pub const UCOUNT_NET_NAMESPACES: u32 = 4u32;
@@ -600,7 +598,7 @@ pub struct ucounts {
     pub uid: super::fs::kuid_t,
     pub rcu: super::types::callback_head,
     pub count: super::types::rcuref_t,
-    pub ucount: [super::types::atomic64_t; 10],
+    pub ucount: [super::types::atomic64_t; 8],
     pub rlimit: [super::types::atomic64_t; 4],
 }
 #[cfg(all(
@@ -683,16 +681,12 @@ pub struct user_namespace {
     pub ns: ns_common,
     pub flags: u64,
     pub parent_could_setfcap: bool,
-    pub keyring_name_list: super::types::list_head,
-    pub user_keyring_register: *mut super::fs::key,
-    pub keyring_sem: super::sync::rw_semaphore,
     pub work: super::fs::work_struct,
     pub set: ctl_table_set,
     pub sysctls: *mut ctl_table_header,
     pub ucounts: *mut ucounts,
-    pub ucount_max: [i64; 10],
+    pub ucount_max: [i64; 8],
     pub rlimit_max: [i64; 4],
-    pub binfmt_misc: *mut core::ffi::c_void,
 }
 #[cfg(all(
     feature = "dcache",
