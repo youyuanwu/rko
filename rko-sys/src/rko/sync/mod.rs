@@ -8,16 +8,38 @@
     clippy::all
 )]
 
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn __class_rwsem_init_cleanup_ctx(_t : *mut *mut class_rwsem_init_t));
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn __class_rwsem_read_cleanup_ctx(_t : *mut *mut class_rwsem_read_t));
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn __class_rwsem_read_intr_cleanup_ctx(_t : *mut *mut class_rwsem_read_intr_t));
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn __class_rwsem_read_try_cleanup_ctx(_t : *mut *mut class_rwsem_read_try_t));
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn __class_rwsem_write_cleanup_ctx(_t : *mut *mut class_rwsem_write_t));
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn __class_rwsem_write_kill_cleanup_ctx(_t : *mut *mut class_rwsem_write_kill_t));
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn __class_rwsem_write_try_cleanup_ctx(_t : *mut *mut class_rwsem_write_try_t));
 #[cfg(all(feature = "fs", feature = "types"))]
 windows_link::link!("kernel" "C" fn __init_rwsem(sem : *mut rw_semaphore, name : *const i8, key : *mut super::fs:: lock_class_key));
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn __lockref_is_dead(l : *const lockref) -> bool);
 #[cfg(feature = "types")]
-windows_link::link!("kernel" "C" fn class_rwsem_read_constructor(_t : *mut rw_semaphore) -> *mut rw_semaphore);
+windows_link::link!("kernel" "C" fn class_rwsem_init_constructor(l : *mut rw_semaphore) -> class_rwsem_init_t);
 #[cfg(feature = "types")]
-windows_link::link!("kernel" "C" fn class_rwsem_read_destructor(p : *mut *mut rw_semaphore));
+windows_link::link!("kernel" "C" fn class_rwsem_init_destructor(_t : *mut class_rwsem_init_t));
 #[cfg(feature = "types")]
-windows_link::link!("kernel" "C" fn class_rwsem_read_intr_constructor(_t : class_rwsem_read_t) -> class_rwsem_read_t);
+windows_link::link!("kernel" "C" fn class_rwsem_init_lock_err(_t : *mut class_rwsem_init_t) -> i32);
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn class_rwsem_init_lock_ptr(_t : *mut class_rwsem_init_t) -> *mut core::ffi::c_void);
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn class_rwsem_read_constructor(l : *mut rw_semaphore) -> class_rwsem_read_t);
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn class_rwsem_read_destructor(_t : *mut class_rwsem_read_t));
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn class_rwsem_read_intr_constructor(l : core::ffi::c_void) -> class_rwsem_read_t);
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn class_rwsem_read_intr_destructor(p : *mut class_rwsem_read_t));
 #[cfg(feature = "types")]
@@ -29,7 +51,7 @@ windows_link::link!("kernel" "C" fn class_rwsem_read_lock_err(_t : *mut class_rw
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn class_rwsem_read_lock_ptr(_t : *mut class_rwsem_read_t) -> *mut core::ffi::c_void);
 #[cfg(feature = "types")]
-windows_link::link!("kernel" "C" fn class_rwsem_read_try_constructor(_t : class_rwsem_read_t) -> class_rwsem_read_t);
+windows_link::link!("kernel" "C" fn class_rwsem_read_try_constructor(l : core::ffi::c_void) -> class_rwsem_read_t);
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn class_rwsem_read_try_destructor(p : *mut class_rwsem_read_t));
 #[cfg(feature = "types")]
@@ -37,11 +59,11 @@ windows_link::link!("kernel" "C" fn class_rwsem_read_try_lock_err(_t : *mut clas
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn class_rwsem_read_try_lock_ptr(_t : *mut class_rwsem_read_t) -> *mut core::ffi::c_void);
 #[cfg(feature = "types")]
-windows_link::link!("kernel" "C" fn class_rwsem_write_constructor(_t : *mut rw_semaphore) -> *mut rw_semaphore);
+windows_link::link!("kernel" "C" fn class_rwsem_write_constructor(l : *mut rw_semaphore) -> class_rwsem_write_t);
 #[cfg(feature = "types")]
-windows_link::link!("kernel" "C" fn class_rwsem_write_destructor(p : *mut *mut rw_semaphore));
+windows_link::link!("kernel" "C" fn class_rwsem_write_destructor(_t : *mut class_rwsem_write_t));
 #[cfg(feature = "types")]
-windows_link::link!("kernel" "C" fn class_rwsem_write_kill_constructor(_t : class_rwsem_write_t) -> class_rwsem_write_t);
+windows_link::link!("kernel" "C" fn class_rwsem_write_kill_constructor(l : core::ffi::c_void) -> class_rwsem_write_t);
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn class_rwsem_write_kill_destructor(p : *mut class_rwsem_write_t));
 #[cfg(feature = "types")]
@@ -53,7 +75,7 @@ windows_link::link!("kernel" "C" fn class_rwsem_write_lock_err(_t : *mut class_r
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn class_rwsem_write_lock_ptr(_t : *mut class_rwsem_write_t) -> *mut core::ffi::c_void);
 #[cfg(feature = "types")]
-windows_link::link!("kernel" "C" fn class_rwsem_write_try_constructor(_t : class_rwsem_write_t) -> class_rwsem_write_t);
+windows_link::link!("kernel" "C" fn class_rwsem_write_try_constructor(l : core::ffi::c_void) -> class_rwsem_write_t);
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn class_rwsem_write_try_destructor(p : *mut class_rwsem_write_t));
 #[cfg(feature = "types")]
@@ -132,12 +154,150 @@ impl Default for arch_spinlock_t {
         unsafe { core::mem::zeroed() }
     }
 }
-pub type class_rwsem_read_intr_t = class_rwsem_read_t;
-pub type class_rwsem_read_t = *mut rw_semaphore;
-pub type class_rwsem_read_try_t = class_rwsem_read_t;
-pub type class_rwsem_write_kill_t = class_rwsem_write_t;
-pub type class_rwsem_write_t = *mut rw_semaphore;
-pub type class_rwsem_write_try_t = class_rwsem_write_t;
+#[repr(C, packed(8))]
+#[cfg(feature = "types")]
+#[derive(Clone, Copy)]
+pub struct class_rwsem_init_t {
+    pub lock: *mut rw_semaphore,
+}
+#[cfg(feature = "types")]
+impl Default for class_rwsem_init_t {
+    fn default() -> Self {
+        unsafe { core::mem::zeroed() }
+    }
+}
+#[repr(C)]
+#[cfg(feature = "types")]
+#[derive(Clone, Copy, Default)]
+pub struct class_rwsem_read_intr_t {
+    pub Value: class_rwsem_read_t,
+}
+#[repr(C, packed(8))]
+#[cfg(feature = "types")]
+#[derive(Clone, Copy)]
+pub struct class_rwsem_read_t {
+    pub lock: *mut rw_semaphore,
+}
+#[cfg(feature = "types")]
+impl Default for class_rwsem_read_t {
+    fn default() -> Self {
+        unsafe { core::mem::zeroed() }
+    }
+}
+#[repr(C)]
+#[cfg(feature = "types")]
+#[derive(Clone, Copy, Default)]
+pub struct class_rwsem_read_try_t {
+    pub Value: class_rwsem_read_t,
+}
+#[repr(C)]
+#[cfg(feature = "types")]
+#[derive(Clone, Copy, Default)]
+pub struct class_rwsem_write_kill_t {
+    pub Value: class_rwsem_write_t,
+}
+#[repr(C, packed(8))]
+#[cfg(feature = "types")]
+#[derive(Clone, Copy)]
+pub struct class_rwsem_write_t {
+    pub lock: *mut rw_semaphore,
+}
+#[cfg(feature = "types")]
+impl Default for class_rwsem_write_t {
+    fn default() -> Self {
+        unsafe { core::mem::zeroed() }
+    }
+}
+#[repr(C)]
+#[cfg(feature = "types")]
+#[derive(Clone, Copy, Default)]
+pub struct class_rwsem_write_try_t {
+    pub Value: class_rwsem_write_t,
+}
+#[repr(C)]
+#[cfg(feature = "types")]
+#[derive(Clone, Copy)]
+pub struct lock_rwsem_init_t {
+    pub Value: rw_semaphore,
+}
+#[cfg(feature = "types")]
+impl Default for lock_rwsem_init_t {
+    fn default() -> Self {
+        unsafe { core::mem::zeroed() }
+    }
+}
+#[repr(C)]
+#[cfg(feature = "types")]
+#[derive(Clone, Copy)]
+pub struct lock_rwsem_read_intr_t {
+    pub Value: lock_rwsem_read_t,
+}
+#[cfg(feature = "types")]
+impl Default for lock_rwsem_read_intr_t {
+    fn default() -> Self {
+        unsafe { core::mem::zeroed() }
+    }
+}
+#[repr(C)]
+#[cfg(feature = "types")]
+#[derive(Clone, Copy)]
+pub struct lock_rwsem_read_t {
+    pub Value: rw_semaphore,
+}
+#[cfg(feature = "types")]
+impl Default for lock_rwsem_read_t {
+    fn default() -> Self {
+        unsafe { core::mem::zeroed() }
+    }
+}
+#[repr(C)]
+#[cfg(feature = "types")]
+#[derive(Clone, Copy)]
+pub struct lock_rwsem_read_try_t {
+    pub Value: lock_rwsem_read_t,
+}
+#[cfg(feature = "types")]
+impl Default for lock_rwsem_read_try_t {
+    fn default() -> Self {
+        unsafe { core::mem::zeroed() }
+    }
+}
+#[repr(C)]
+#[cfg(feature = "types")]
+#[derive(Clone, Copy)]
+pub struct lock_rwsem_write_kill_t {
+    pub Value: lock_rwsem_write_t,
+}
+#[cfg(feature = "types")]
+impl Default for lock_rwsem_write_kill_t {
+    fn default() -> Self {
+        unsafe { core::mem::zeroed() }
+    }
+}
+#[repr(C)]
+#[cfg(feature = "types")]
+#[derive(Clone, Copy)]
+pub struct lock_rwsem_write_t {
+    pub Value: rw_semaphore,
+}
+#[cfg(feature = "types")]
+impl Default for lock_rwsem_write_t {
+    fn default() -> Self {
+        unsafe { core::mem::zeroed() }
+    }
+}
+#[repr(C)]
+#[cfg(feature = "types")]
+#[derive(Clone, Copy)]
+pub struct lock_rwsem_write_try_t {
+    pub Value: lock_rwsem_write_t,
+}
+#[cfg(feature = "types")]
+impl Default for lock_rwsem_write_try_t {
+    fn default() -> Self {
+        unsafe { core::mem::zeroed() }
+    }
+}
 #[repr(C, packed(4))]
 #[cfg(feature = "types")]
 #[derive(Clone, Copy)]

@@ -518,7 +518,7 @@ impl Default for module {
         unsafe { core::mem::zeroed() }
     }
 }
-#[repr(C, packed(8))]
+#[repr(C, packed(64))]
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
@@ -527,13 +527,13 @@ impl Default for module {
 ))]
 #[derive(Clone, Copy)]
 pub struct ns_common {
+    pub ns_common__anon_0: ns_common__anon_0,
     pub ns_type: u32,
     pub stashed: *mut super::dcache::dentry,
     pub ops: *mut core::ffi::c_void,
     pub inum: u32,
-    pub __ns_ref: super::sync::refcount_t,
-    pub ns_common__anon_0: ns_common__anon_0,
-    pub _padding: [u8; 160],
+    pub ns_common__anon_1: ns_common__anon_1,
+    pub _padding: [u8; 164],
 }
 #[cfg(all(
     feature = "dcache",
@@ -546,14 +546,27 @@ impl Default for ns_common {
         unsafe { core::mem::zeroed() }
     }
 }
+#[repr(C, packed(64))]
+#[cfg(all(feature = "sync", feature = "types"))]
+#[derive(Clone, Copy)]
+pub struct ns_common__anon_0 {
+    pub __ns_ref: super::sync::refcount_t,
+    pub _padding: [u8; 60],
+}
+#[cfg(all(feature = "sync", feature = "types"))]
+impl Default for ns_common__anon_0 {
+    fn default() -> Self {
+        unsafe { core::mem::zeroed() }
+    }
+}
 #[repr(C, packed(8))]
 #[cfg(feature = "types")]
 #[derive(Clone, Copy)]
-pub union ns_common__anon_0 {
+pub union ns_common__anon_1 {
     pub ns_rcu: super::types::callback_head,
 }
 #[cfg(feature = "types")]
-impl Default for ns_common__anon_0 {
+impl Default for ns_common__anon_1 {
     fn default() -> Self {
         unsafe { core::mem::zeroed() }
     }
@@ -651,7 +664,7 @@ impl Default for uid_gid_map__anon_0__anon_1 {
         unsafe { core::mem::zeroed() }
     }
 }
-#[repr(C, packed(8))]
+#[repr(C, packed(64))]
 #[cfg(all(
     feature = "dcache",
     feature = "fs",

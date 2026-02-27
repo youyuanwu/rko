@@ -34,8 +34,6 @@ windows_link::link!("kernel" "C" fn __kmem_cache_create_args(name : *const i8, o
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn __kmem_cache_default_args(name : *const i8, size : u32, args : *mut kmem_cache_args, flags : super::types:: slab_flags_t) -> *mut core::ffi::c_void);
 #[cfg(feature = "types")]
-windows_link::link!("kernel" "C" fn __ksize(objp : *const core::ffi::c_void) -> super::types:: size_t);
-#[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn __kvmalloc_node_noprof(size : super::types:: size_t, align : u64, flags : super::types:: gfp_t, node : i32) -> *mut core::ffi::c_void);
 windows_link::link!("kernel" "C" fn arch_slab_minalign() -> u32);
 windows_link::link!("kernel" "C" fn kfree(objp : *const core::ffi::c_void));
@@ -121,11 +119,12 @@ pub const _SLAB_CACHE_DMA: u32 = 5u32;
 pub const _SLAB_CACHE_DMA32: u32 = 6u32;
 pub const _SLAB_CMPXCHG_DOUBLE: u32 = 16u32;
 pub const _SLAB_CONSISTENCY_CHECKS: u32 = 0u32;
-pub const _SLAB_FLAGS_LAST_BIT: u32 = 17u32;
+pub const _SLAB_FLAGS_LAST_BIT: u32 = 18u32;
 pub const _SLAB_HWCACHE_ALIGN: u32 = 4u32;
 pub const _SLAB_KMALLOC: u32 = 3u32;
 pub const _SLAB_NOLEAKTRACE: u32 = 11u32;
 pub const _SLAB_NO_MERGE: u32 = 12u32;
+pub const _SLAB_NO_OBJ_EXT: u32 = 17u32;
 pub const _SLAB_NO_USER_FLAGS: u32 = 13u32;
 pub const _SLAB_OBJECT_POISON: u32 = 15u32;
 pub const _SLAB_PANIC: u32 = 8u32;

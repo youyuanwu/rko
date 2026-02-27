@@ -15,6 +15,12 @@ windows_link::link!("kernel" "C" fn clear_highpage_kasan_tagged(page : *mut supe
 #[cfg(feature = "pagemap")]
 windows_link::link!("kernel" "C" fn clear_user_highpage(page : *mut super::pagemap:: page, vaddr : u64));
 #[cfg(feature = "pagemap")]
+windows_link::link!("kernel" "C" fn clear_user_highpages(page : *mut super::pagemap:: page, vaddr : u64, npages : u32));
+#[cfg(feature = "pagemap")]
+windows_link::link!("kernel" "C" fn clear_user_page(addr : *mut core::ffi::c_void, vaddr : u64, page : *mut super::pagemap:: page));
+#[cfg(feature = "pagemap")]
+windows_link::link!("kernel" "C" fn clear_user_pages(addr : *mut core::ffi::c_void, vaddr : u64, page : *mut super::pagemap:: page, npages : u32));
+#[cfg(feature = "pagemap")]
 windows_link::link!("kernel" "C" fn copy_highpage(to : *mut super::pagemap:: page, from : *mut super::pagemap:: page));
 #[cfg(feature = "pagemap")]
 windows_link::link!("kernel" "C" fn copy_mc_highpage(to : *mut super::pagemap:: page, from : *mut super::pagemap:: page) -> i32);

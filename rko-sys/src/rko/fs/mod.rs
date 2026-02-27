@@ -40,7 +40,6 @@ windows_link::link!("kernel" "C" fn __generic_file_fsync(param0 : *mut file, par
 windows_link::link!("kernel" "C" fn __generic_file_write_iter(param0 : *mut kiocb, param1 : *mut core::ffi::c_void) -> super::types:: ssize_t);
 #[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn __generic_remap_file_range_prep(file_in : *mut file, pos_in : super::types:: loff_t, file_out : *mut file, pos_out : super::types:: loff_t, len : *mut super::types:: loff_t, remap_flags : u32, dax_read_ops : *const core::ffi::c_void) -> i32);
-#[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn __getname_maybe_null(param0 : *const i8) -> *mut filename);
 #[cfg(feature = "dcache")]
 windows_link::link!("kernel" "C" fn __hlist_bl_del(n : *mut super::dcache:: hlist_bl_node));
@@ -218,9 +217,22 @@ windows_link::link!("kernel" "C" fn change_pid(pids : *mut *mut pid, task : *mut
 #[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn check_sticky(idmap : *mut core::ffi::c_void, dir : *mut inode, inode : *mut inode) -> i32);
 windows_link::link!("kernel" "C" fn checkpoint_restore_ns_capable(ns : *mut core::ffi::c_void) -> bool);
+windows_link::link!("kernel" "C" fn checkpoint_restore_ns_capable_noaudit(ns : *mut core::ffi::c_void) -> bool);
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn chrdev_show(param0 : *mut core::ffi::c_void, param1 : super::types:: off_t));
 windows_link::link!("kernel" "C" fn cifs_root_data(dev : *mut *mut i8, opts : *mut *mut i8) -> i32);
+windows_link::link!("kernel" "C" fn class_filename_complete_delayed_constructor(p : *mut delayed_filename) -> class_filename_t);
+windows_link::link!("kernel" "C" fn class_filename_complete_delayed_destructor(p : *mut class_filename_t));
+windows_link::link!("kernel" "C" fn class_filename_constructor(p : *const i8) -> *mut filename);
+windows_link::link!("kernel" "C" fn class_filename_destructor(p : *mut *mut filename));
+windows_link::link!("kernel" "C" fn class_filename_flags_constructor(p : *const i8, f : u32) -> class_filename_t);
+windows_link::link!("kernel" "C" fn class_filename_flags_destructor(p : *mut class_filename_t));
+windows_link::link!("kernel" "C" fn class_filename_kernel_constructor(p : *const i8) -> class_filename_t);
+windows_link::link!("kernel" "C" fn class_filename_kernel_destructor(p : *mut class_filename_t));
+windows_link::link!("kernel" "C" fn class_filename_maybe_null_constructor(p : *const i8, f : u32) -> class_filename_t);
+windows_link::link!("kernel" "C" fn class_filename_maybe_null_destructor(p : *mut class_filename_t));
+windows_link::link!("kernel" "C" fn class_filename_uflags_constructor(p : *const i8, f : u32) -> class_filename_t);
+windows_link::link!("kernel" "C" fn class_filename_uflags_destructor(p : *mut class_filename_t));
 #[cfg(all(feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn class_override_creds_constructor(override_cred : *const cred) -> *mut cred);
 #[cfg(all(feature = "sync", feature = "types"))]
@@ -275,6 +287,7 @@ windows_link::link!("kernel" "C" fn complete(param0 : *mut completion));
 windows_link::link!("kernel" "C" fn complete_acquire(x : *mut completion));
 #[cfg(all(feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn complete_all(param0 : *mut completion));
+windows_link::link!("kernel" "C" fn complete_getname(param0 : *mut delayed_filename) -> *mut filename);
 #[cfg(all(feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn complete_on_current_cpu(x : *mut completion));
 #[cfg(all(feature = "sync", feature = "types"))]
@@ -312,10 +325,12 @@ windows_link::link!("kernel" "C" fn deactivate_super(sb : *mut super_block));
 windows_link::link!("kernel" "C" fn default_llseek(file : *mut file, offset : super::types:: loff_t, whence : i32) -> super::types:: loff_t);
 #[cfg(feature = "pagemap")]
 windows_link::link!("kernel" "C" fn default_wake_function(wq_entry : *mut super::pagemap:: wait_queue_entry, mode : u32, flags : i32, key : *mut core::ffi::c_void) -> i32);
+windows_link::link!("kernel" "C" fn delayed_getname(param0 : *mut delayed_filename, param1 : *const i8) -> i32);
+windows_link::link!("kernel" "C" fn delayed_getname_uflags(v : *mut delayed_filename, param1 : *const i8, param2 : i32) -> i32);
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn delayed_work_timer_fn(t : *mut timer_list));
 #[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn dentry_create(path : *const path, flags : i32, mode : super::types:: umode_t, cred : *const cred) -> *mut file);
+windows_link::link!("kernel" "C" fn dentry_create(path : *mut path, flags : i32, mode : super::types:: umode_t, cred : *const cred) -> *mut file);
 #[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn dentry_open(path : *const path, flags : i32, creds : *const cred) -> *mut file);
 #[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
@@ -341,6 +356,7 @@ windows_link::link!("kernel" "C" fn direct_write_fallback(iocb : *mut kiocb, ite
 windows_link::link!("kernel" "C" fn disable_pid_allocation(ns : *mut core::ffi::c_void));
 #[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn discard_new_inode(param0 : *mut inode));
+windows_link::link!("kernel" "C" fn dismiss_delayed_filename(param0 : *mut delayed_filename));
 windows_link::link!("kernel" "C" fn do_delayed_call(call : *mut delayed_call));
 windows_link::link!("kernel" "C" fn do_mount(param0 : *const i8, param1 : *const i8, param2 : *const i8, param3 : u64, param4 : *mut core::ffi::c_void) -> i32);
 windows_link::link!("kernel" "C" fn do_notify_pidfd(task : *mut task_struct));
@@ -592,7 +608,7 @@ windows_link::link!("kernel" "C" fn generic_set_sb_d_ops(sb : *mut super_block))
 #[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn generic_shutdown_super(sb : *mut super_block));
 #[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn generic_update_time(param0 : *mut inode, param1 : i32) -> i32);
+windows_link::link!("kernel" "C" fn generic_update_time(inode : *mut inode, r#type : fs_update_time, flags : u32) -> i32);
 #[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn generic_write_check_limits(file : *mut file, pos : super::types:: loff_t, count : *mut super::types:: loff_t) -> i32);
 #[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
@@ -635,15 +651,10 @@ windows_link::link!("kernel" "C" fn get_task_pid(task : *mut task_struct, r#type
 windows_link::link!("kernel" "C" fn get_vfs_caps_from_disk(idmap : *mut core::ffi::c_void, dentry : *const super::dcache:: dentry, cpu_caps : *mut cpu_vfs_cap_data) -> i32);
 #[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn get_write_access(inode : *mut inode) -> i32);
-#[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn getname(name : *const i8) -> *mut filename);
-#[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn getname_flags(param0 : *const i8, param1 : i32) -> *mut filename);
-#[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn getname_kernel(param0 : *const i8) -> *mut filename);
-#[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn getname_maybe_null(name : *const i8, flags : i32) -> *mut filename);
-#[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn getname_uflags(param0 : *const i8, param1 : i32) -> *mut filename);
 #[cfg(all(feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn groups_alloc(param0 : i32) -> *mut group_info);
@@ -920,6 +931,8 @@ windows_link::link!("kernel" "C" fn inode_state_set_raw(inode : *mut inode, flag
 #[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn inode_sub_bytes(inode : *mut inode, bytes : super::types:: loff_t));
 #[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
+windows_link::link!("kernel" "C" fn inode_time_dirty_flag(inode : *mut inode) -> i32);
+#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn inode_trylock(inode : *mut inode) -> i32);
 #[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn inode_trylock_shared(inode : *mut inode) -> i32);
@@ -930,9 +943,7 @@ windows_link::link!("kernel" "C" fn inode_unlock(inode : *mut inode));
 #[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn inode_unlock_shared(inode : *mut inode));
 #[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn inode_update_time(inode : *mut inode, flags : i32) -> i32);
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn inode_update_timestamps(inode : *mut inode, flags : i32) -> i32);
+windows_link::link!("kernel" "C" fn inode_update_time(inode : *mut inode, r#type : fs_update_time, flags : u32) -> i32);
 #[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn inode_wake_up_bit(inode : *mut inode, bit : u32));
 #[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
@@ -955,8 +966,6 @@ windows_link::link!("kernel" "C" fn iput_not_last(param0 : *mut inode));
 windows_link::link!("kernel" "C" fn is_bad_inode(param0 : *mut inode) -> bool);
 #[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn is_child_reaper(pid : *mut pid) -> bool);
-#[cfg(feature = "types")]
-windows_link::link!("kernel" "C" fn is_dot_dotdot(name : *const i8, len : super::types:: size_t) -> bool);
 #[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn is_empty_dir_inode(inode : *mut inode) -> bool);
 windows_link::link!("kernel" "C" fn is_global_init(tsk : *mut task_struct) -> i32);
@@ -1123,8 +1132,6 @@ windows_link::link!("kernel" "C" fn mas_empty_area_rev(mas : *mut ma_state, min 
 #[cfg(all(feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn mas_erase(mas : *mut ma_state) -> *mut core::ffi::c_void);
 #[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mas_expected_entries(mas : *mut ma_state, nr_entries : u64) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn mas_find(mas : *mut ma_state, max : u64) -> *mut core::ffi::c_void);
 #[cfg(all(feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn mas_find_range(mas : *mut ma_state, max : u64) -> *mut core::ffi::c_void);
@@ -1166,6 +1173,10 @@ windows_link::link!("kernel" "C" fn mas_store_gfp(mas : *mut ma_state, entry : *
 windows_link::link!("kernel" "C" fn mas_store_prealloc(mas : *mut ma_state, entry : *mut core::ffi::c_void));
 #[cfg(all(feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn mas_walk(mas : *mut ma_state) -> *mut core::ffi::c_void);
+#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
+windows_link::link!("kernel" "C" fn may_create_dentry(idmap : *mut core::ffi::c_void, dir : *mut inode, child : *mut super::dcache:: dentry) -> i32);
+#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
+windows_link::link!("kernel" "C" fn may_delete_dentry(idmap : *mut core::ffi::c_void, dir : *mut inode, victim : *mut super::dcache:: dentry, isdir : bool) -> i32);
 #[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn may_open_dev(path : *const path) -> bool);
 #[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
@@ -1255,6 +1266,12 @@ windows_link::link!("kernel" "C" fn mtree_store(mt : *mut maple_tree, index : u6
 #[cfg(all(feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn mtree_store_range(mt : *mut maple_tree, first : u64, last : u64, entry : *mut core::ffi::c_void, gfp : super::types:: gfp_t) -> i32);
 windows_link::link!("kernel" "C" fn name_contains_dotdot(name : *const i8) -> bool);
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn name_is_dot(name : *const i8, len : super::types:: size_t) -> bool);
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn name_is_dot_dotdot(name : *const i8, len : super::types:: size_t) -> bool);
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn name_is_dotdot(name : *const i8, len : super::types:: size_t) -> bool);
 #[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn new_inode(sb : *mut super_block) -> *mut inode);
 #[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
@@ -1426,8 +1443,8 @@ windows_link::link!("kernel" "C" fn put_filesystem(fs : *mut file_system_type));
 windows_link::link!("kernel" "C" fn put_pid(pid : *mut pid));
 #[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn put_write_access(inode : *mut inode));
-#[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn putname(name : *mut filename));
+windows_link::link!("kernel" "C" fn putname_to_delayed(param0 : *mut delayed_filename, param1 : *mut filename) -> i32);
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn qid_eq(left : kqid, right : kqid) -> bool);
 #[cfg(feature = "types")]
@@ -1451,8 +1468,6 @@ windows_link::link!("kernel" "C" fn rcu_sync_init(param0 : *mut rcu_sync));
 #[cfg(all(feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn rcu_sync_is_idle(rsp : *mut rcu_sync) -> bool);
 windows_link::link!("kernel" "C" fn readlink_copy(param0 : *mut i8, param1 : i32, param2 : *const i8, param3 : i32) -> i32);
-#[cfg(feature = "types")]
-windows_link::link!("kernel" "C" fn refname(name : *mut filename) -> *mut filename);
 windows_link::link!("kernel" "C" fn register_chrdev(major : u32, name : *const i8, fops : *const file_operations) -> i32);
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn register_chrdev_region(param0 : super::types:: dev_t, param1 : u32, param2 : *const i8) -> i32);
@@ -1471,6 +1486,10 @@ windows_link::link!("kernel" "C" fn remove_wait_queue(wq_head : *mut wait_queue_
 windows_link::link!("kernel" "C" fn retire_super(sb : *mut super_block));
 #[cfg(all(feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn revert_creds(revert_cred : *const cred) -> *mut cred);
+#[cfg(all(feature = "sync", feature = "types"))]
+windows_link::link!("kernel" "C" fn rhashtable_init_noprof(ht : *mut rhashtable, params : *const rhashtable_params) -> i32);
+#[cfg(all(feature = "sync", feature = "types"))]
+windows_link::link!("kernel" "C" fn rhltable_init_noprof(hlt : *mut rhltable, params : *const rhashtable_params) -> i32);
 #[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn rw_verify_area(param0 : i32, param1 : *mut file, param2 : *const super::types:: loff_t, param3 : super::types:: size_t) -> i32);
 #[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
@@ -1496,8 +1515,6 @@ windows_link::link!("kernel" "C" fn set_nlink(inode : *mut inode, nlink : u32));
 windows_link::link!("kernel" "C" fn set_normalized_timespec64(ts : *mut timespec64, sec : time64_t, nsec : i64));
 #[cfg(all(feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn set_security_override(param0 : *mut cred, param1 : u32) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn set_security_override_from_ctx(param0 : *mut cred, param1 : *const i8) -> i32);
 #[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn setattr_copy(param0 : *mut core::ffi::c_void, inode : *mut inode, attr : *const iattr));
 #[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
@@ -1546,8 +1563,6 @@ windows_link::link!("kernel" "C" fn simple_inode_init_ts(inode : *mut inode) -> 
 windows_link::link!("kernel" "C" fn simple_link(param0 : *mut super::dcache:: dentry, param1 : *mut inode, param2 : *mut super::dcache:: dentry) -> i32);
 #[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn simple_lookup(param0 : *mut inode, param1 : *mut super::dcache:: dentry, flags : u32) -> *mut super::dcache:: dentry);
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn simple_nosetlease(param0 : *mut file, param1 : i32, param2 : *mut *mut core::ffi::c_void, param3 : *mut *mut core::ffi::c_void) -> i32);
 #[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn simple_offset_add(octx : *mut offset_ctx, dentry : *mut super::dcache:: dentry) -> i32);
 #[cfg(all(feature = "sync", feature = "types"))]
@@ -1647,6 +1662,8 @@ windows_link::link!("kernel" "C" fn task_pid_vnr(tsk : *mut task_struct) -> supe
 windows_link::link!("kernel" "C" fn task_ppid_nr(tsk : *const task_struct) -> super::types:: pid_t);
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn task_ppid_nr_ns(tsk : *const task_struct, ns : *mut core::ffi::c_void) -> super::types:: pid_t);
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn task_ppid_vnr(tsk : *const task_struct) -> super::types:: pid_t);
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn task_session_nr_ns(tsk : *mut task_struct, ns : *mut core::ffi::c_void) -> super::types:: pid_t);
 #[cfg(feature = "types")]
@@ -2069,12 +2086,15 @@ pub const FS_MGTIME: i32 = 64i32;
 pub const FS_POWER_FREEZE: i32 = 256i32;
 pub const FS_RENAME_DOES_D_MOVE: i32 = 32768i32;
 pub const FS_REQUIRES_DEV: i32 = 1i32;
+pub const FS_UPD_ATIME: u32 = 0u32;
+pub const FS_UPD_CMTIME: u32 = 1u32;
 pub const FS_USERNS_MOUNT: i32 = 8i32;
 pub const GRPQUOTA: u32 = 1u32;
 pub const IOP_CACHED_LINK: i32 = 64i32;
 pub const IOP_DEFAULT_READLINK: i32 = 16i32;
 pub const IOP_FASTPERM: i32 = 1i32;
 pub const IOP_FASTPERM_MAY_EXEC: i32 = 128i32;
+pub const IOP_FLCTX: i32 = 256i32;
 pub const IOP_LOOKUP: i32 = 2i32;
 pub const IOP_MGTIME: i32 = 32i32;
 pub const IOP_NOFOLLOW: i32 = 4i32;
@@ -2218,11 +2238,7 @@ pub const SB_I_USERNS_VISIBLE: i32 = 16i32;
 pub const SB_UNFROZEN: u32 = 0u32;
 pub const STATX_ATTR_CHANGE_MONOTONIC: u64 = 9223372036854775808u64;
 pub const STATX_CHANGE_COOKIE: i32 = 1073741824i32;
-pub const S_ATIME: u32 = 1u32;
-pub const S_CTIME: u32 = 4u32;
 pub const S_DAX: i32 = 0i32;
-pub const S_MTIME: u32 = 2u32;
-pub const S_VERSION: u32 = 8u32;
 pub const UMOUNT_NOFOLLOW: i32 = 8i32;
 pub const UMOUNT_UNUSED: i32 = -2147483648i32;
 pub const USRQUOTA: u32 = 0u32;
@@ -2252,6 +2268,18 @@ pub const _DQUOT_USAGE_ENABLED: u32 = 0u32;
 pub const __I_LRU_ISOLATING: u32 = 2u32;
 pub const __I_NEW: u32 = 0u32;
 pub const __I_SYNC: u32 = 1u32;
+#[repr(C, packed(8))]
+#[derive(Clone, Copy)]
+pub struct __filename_head {
+    pub name: *mut i8,
+    pub refcnt: i32,
+    pub aname: *mut core::ffi::c_void,
+}
+impl Default for __filename_head {
+    fn default() -> Self {
+        unsafe { core::mem::zeroed() }
+    }
+}
 #[repr(C, packed(8))]
 #[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
 #[derive(Clone, Copy)]
@@ -2306,6 +2334,12 @@ impl Default for address_space_operations {
         unsafe { core::mem::zeroed() }
     }
 }
+pub type class_filename_complete_delayed_t = class_filename_t;
+pub type class_filename_flags_t = class_filename_t;
+pub type class_filename_kernel_t = class_filename_t;
+pub type class_filename_maybe_null_t = class_filename_t;
+pub type class_filename_t = *mut filename;
+pub type class_filename_uflags_t = class_filename_t;
 pub type class_override_creds_t = *mut cred;
 pub type class_percpu_read_t = *mut percpu_rw_semaphore;
 pub type class_percpu_read_try_t = class_percpu_read_t;
@@ -2391,6 +2425,16 @@ pub struct delayed_call {
     pub arg: *mut core::ffi::c_void,
 }
 impl Default for delayed_call {
+    fn default() -> Self {
+        unsafe { core::mem::zeroed() }
+    }
+}
+#[repr(C, packed(8))]
+#[derive(Clone, Copy)]
+pub struct delayed_filename {
+    pub __incomplete_filename: *mut filename,
+}
+impl Default for delayed_filename {
     fn default() -> Self {
         unsafe { core::mem::zeroed() }
     }
@@ -2662,7 +2706,6 @@ pub struct file_system_type {
     pub fs_flags: i32,
     pub init_fs_context: *mut isize,
     pub parameters: *mut core::ffi::c_void,
-    pub mount: *mut isize,
     pub kill_sb: *mut isize,
     pub owner: *mut core::ffi::c_void,
     pub next: *mut file_system_type,
@@ -2682,18 +2725,11 @@ impl Default for file_system_type {
         unsafe { core::mem::zeroed() }
     }
 }
-pub type file_time_flags = u32;
 #[repr(C, packed(8))]
-#[cfg(feature = "types")]
 #[derive(Clone, Copy)]
 pub struct filename {
-    pub name: *mut i8,
-    pub uptr: *mut i8,
-    pub refcnt: super::types::atomic_t,
-    pub aname: *mut core::ffi::c_void,
-    pub iname: *mut i8,
+    pub iname: [i8; 168],
 }
-#[cfg(feature = "types")]
 impl Default for filename {
     fn default() -> Self {
         unsafe { core::mem::zeroed() }
@@ -2751,6 +2787,7 @@ impl Default for freeptr_t {
     }
 }
 pub type freeze_holder = u32;
+pub type fs_update_time = u32;
 #[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
 pub type get_block_t = Option<
     unsafe extern "system" fn(
@@ -2961,6 +2998,7 @@ pub struct inode_operations {
     pub listxattr: *mut isize,
     pub fiemap: *mut isize,
     pub update_time: *mut isize,
+    pub sync_lazytime: *mut isize,
     pub atomic_open: *mut isize,
     pub tmpfile: *mut isize,
     pub get_acl: *mut isize,
@@ -2968,7 +3006,7 @@ pub struct inode_operations {
     pub fileattr_set: *mut isize,
     pub fileattr_get: *mut isize,
     pub get_offset_ctx: *mut isize,
-    pub _padding: [u8; 56],
+    pub _padding: [u8; 48],
 }
 impl Default for inode_operations {
     fn default() -> Self {
@@ -3192,6 +3230,17 @@ impl Default for llist_node {
 #[repr(C, packed(1))]
 #[derive(Clone, Copy, Default)]
 pub struct lock_class_key(pub u8);
+pub type lock_filename_complete_delayed_t = lock_filename_t;
+pub type lock_filename_flags_t = lock_filename_t;
+pub type lock_filename_kernel_t = lock_filename_t;
+pub type lock_filename_maybe_null_t = lock_filename_t;
+pub type lock_filename_t = *mut filename;
+pub type lock_filename_uflags_t = lock_filename_t;
+pub type lock_override_creds_t = *mut cred;
+pub type lock_percpu_read_t = *mut percpu_rw_semaphore;
+pub type lock_percpu_read_try_t = lock_percpu_read_t;
+pub type lock_percpu_write_t = *mut percpu_rw_semaphore;
+pub type lock_prepare_creds_t = *mut cred;
 pub type lockdep_lock_type = u32;
 #[repr(C, packed(1))]
 #[derive(Clone, Copy, Default)]
@@ -3272,19 +3321,6 @@ impl Default for ma_wr_state {
 }
 #[repr(C, packed(8))]
 #[derive(Clone, Copy)]
-pub struct maple_alloc {
-    pub total: u64,
-    pub node_count: u8,
-    pub request_count: u32,
-    pub slot: [*mut maple_alloc; 30],
-}
-impl Default for maple_alloc {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-#[repr(C, packed(8))]
-#[derive(Clone, Copy)]
 pub struct maple_arange_64 {
     pub parent: *mut core::ffi::c_void,
     pub pivot: [u64; 9],
@@ -3326,7 +3362,6 @@ pub union maple_node__anon_0 {
     pub maple_node__anon_0__anon_1: maple_node__anon_0__anon_1,
     pub mr64: maple_range_64,
     pub ma64: maple_arange_64,
-    pub alloc: maple_alloc,
 }
 #[cfg(feature = "types")]
 impl Default for maple_node__anon_0 {
@@ -3567,7 +3602,7 @@ impl Default for pid {
 #[derive(Clone, Copy)]
 pub struct pid__anon_0 {
     pub ino: u64,
-    pub pidfs_node: rb_node,
+    pub pidfs_hash: rhash_head,
     pub stashed: *mut super::dcache::dentry,
     pub attr: *mut core::ffi::c_void,
 }
@@ -3789,6 +3824,131 @@ impl Default for renamedata {
         unsafe { core::mem::zeroed() }
     }
 }
+#[repr(C, packed(8))]
+#[derive(Clone, Copy)]
+pub struct rhash_head {
+    pub next: *mut rhash_head,
+}
+impl Default for rhash_head {
+    fn default() -> Self {
+        unsafe { core::mem::zeroed() }
+    }
+}
+#[repr(C, packed(8))]
+#[cfg(all(feature = "sync", feature = "types"))]
+#[derive(Clone, Copy)]
+pub struct rhashtable {
+    pub tbl: *mut core::ffi::c_void,
+    pub key_len: u32,
+    pub max_elems: u32,
+    pub p: rhashtable_params,
+    pub rhlist: bool,
+    pub run_work: work_struct,
+    pub mutex: super::sync::mutex,
+    pub lock: super::sync::spinlock_t,
+    pub nelems: super::types::atomic_t,
+}
+#[cfg(all(feature = "sync", feature = "types"))]
+impl Default for rhashtable {
+    fn default() -> Self {
+        unsafe { core::mem::zeroed() }
+    }
+}
+#[repr(C, packed(8))]
+#[cfg(all(feature = "sync", feature = "types"))]
+#[derive(Clone, Copy)]
+pub struct rhashtable_compare_arg {
+    pub ht: *mut rhashtable,
+    pub key: *mut core::ffi::c_void,
+}
+#[cfg(all(feature = "sync", feature = "types"))]
+impl Default for rhashtable_compare_arg {
+    fn default() -> Self {
+        unsafe { core::mem::zeroed() }
+    }
+}
+#[repr(C, packed(8))]
+#[cfg(all(feature = "sync", feature = "types"))]
+#[derive(Clone, Copy)]
+pub struct rhashtable_iter {
+    pub ht: *mut rhashtable,
+    pub p: *mut rhash_head,
+    pub list: *mut rhlist_head,
+    pub walker: rhashtable_walker,
+    pub slot: u32,
+    pub skip: u32,
+    pub end_of_table: bool,
+}
+#[cfg(all(feature = "sync", feature = "types"))]
+impl Default for rhashtable_iter {
+    fn default() -> Self {
+        unsafe { core::mem::zeroed() }
+    }
+}
+#[repr(C, packed(8))]
+#[cfg(all(feature = "sync", feature = "types"))]
+#[derive(Clone, Copy, Default)]
+pub struct rhashtable_params {
+    pub nelem_hint: u16,
+    pub key_len: u16,
+    pub key_offset: u16,
+    pub head_offset: u16,
+    pub max_size: u32,
+    pub min_size: u16,
+    pub automatic_shrinking: bool,
+    pub hashfn: rht_hashfn_t,
+    pub obj_hashfn: rht_obj_hashfn_t,
+    pub obj_cmpfn: rht_obj_cmpfn_t,
+}
+#[repr(C, packed(8))]
+#[cfg(feature = "types")]
+#[derive(Clone, Copy)]
+pub struct rhashtable_walker {
+    pub list: super::types::list_head,
+    pub tbl: *mut core::ffi::c_void,
+}
+#[cfg(feature = "types")]
+impl Default for rhashtable_walker {
+    fn default() -> Self {
+        unsafe { core::mem::zeroed() }
+    }
+}
+#[repr(C, packed(8))]
+#[derive(Clone, Copy)]
+pub struct rhlist_head {
+    pub rhead: rhash_head,
+    pub next: *mut rhlist_head,
+}
+impl Default for rhlist_head {
+    fn default() -> Self {
+        unsafe { core::mem::zeroed() }
+    }
+}
+#[repr(C, packed(8))]
+#[cfg(all(feature = "sync", feature = "types"))]
+#[derive(Clone, Copy)]
+pub struct rhltable {
+    pub ht: rhashtable,
+}
+#[cfg(all(feature = "sync", feature = "types"))]
+impl Default for rhltable {
+    fn default() -> Self {
+        unsafe { core::mem::zeroed() }
+    }
+}
+pub type rht_hashfn_t = Option<
+    unsafe extern "system" fn(param0: *const core::ffi::c_void, param1: u32, param2: u32) -> u32,
+>;
+#[cfg(all(feature = "sync", feature = "types"))]
+pub type rht_obj_cmpfn_t = Option<
+    unsafe extern "system" fn(
+        param0: *const rhashtable_compare_arg,
+        param1: *const core::ffi::c_void,
+    ) -> i32,
+>;
+pub type rht_obj_hashfn_t = Option<
+    unsafe extern "system" fn(param0: *const core::ffi::c_void, param1: u32, param2: u32) -> u32,
+>;
 pub type rw_hint = u8;
 pub type rwf_t = i32;
 #[repr(C, packed(4))]
@@ -3962,7 +4122,7 @@ pub struct super_block {
     pub s_inode_wblist_lock: super::sync::spinlock_t,
     pub s_inodes_wb: super::types::list_head,
     pub s_min_writeback_pages: i64,
-    pub _padding: [u8; 8],
+    pub s_pending_errors: super::sync::refcount_t,
 }
 #[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
 impl Default for super_block {
@@ -3987,7 +4147,6 @@ pub struct super_operations {
     pub thaw_super: *mut isize,
     pub unfreeze_fs: *mut isize,
     pub statfs: *mut isize,
-    pub remount_fs: *mut isize,
     pub umount_begin: *mut isize,
     pub show_options: *mut isize,
     pub show_devname: *mut isize,
@@ -4000,6 +4159,7 @@ pub struct super_operations {
     pub free_cached_objects: *mut isize,
     pub remove_bdev: *mut isize,
     pub shutdown: *mut isize,
+    pub report_error: *mut isize,
 }
 impl Default for super_operations {
     fn default() -> Self {

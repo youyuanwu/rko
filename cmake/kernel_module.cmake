@@ -67,18 +67,14 @@ function(add_kernel_module)
     endforeach()
   endif()
 
-  # Generate Kbuild in build dir at configure time
-  file(MAKE_DIRECTORY ${BUILD_DIR})
-  file(WRITE ${BUILD_DIR}/Kbuild
-    "obj-m := ${KM_NAME}.o\n"
-    "${KM_NAME}-y := ${KBUILD_OBJS}\n"
-  )
-
   # Step 1: cargo build → lib<name>.a
   set(CARGO_TARGET_CFG "build.target=\"${KBIN_ROOT}/scripts/target.json\"")
+  set(KBUILD_LINE1 "obj-m := ${KM_NAME}.o")
+  set(KBUILD_LINE2 "${KM_NAME}-y := ${KBUILD_OBJS}")
   add_custom_command(
     OUTPUT ${BUILD_DIR}/lib${KM_NAME}.a
     COMMAND ${CMAKE_COMMAND} -E make_directory ${BUILD_DIR}
+    COMMAND sh -c "printf '%s\\n' '${KBUILD_LINE1}' '${KBUILD_LINE2}' > '${BUILD_DIR}/Kbuild'"
     COMMAND ${CMAKE_COMMAND} -E env RUSTC_BOOTSTRAP=1
       cargo
         --config ${SAMPLES_DIR}/cargo-kernel.toml

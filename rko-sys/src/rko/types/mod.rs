@@ -182,6 +182,12 @@ pub type off_t = __kernel_off_t;
 pub type old_gid_t = __kernel_old_gid_t;
 pub type old_uid_t = __kernel_old_uid_t;
 pub type phys_addr_t = u64;
+#[repr(C, packed(8))]
+#[derive(Clone, Copy, Default)]
+pub struct phys_vec {
+    pub paddr: phys_addr_t,
+    pub len: size_t,
+}
 pub type pid_t = __kernel_pid_t;
 pub type ptrdiff_t = __kernel_ptrdiff_t;
 pub type rcu_callback_t = Option<unsafe extern "system" fn(param0: *const callback_head)>;

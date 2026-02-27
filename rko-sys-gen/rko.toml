@@ -141,6 +141,7 @@ traverse = [
   "linux/projid.h",
   "linux/cred.h",
   "linux/capability.h",
+  "linux/rhashtable-types.h",
 ]
 
 # ── Partition 6: filesystem mount context ──────────────────────────
