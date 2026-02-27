@@ -8,43 +8,304 @@
     clippy::all
 )]
 
-#[cfg(all(feature = "dcache", feature = "fs", feature = "types"))]
+windows_link::link!("kernel" "C" fn __hlist_nulls_del(n : *mut hlist_nulls_node));
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
+windows_link::link!("kernel" "C" fn alloc_ucounts(ns : *mut user_namespace, uid : super::fs:: kuid_t) -> *mut ucounts);
+#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+windows_link::link!("kernel" "C" fn create_user_ns(new : *mut super::fs:: cred) -> i32);
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
+windows_link::link!("kernel" "C" fn current_in_userns(target_ns : *const user_namespace) -> bool);
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
+windows_link::link!("kernel" "C" fn dec_rlimit_put_ucounts(ucounts : *mut ucounts, r#type : rlimit_type));
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
+windows_link::link!("kernel" "C" fn dec_rlimit_ucounts(ucounts : *mut ucounts, r#type : rlimit_type, v : i64) -> bool);
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
+windows_link::link!("kernel" "C" fn dec_ucount(ucounts : *mut ucounts, r#type : ucount_type));
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
 windows_link::link!("kernel" "C" fn fc_drop_locked(fc : *mut fs_context));
-#[cfg(all(feature = "dcache", feature = "fs", feature = "types"))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
 windows_link::link!("kernel" "C" fn fs_context_for_mount(fs_type : *mut super::fs:: file_system_type, sb_flags : u32) -> *mut fs_context);
-#[cfg(all(feature = "dcache", feature = "fs", feature = "types"))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
 windows_link::link!("kernel" "C" fn fs_context_for_reconfigure(dentry : *mut super::dcache:: dentry, sb_flags : u32, sb_flags_mask : u32) -> *mut fs_context);
-#[cfg(all(feature = "dcache", feature = "fs", feature = "types"))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
 windows_link::link!("kernel" "C" fn fs_context_for_submount(fs_type : *mut super::fs:: file_system_type, reference : *mut super::dcache:: dentry) -> *mut fs_context);
-#[cfg(all(feature = "dcache", feature = "fs", feature = "types"))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
 windows_link::link!("kernel" "C" fn generic_parse_monolithic(fc : *mut fs_context, data : *mut core::ffi::c_void) -> i32);
-#[cfg(all(feature = "dcache", feature = "fs", feature = "types"))]
+windows_link::link!("kernel" "C" fn get_nulls_value(ptr : *const hlist_nulls_node) -> u64);
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
+windows_link::link!("kernel" "C" fn get_rlimit_value(ucounts : *mut ucounts, r#type : rlimit_type) -> i64);
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
 windows_link::link!("kernel" "C" fn get_tree_bdev(fc : *mut fs_context, fill_super : *mut isize) -> i32);
-#[cfg(all(feature = "dcache", feature = "fs", feature = "types"))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
 windows_link::link!("kernel" "C" fn get_tree_bdev_flags(fc : *mut fs_context, fill_super : *mut isize, flags : u32) -> i32);
-#[cfg(all(feature = "dcache", feature = "fs", feature = "types"))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
 windows_link::link!("kernel" "C" fn get_tree_keyed(fc : *mut fs_context, fill_super : *mut isize, key : *mut core::ffi::c_void) -> i32);
-#[cfg(all(feature = "dcache", feature = "fs", feature = "types"))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
 windows_link::link!("kernel" "C" fn get_tree_nodev(fc : *mut fs_context, fill_super : *mut isize) -> i32);
-#[cfg(all(feature = "dcache", feature = "fs", feature = "types"))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
 windows_link::link!("kernel" "C" fn get_tree_single(fc : *mut fs_context, fill_super : *mut isize) -> i32);
-#[cfg(all(feature = "dcache", feature = "fs", feature = "types"))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
+windows_link::link!("kernel" "C" fn get_ucounts(ucounts : *mut ucounts) -> *mut ucounts);
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
+windows_link::link!("kernel" "C" fn get_user_ns(ns : *mut user_namespace) -> *mut user_namespace);
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
+windows_link::link!("kernel" "C" fn get_userns_rlimit_max(ns : *mut user_namespace, r#type : rlimit_type) -> i64);
+windows_link::link!("kernel" "C" fn hlist_nulls_add_head(n : *mut hlist_nulls_node, h : *mut hlist_nulls_head));
+windows_link::link!("kernel" "C" fn hlist_nulls_del(n : *mut hlist_nulls_node));
+windows_link::link!("kernel" "C" fn hlist_nulls_empty(h : *const hlist_nulls_head) -> i32);
+windows_link::link!("kernel" "C" fn hlist_nulls_unhashed(h : *const hlist_nulls_node) -> i32);
+windows_link::link!("kernel" "C" fn hlist_nulls_unhashed_lockless(h : *const hlist_nulls_node) -> i32);
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
+windows_link::link!("kernel" "C" fn in_userns(ancestor : *const user_namespace, child : *const user_namespace) -> bool);
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
+windows_link::link!("kernel" "C" fn inc_rlimit_get_ucounts(ucounts : *mut ucounts, r#type : rlimit_type, override_rlimit : bool) -> i64);
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
+windows_link::link!("kernel" "C" fn inc_rlimit_ucounts(ucounts : *mut ucounts, r#type : rlimit_type, v : i64) -> i64);
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
+windows_link::link!("kernel" "C" fn inc_ucount(ns : *mut user_namespace, uid : super::fs:: kuid_t, r#type : ucount_type) -> *mut ucounts);
+windows_link::link!("kernel" "C" fn is_a_nulls(ptr : *const hlist_nulls_node) -> i32);
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
+windows_link::link!("kernel" "C" fn is_rlimit_overlimit(ucounts : *mut ucounts, r#type : rlimit_type, max : u64) -> bool);
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
+windows_link::link!("kernel" "C" fn ns_get_owner(ns : *mut ns_common) -> *mut ns_common);
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
 windows_link::link!("kernel" "C" fn put_fs_context(fc : *mut fs_context));
-#[cfg(all(feature = "dcache", feature = "fs", feature = "types"))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
+windows_link::link!("kernel" "C" fn put_ucounts(ucounts : *mut ucounts));
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
+windows_link::link!("kernel" "C" fn put_user_ns(ns : *mut user_namespace));
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
+windows_link::link!("kernel" "C" fn retire_userns_sysctls(ns : *mut user_namespace));
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
+windows_link::link!("kernel" "C" fn set_userns_rlimit_max(ns : *mut user_namespace, r#type : rlimit_type, max : u64));
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
 windows_link::link!("kernel" "C" fn setup_bdev_super(sb : *mut super::fs:: super_block, sb_flags : i32, fc : *mut fs_context) -> i32);
-#[cfg(all(feature = "dcache", feature = "fs", feature = "types"))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
+windows_link::link!("kernel" "C" fn setup_userns_sysctls(ns : *mut user_namespace) -> bool);
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
+windows_link::link!("kernel" "C" fn to_user_ns(ns : *mut ns_common) -> *mut user_namespace);
+#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+windows_link::link!("kernel" "C" fn unshare_userns(unshare_flags : u64, new_cred : *mut *mut super::fs:: cred) -> i32);
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
+windows_link::link!("kernel" "C" fn userns_may_setgroups(ns : *const user_namespace) -> bool);
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
 windows_link::link!("kernel" "C" fn vfs_dup_fs_context(fc : *mut fs_context) -> *mut fs_context);
-#[cfg(all(feature = "dcache", feature = "fs", feature = "types"))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
 windows_link::link!("kernel" "C" fn vfs_get_tree(fc : *mut fs_context) -> i32);
-#[cfg(all(feature = "dcache", feature = "fs", feature = "types"))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
 windows_link::link!("kernel" "C" fn vfs_parse_fs_param(fc : *mut fs_context, param : *mut fs_parameter) -> i32);
-#[cfg(all(feature = "dcache", feature = "fs", feature = "types"))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
 windows_link::link!("kernel" "C" fn vfs_parse_fs_param_source(fc : *mut fs_context, param : *mut fs_parameter) -> i32);
-#[cfg(all(feature = "dcache", feature = "fs", feature = "types"))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
 windows_link::link!("kernel" "C" fn vfs_parse_fs_qstr(fc : *mut fs_context, key : *const i8, value : *const super::dcache:: qstr) -> i32);
-#[cfg(all(feature = "dcache", feature = "fs", feature = "types"))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
 windows_link::link!("kernel" "C" fn vfs_parse_fs_string(fc : *mut fs_context, key : *const i8, value : *const i8) -> i32);
-#[cfg(all(feature = "dcache", feature = "fs", feature = "types"))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
 windows_link::link!("kernel" "C" fn vfs_parse_monolithic_sep(fc : *mut fs_context, data : *mut core::ffi::c_void, sep : *mut isize) -> i32);
 pub const FS_CONTEXT_AWAITING_MOUNT: u32 = 2u32;
 pub const FS_CONTEXT_AWAITING_RECONF: u32 = 3u32;
@@ -57,27 +318,73 @@ pub const FS_CONTEXT_FOR_SUBMOUNT: u32 = 1u32;
 pub const FS_CONTEXT_RECONFIGURING: u32 = 5u32;
 pub const FS_CONTEXT_RECONF_PARAMS: u32 = 4u32;
 pub const GET_TREE_BDEV_QUIET_LOOKUP: i32 = 1i32;
+pub const UCOUNT_CGROUP_NAMESPACES: u32 = 6u32;
+pub const UCOUNT_COUNTS: u32 = 10u32;
+pub const UCOUNT_INOTIFY_INSTANCES: u32 = 8u32;
+pub const UCOUNT_INOTIFY_WATCHES: u32 = 9u32;
+pub const UCOUNT_IPC_NAMESPACES: u32 = 3u32;
+pub const UCOUNT_MNT_NAMESPACES: u32 = 5u32;
+pub const UCOUNT_NET_NAMESPACES: u32 = 4u32;
+pub const UCOUNT_PID_NAMESPACES: u32 = 1u32;
+pub const UCOUNT_RLIMIT_COUNTS: u32 = 4u32;
+pub const UCOUNT_RLIMIT_MEMLOCK: u32 = 3u32;
+pub const UCOUNT_RLIMIT_MSGQUEUE: u32 = 1u32;
+pub const UCOUNT_RLIMIT_NPROC: u32 = 0u32;
+pub const UCOUNT_RLIMIT_SIGPENDING: u32 = 2u32;
+pub const UCOUNT_TIME_NAMESPACES: u32 = 7u32;
+pub const UCOUNT_USER_NAMESPACES: u32 = 0u32;
+pub const UCOUNT_UTS_NAMESPACES: u32 = 2u32;
+pub const UID_GID_MAP_MAX_BASE_EXTENTS: i32 = 5i32;
+pub const UID_GID_MAP_MAX_EXTENTS: i32 = 340i32;
+pub const USERNS_SETGROUPS_ALLOWED: i32 = 1i32;
 #[repr(C, packed(8))]
 #[derive(Clone, Copy)]
+pub struct ctl_table_header {
+    pub _reserved: [u64; 1],
+}
+impl Default for ctl_table_header {
+    fn default() -> Self {
+        unsafe { core::mem::zeroed() }
+    }
+}
+#[repr(C, packed(8))]
+#[derive(Clone, Copy)]
+pub struct ctl_table_set {
+    pub _reserved: [u64; 1],
+}
+impl Default for ctl_table_set {
+    fn default() -> Self {
+        unsafe { core::mem::zeroed() }
+    }
+}
+#[repr(C, packed(8))]
+#[cfg(all(feature = "sync", feature = "types"))]
+#[derive(Clone, Copy)]
 pub struct fc_log {
-    pub usage: refcount_struct,
+    pub usage: super::sync::refcount_t,
     pub head: u8,
     pub tail: u8,
     pub need_free: u8,
     pub owner: *mut module,
     pub buffer: [*mut i8; 8],
 }
+#[cfg(all(feature = "sync", feature = "types"))]
 impl Default for fc_log {
     fn default() -> Self {
         unsafe { core::mem::zeroed() }
     }
 }
 #[repr(C, packed(8))]
-#[cfg(all(feature = "dcache", feature = "fs", feature = "types"))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
 #[derive(Clone, Copy)]
 pub struct fs_context {
     pub ops: *mut fs_context_operations,
-    pub uapi_mutex: mutex,
+    pub uapi_mutex: super::sync::mutex,
     pub fs_type: *mut super::fs::file_system_type,
     pub fs_private: *mut core::ffi::c_void,
     pub sget_key: *mut core::ffi::c_void,
@@ -92,14 +399,14 @@ pub struct fs_context {
     pub sb_flags: u32,
     pub sb_flags_mask: u32,
     pub s_iflags: u32,
-    pub purpose: fs_context_purpose,
-    pub phase: fs_context_phase,
-    pub need_free: bool,
-    pub global: bool,
-    pub oldapi: bool,
-    pub exclusive: bool,
+    pub _bitfield_0: u32,
 }
-#[cfg(all(feature = "dcache", feature = "fs", feature = "types"))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
 impl Default for fs_context {
     fn default() -> Self {
         unsafe { core::mem::zeroed() }
@@ -123,23 +430,38 @@ impl Default for fs_context_operations {
 pub type fs_context_phase = u32;
 pub type fs_context_purpose = u32;
 #[repr(C, packed(8))]
-#[cfg(all(feature = "dcache", feature = "fs", feature = "types"))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
 #[derive(Clone, Copy)]
 pub struct fs_parameter {
     pub key: *mut i8,
-    pub r#type: fs_value_type,
+    pub r#type: u8,
     pub fs_parameter__anon_0: fs_parameter__anon_0,
     pub size: super::types::size_t,
     pub dirfd: i32,
 }
-#[cfg(all(feature = "dcache", feature = "fs", feature = "types"))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
 impl Default for fs_parameter {
     fn default() -> Self {
         unsafe { core::mem::zeroed() }
     }
 }
 #[repr(C, packed(8))]
-#[cfg(all(feature = "dcache", feature = "fs", feature = "types"))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
 #[derive(Clone, Copy)]
 pub union fs_parameter__anon_0 {
     pub string: *mut i8,
@@ -147,7 +469,12 @@ pub union fs_parameter__anon_0 {
     pub name: *mut super::fs::filename,
     pub file: *mut super::fs::file,
 }
-#[cfg(all(feature = "dcache", feature = "fs", feature = "types"))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
 impl Default for fs_parameter__anon_0 {
     fn default() -> Self {
         unsafe { core::mem::zeroed() }
@@ -162,6 +489,27 @@ pub const fs_value_is_undefined: u32 = 0u32;
 pub type fs_value_type = u32;
 #[repr(C, packed(8))]
 #[derive(Clone, Copy)]
+pub struct hlist_nulls_head {
+    pub first: *mut hlist_nulls_node,
+}
+impl Default for hlist_nulls_head {
+    fn default() -> Self {
+        unsafe { core::mem::zeroed() }
+    }
+}
+#[repr(C, packed(8))]
+#[derive(Clone, Copy)]
+pub struct hlist_nulls_node {
+    pub next: *mut hlist_nulls_node,
+    pub pprev: *mut *mut hlist_nulls_node,
+}
+impl Default for hlist_nulls_node {
+    fn default() -> Self {
+        unsafe { core::mem::zeroed() }
+    }
+}
+#[repr(C, packed(8))]
+#[derive(Clone, Copy)]
 pub struct module {
     pub _reserved: [u64; 152],
 }
@@ -171,41 +519,174 @@ impl Default for module {
     }
 }
 #[repr(C, packed(8))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
 #[derive(Clone, Copy)]
-pub struct mutex {
-    pub _reserved: [u64; 4],
+pub struct ns_common {
+    pub ns_type: u32,
+    pub stashed: *mut super::dcache::dentry,
+    pub ops: *mut core::ffi::c_void,
+    pub inum: u32,
+    pub __ns_ref: super::sync::refcount_t,
+    pub ns_common__anon_0: ns_common__anon_0,
+    pub _padding: [u8; 160],
 }
-impl Default for mutex {
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
+impl Default for ns_common {
+    fn default() -> Self {
+        unsafe { core::mem::zeroed() }
+    }
+}
+#[repr(C, packed(8))]
+#[cfg(feature = "types")]
+#[derive(Clone, Copy)]
+pub union ns_common__anon_0 {
+    pub ns_rcu: super::types::callback_head,
+}
+#[cfg(feature = "types")]
+impl Default for ns_common__anon_0 {
+    fn default() -> Self {
+        unsafe { core::mem::zeroed() }
+    }
+}
+#[repr(C, packed(8))]
+#[cfg(all(feature = "sync", feature = "types"))]
+#[derive(Clone, Copy)]
+pub struct p_log {
+    pub prefix: *mut i8,
+    pub log: *mut fc_log,
+}
+#[cfg(all(feature = "sync", feature = "types"))]
+impl Default for p_log {
+    fn default() -> Self {
+        unsafe { core::mem::zeroed() }
+    }
+}
+pub type rlimit_type = u32;
+pub type ucount_type = u32;
+#[repr(C, packed(8))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
+#[derive(Clone, Copy)]
+pub struct ucounts {
+    pub node: hlist_nulls_node,
+    pub ns: *mut user_namespace,
+    pub uid: super::fs::kuid_t,
+    pub rcu: super::types::callback_head,
+    pub count: super::types::rcuref_t,
+    pub ucount: [super::types::atomic64_t; 10],
+    pub rlimit: [super::types::atomic64_t; 4],
+}
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
+impl Default for ucounts {
+    fn default() -> Self {
+        unsafe { core::mem::zeroed() }
+    }
+}
+#[repr(C, packed(4))]
+#[derive(Clone, Copy, Default)]
+pub struct uid_gid_extent {
+    pub first: u32,
+    pub lower_first: u32,
+    pub count: u32,
+}
+#[repr(C, packed(8))]
+#[derive(Clone, Copy)]
+pub struct uid_gid_map {
+    pub uid_gid_map__anon_0: uid_gid_map__anon_0,
+}
+impl Default for uid_gid_map {
     fn default() -> Self {
         unsafe { core::mem::zeroed() }
     }
 }
 #[repr(C, packed(8))]
 #[derive(Clone, Copy)]
-pub struct p_log {
-    pub prefix: *mut i8,
-    pub log: *mut fc_log,
+pub union uid_gid_map__anon_0 {
+    pub uid_gid_map__anon_0__anon_0: uid_gid_map__anon_0__anon_0,
+    pub uid_gid_map__anon_0__anon_1: uid_gid_map__anon_0__anon_1,
 }
-impl Default for p_log {
+impl Default for uid_gid_map__anon_0 {
     fn default() -> Self {
         unsafe { core::mem::zeroed() }
     }
 }
 #[repr(C, packed(4))]
 #[derive(Clone, Copy)]
-pub struct refcount_struct {
-    pub _reserved: [u32; 1],
+pub struct uid_gid_map__anon_0__anon_0 {
+    pub extent: [uid_gid_extent; 5],
+    pub nr_extents: u32,
 }
-impl Default for refcount_struct {
+impl Default for uid_gid_map__anon_0__anon_0 {
     fn default() -> Self {
         unsafe { core::mem::zeroed() }
     }
 }
 #[repr(C, packed(8))]
 #[derive(Clone, Copy)]
-pub struct user_namespace {
-    pub _reserved: [u64; 95],
+pub struct uid_gid_map__anon_0__anon_1 {
+    pub forward: *mut uid_gid_extent,
+    pub reverse: *mut uid_gid_extent,
 }
+impl Default for uid_gid_map__anon_0__anon_1 {
+    fn default() -> Self {
+        unsafe { core::mem::zeroed() }
+    }
+}
+#[repr(C, packed(8))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
+#[derive(Clone, Copy)]
+pub struct user_namespace {
+    pub uid_map: uid_gid_map,
+    pub gid_map: uid_gid_map,
+    pub projid_map: uid_gid_map,
+    pub parent: *mut user_namespace,
+    pub level: i32,
+    pub owner: super::fs::kuid_t,
+    pub group: super::fs::kgid_t,
+    pub ns: ns_common,
+    pub flags: u64,
+    pub parent_could_setfcap: bool,
+    pub keyring_name_list: super::types::list_head,
+    pub user_keyring_register: *mut super::fs::key,
+    pub keyring_sem: super::sync::rw_semaphore,
+    pub work: super::fs::work_struct,
+    pub set: ctl_table_set,
+    pub sysctls: *mut ctl_table_header,
+    pub ucounts: *mut ucounts,
+    pub ucount_max: [i64; 10],
+    pub rlimit_max: [i64; 4],
+    pub binfmt_misc: *mut core::ffi::c_void,
+}
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
 impl Default for user_namespace {
     fn default() -> Self {
         unsafe { core::mem::zeroed() }

@@ -15,20 +15,30 @@ windows_link::link!("kernel" "C" fn rust_helper_PTR_ERR(ptr : *const core::ffi::
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
-    feature = "fs_context",
+    feature = "sync",
     feature = "types"
 ))]
 windows_link::link!("kernel" "C" fn rust_helper_alloc_inode_sb(sb : *mut super::fs:: super_block, cache : *mut core::ffi::c_void, gfp : super::types:: gfp_t) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "dcache", feature = "fs", feature = "types"))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
 windows_link::link!("kernel" "C" fn rust_helper_dentry_name(dentry : *const super::dcache:: dentry) -> *mut u8);
-#[cfg(all(feature = "dcache", feature = "fs", feature = "types"))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types"
+))]
 windows_link::link!("kernel" "C" fn rust_helper_dentry_name_len(dentry : *const super::dcache:: dentry) -> u32);
 #[cfg(all(feature = "fs", feature = "types"))]
 windows_link::link!("kernel" "C" fn rust_helper_dir_emit(ctx : *mut super::fs:: dir_context, name : *const i8, namelen : i32, ino : u64, r#type : u8) -> bool);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
-    feature = "fs_context",
+    feature = "sync",
     feature = "types"
 ))]
 windows_link::link!("kernel" "C" fn rust_helper_file_inode(f : *const super::fs:: file) -> *mut super::fs:: inode);
@@ -49,49 +59,49 @@ windows_link::link!("kernel" "C" fn rust_helper_folio_size(folio : *mut super::f
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
-    feature = "fs_context",
+    feature = "sync",
     feature = "types"
 ))]
 windows_link::link!("kernel" "C" fn rust_helper_generic_file_read_iter(iocb : *mut super::fs:: kiocb, to : *mut core::ffi::c_void) -> i64);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
-    feature = "fs_context",
+    feature = "sync",
     feature = "types"
 ))]
 windows_link::link!("kernel" "C" fn rust_helper_i_gid_write(inode : *mut super::fs:: inode, gid : u32));
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
-    feature = "fs_context",
+    feature = "sync",
     feature = "types"
 ))]
 windows_link::link!("kernel" "C" fn rust_helper_i_uid_write(inode : *mut super::fs:: inode, uid : u32));
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
-    feature = "fs_context",
+    feature = "sync",
     feature = "types"
 ))]
 windows_link::link!("kernel" "C" fn rust_helper_inode_set_aops(inode : *mut super::fs:: inode, aops : *const super::fs:: address_space_operations));
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
-    feature = "fs_context",
+    feature = "sync",
     feature = "types"
 ))]
 windows_link::link!("kernel" "C" fn rust_helper_inode_set_flags(inode : *mut super::fs:: inode, flags : u32, mask : u32));
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
-    feature = "fs_context",
+    feature = "sync",
     feature = "types"
 ))]
 windows_link::link!("kernel" "C" fn rust_helper_inode_set_fop(inode : *mut super::fs:: inode, fop : *const super::fs:: file_operations));
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
-    feature = "fs_context",
+    feature = "sync",
     feature = "types"
 ))]
 windows_link::link!("kernel" "C" fn rust_helper_is_bad_inode(inode : *mut super::fs:: inode) -> bool);
@@ -102,14 +112,14 @@ windows_link::link!("kernel" "C" fn rust_helper_kunmap_local(vaddr : *const core
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
-    feature = "fs_context",
+    feature = "sync",
     feature = "types"
 ))]
 windows_link::link!("kernel" "C" fn rust_helper_mapping_set_large_folios(mapping : *mut super::fs:: address_space));
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
-    feature = "fs_context",
+    feature = "sync",
     feature = "types"
 ))]
 windows_link::link!("kernel" "C" fn rust_helper_set_nlink(inode : *mut super::fs:: inode, nlink : u32));

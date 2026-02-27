@@ -11,26 +11,29 @@ kernel headers ──→ libclang ──→ bnd-winmd ──→ .winmd ──→
 
 ## Generated Partitions
 
-| Partition | Header | Contents |
+| Partition | Header(s) | Contents |
 |---|---|---|
 | `rko.types` | `linux/types.h` | Fundamental typedefs (`u32`, `loff_t`, `ktime_t`, …) |
 | `rko.err` | `linux/errno.h` | 150 errno constants |
 | `rko.slab` | `linux/slab.h` | Slab allocator functions (`kfree`, `krealloc`, …) |
 | `rko.gfp` | `linux/gfp_types.h` | GFP allocation flag constants |
-| `rko.fs` | `linux/fs.h` | VFS core (`inode`, `file`, `super_block`, ops tables, …) |
+| `rko.sync` | `spinlock_types.h`, `mutex_types.h`, `rwsem.h`, `lockref.h`, `refcount_types.h`, `osq_lock.h` | Sync primitives (`spinlock`, `mutex`, `rw_semaphore`, `lockref`, `raw_spinlock`, `qspinlock`, …) |
+| `rko.fs` | `linux/fs.h` + 31 dependency headers | VFS core (`inode`, `file`, `super_block`, ops tables, `timespec64`, `path`, `kstat`, `xarray`, `pid`, `cred`, …) |
 | `rko.fs_context` | `linux/fs_context.h` | Mount context (`fs_context`, `fs_parameter`, …) |
 | `rko.dcache` | `linux/dcache.h` | Dentry cache (`dentry`, `qstr`, ops) |
 | `rko.pagemap` | `linux/pagemap.h` | Page/folio cache (`readahead_control`, mapping ops) |
 | `rko.highmem` | `linux/highmem.h` | High memory / kmap |
 | `rko.helpers` | `helpers.h` | C wrappers for inline functions / macros |
 
-Each partition traverses only its primary header. Types from
-non-traversed headers are declared via `[[inject_type]]` entries
-in `rko.toml` (see `docs/bugs/bnd-winmd-inject-types.md`).
+Types from non-traversed headers are declared via `[[inject_type]]`
+entries in `rko.toml` (23 remaining). See `docs/design/Partitions.md`
+for how to add new partitions to reduce inject_types.
 
 ## C Helpers
 
-Kernel inline functions and macros need C wrapper symbols for Rust FFI:
+Kernel inline functions and macros need C wrapper symbols for Rust FFI.
+`helpers.c` is compiled once by Kbuild and merged into every module
+via `ld -r` (see `cmake/kernel_module.cmake`).
 
 | File | Purpose |
 |---|---|
@@ -45,7 +48,7 @@ Naming convention: `rust_helper_<kernel_function>`. Examples:
 
 ```
 rko-sys/
-├── Cargo.toml             # features: types, err, gfp, slab, fs, fs_context, dcache, …
+├── Cargo.toml             # features: types, err, gfp, slab, sync, fs, …
 ├── src/
 │   ├── lib.rs
 │   ├── helpers.h          # C helper declarations
@@ -56,6 +59,7 @@ rko-sys/
 │       ├── err/mod.rs
 │       ├── slab/mod.rs
 │       ├── gfp/mod.rs
+│       ├── sync/mod.rs
 │       ├── fs/mod.rs
 │       ├── fs_context/mod.rs
 │       ├── dcache/mod.rs
@@ -89,18 +93,17 @@ ctest --test-dir build     # Test in QEMU
 | Variadic functions (`printk`) | Hand-written extern in `printk.rs` |
 | Static inline functions | C helpers (`helpers.h` / `helpers.c`) |
 | Complex macros (`IS_ERR`, …) | Re-implement in Rust or C helpers |
-| Bitfield enums | `[[inject_type]]` with `kind = "enum"` |
-| Types from non-traversed headers | `[[inject_type]]` with `kind = "struct"` |
-| `____cacheline_aligned` structs | Manual padding in embedding structs (see below) |
-| Anonymous unions in structs | C helper accessors (e.g. `dentry_name`, `inode_set_fop`) |
+| Bitfield enums | ✅ Fixed in bnd `0ee989f` — extracted via supplemental scan + flattened to correct size |
+| Types from non-traversed headers | Add header to traverse list, or `[[inject_type]]` (see `docs/design/Partitions.md`) |
 | GFP_KERNEL and other macros | Construct from bit constants in `gfp` module |
 | Arch-specific | Currently x86_64 only |
 
-### ____cacheline_aligned padding
+### Fixed in bnd-winmd 0.0.4
 
-Kernel `struct inode_operations` uses `____cacheline_aligned` which
-pads it to 256 bytes (64-byte aligned). bnd-winmd generates only 200
-bytes. Any struct embedding `inode_operations` must add 56 bytes of
-padding after it. See `docs/bugs/bnd-winmd-cacheline-aligned.md`.
+| Issue | Status |
+|---|---|
+| `____cacheline_aligned` structs | ✅ Fixed — generates `packed(64)` + `_padding` (see `docs/bugs/bnd-winmd-cacheline-aligned.md`) |
+| Anonymous unions in structs | ✅ Fixed — generates `union` types (see `docs/bugs/bnd-winmd-anonymous-unions.md`) |
+| Multi-header wrapper paths | ✅ Fixed — uses `#include <...>` + `-I base_dir` (see `docs/bugs/bnd-winmd-multi-header-wrapper.md`) |
 
 See `docs/bugs/` for detailed bug reports.

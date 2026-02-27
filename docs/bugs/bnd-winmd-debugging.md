@@ -1,117 +1,114 @@
 # bnd-winmd: Debugging Improvements
 
-**Component:** [bnd-winmd](https://github.com/youyuanwu/bnd) v0.0.3
+**Component:** [bnd-winmd](https://github.com/youyuanwu/bnd) v0.0.4
 
-## Problem
+## Implemented
 
-When `windows-bindgen` panics with `"type not found: rko.fs.kuid_t"`,
-there is no way to find all such missing types without repeatedly
-running the generator and hoping for different HashMap iteration order.
-The panic fires on the **first** missing TypeDef hit, and which one
-comes first is non-deterministic.
+### Pre-emit TypeRef validation (was #1)
 
-Diagnosing required building a separate tool to parse the `.winmd`
-binary and diff TypeRef entries against TypeDef entries.
+bnd-winmd 0.0.3+ validates TypeRef ↔ TypeDef before calling
+windows-bindgen. Reports **all** unresolved types in one run:
 
-## Suggestions
-
-### 1. Validate TypeRef ↔ TypeDef before calling windows-bindgen
-
-After emitting the `.winmd`, bnd-winmd should read it back and check
-that every `TypeRef` row has a corresponding `TypeDef` row. Report
-**all** mismatches at once, not just the first.
-
-The current `validate_type_references()` only catches `CType::Named`
-with `resolved: None` that are missing from the registry. It misses:
-
-- **Resolved typedefs** — `kuid_t` has `resolved: Some(struct kuid_t)`,
-  so `collect_unresolved` skips it (`resolved.is_none()` is false). But
-  `ctype_to_wintype` recurses into the resolved type and emits a TypeRef
-  for `kuid_t` that has no matching TypeDef.
-- **Types surfaced during codegen** — `vfsuid_t`, `mnt_idmap`, etc.
-  appear in function signatures that bnd-winmd extracts but don't
-  trigger the unresolved check because they have `resolved` values or
-  come through typedef chains.
-
-A post-emit winmd validation would catch both classes. The check is
-straightforward: iterate the TypeRef table, look up each
-`(namespace, name)` pair in the TypeDef table, report all misses.
-
-```rust
-fn validate_winmd(bytes: &[u8]) -> Vec<(String, String)> {
-    // Parse winmd, collect TypeDef set, iterate TypeRef,
-    // return (namespace, name) pairs with no matching TypeDef.
-}
 ```
+1 unresolved type reference(s) found:
+  • `raw_spinlock` — referenced in field `rlock` of struct `spinlock__anon_0` (partition `rko.sync`)
+```
+
+This catches the classes of missing types that previously required
+repeated runs to discover.
+
+## Open Feature Requests
+
+### 1. Silent extraction failure warning
+
+When a partition extracts 0 types, emit a warning. This catches
+misconfigured traverse lists or header path issues that currently
+produce no output and no error:
+
+```
+WARN  partition rko.sync extracted 0 structs, 0 functions — check headers/traverse paths
+```
+
+The multi-header wrapper path bug (now fixed) silently produced empty
+partitions. A warning would have caught it immediately.
 
 ### 2. `--dry-run` / `--validate` mode
 
-A CLI flag that runs the full pipeline (clang extraction → winmd emit)
-but skips calling `windows-bindgen`. Instead it:
+A CLI flag that runs clang extraction + winmd emit but skips
+`windows-bindgen` codegen. It would:
 
-- Prints partition stats (structs, functions, typedefs, enums per
-  partition)
-- Runs the TypeRef ↔ TypeDef validation (#1 above)
-- Reports all unresolved types grouped by partition
-- Exits with non-zero if there are issues
+- Print partition stats (structs, functions, typedefs, enums)
+- Run the TypeRef ↔ TypeDef validation
+- Report all unresolved types grouped by partition
+- Exit with non-zero if there are issues
 
-This would give users a fast feedback loop without waiting for
-windows-bindgen codegen.
+This gives a fast feedback loop without waiting for codegen.
 
-### 3. Dump registry contents
+### 3. Struct size validation against clang
 
-A `--dump-registry` flag (or `RUST_LOG=debug` trace) that prints the
-full `TypeRegistry` after extraction — every type name and its
-namespace. This would immediately show which types are registered and
-which are missing, without needing to read winmd internals.
+After extraction, optionally compare `clang_Type_getSizeOf()` for each
+extracted struct against the sum of field sizes in the generated Rust
+struct. Report mismatches:
+
+```
+WARN  struct inode: clang sizeof=592, generated fields sum=544 (48 byte gap)
+```
+
+This would have caught the anonymous union bug (missing 48 bytes in
+`struct inode`) and the `____cacheline_aligned` bug (200 vs 256 bytes
+in `inode_operations`) before any runtime crash.
+
+### 4. Dump registry contents
+
+A `RUST_LOG=debug` trace that prints the full `TypeRegistry` after
+extraction — every type name, its namespace, and whether it was
+extracted or injected:
 
 ```
 TypeRegistry (342 entries):
-  address_space → rko.fs
-  address_space_operations → rko.fs
-  callback_head → rko.types
-  cred → rko.fs         (injected)
-  dentry → rko.dcache
+  address_space → rko.fs (extracted)
+  cred → rko.fs (injected, 184 bytes)
+  spinlock → rko.sync (extracted)
   ...
 ```
 
-Injected types should be annotated so users can tell them apart from
-extracted types.
+### 5. Inject_type size cross-check
 
-### 4. Dump partition model
-
-A `--dump-partitions` flag that prints the extracted model for each
-partition before winmd emission:
+When an `[[inject_type]]` struct is also extractable from headers
+(e.g. it's in a traverse file), compare the injected size against
+clang's `sizeof`. Report mismatches:
 
 ```
-Partition rko.fs (from linux/fs.h):
-  structs: inode (1360 bytes), file (384 bytes), ...
-  enums: inode_state_bits (3 variants), ...
-  functions: register_filesystem, unregister_filesystem, ...
-  typedefs: fmode_t → u32, ...
-  injected: timespec64 (struct, 16 bytes), kuid_t (struct, 4 bytes), ...
+WARN  inject_type spinlock: declared size=4, clang sizeof=4 ✓
+WARN  inject_type rw_semaphore: declared size=40, clang sizeof=48 ✗
 ```
 
-This would help diagnose:
-- Why a type isn't being extracted (not in traverse list)
-- What types are being injected vs extracted
-- Size mismatches between injected and real types
+This would catch stale inject_type sizes after kernel upgrades.
 
-### 5. Better error from windows-bindgen
+### 6. Duplicate type reporting
 
-This is in `windows-bindgen` not `bnd-winmd`, but the panic at
-`tables/field.rs:30` and `types/cpp_fn.rs:294` should be a structured
-error listing **all** missing types, not a panic on the first one.
-Could be raised upstream.
+When multiple partitions extract the same type, report which partition
+wins and which is dropped. Currently this is `WARN` level but only
+shows when `RUST_LOG=warn`:
+
+```
+WARN  dropping duplicate struct spinlock: canonical=rko.fs, duplicate=rko.sync
+```
+
+Suggest making this visible by default when duplicates exist, so users
+know to remove the inject_type.
 
 ## Priority
 
-| Suggestion | Impact | Effort |
+| Feature | Impact | Effort |
 |---|---|---|
-| #1 Post-emit validation | High — catches all missing types in one run | Low |
+| #1 Silent extraction warning | High — catches misconfig immediately | Trivial |
 | #2 `--dry-run` | Medium — fast feedback loop | Low |
-| #3 Dump registry | Medium — immediate visibility | Trivial |
-| #4 Dump partitions | Medium — full debugging | Low |
-| #5 windows-bindgen error | High — but upstream | N/A |
+| #3 Struct size validation | High — catches layout bugs pre-crash | Medium |
+| #4 Dump registry | Medium — debugging visibility | Trivial |
+| #5 Inject size cross-check | Medium — catches stale sizes | Low |
+| #6 Duplicate reporting | Low — convenience | Trivial |
 
-\#1 alone would have saved hours of debugging in this project.
+\#3 (struct size validation) would have saved the most debugging time
+in this project — the `inode` offset mismatch and `inode_operations`
+padding issue both caused kernel crashes that took hours to diagnose.

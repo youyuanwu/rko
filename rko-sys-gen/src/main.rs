@@ -3,6 +3,7 @@ use std::path::PathBuf;
 fn main() {
     tracing_subscriber::fmt()
         .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
+        .with_ansi(false)
         .init();
 
     let workspace_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("..");

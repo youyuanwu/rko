@@ -26,5 +26,7 @@ pub mod highmem;
 pub mod pagemap;
 #[cfg(feature = "slab")]
 pub mod slab;
+#[cfg(feature = "sync")]
+pub mod sync;
 #[cfg(feature = "types")]
 pub mod types;

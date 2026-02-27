@@ -75,9 +75,9 @@ checksum = "843867be96c8daad0d758b57df9392b6d8d271134fce549de6ce169ff98a92af"
 
 [[package]]
 name = "bnd-winmd"
-version = "0.0.4"
+version = "0.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5f7c891e16c1edf9bb5991c9fca4ae63186a3e80769d9ba73aaf55d726668dc9"
+checksum = "4f61e2292f42cee2de897be0e51f7769b9f3221a3dacb0f3891108d2d3c6602d"
 dependencies = [
  "anyhow",
  "clang",
