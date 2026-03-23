@@ -15,8 +15,8 @@ set(HELPERS_OBJ ${HELPERS_BUILD_DIR}/helpers.o)
 
 if(NOT TARGET helpers_obj)
   file(MAKE_DIRECTORY ${HELPERS_BUILD_DIR})
-  # Kbuild: build as module component; modpost is skipped via || true
-  file(WRITE ${HELPERS_BUILD_DIR}/Kbuild "obj-m := _helpers.o\n_helpers-y := helpers.o\n")
+  # Kbuild: build as a proper module with _helpers_mod.c providing MODULE_LICENSE
+  file(WRITE ${HELPERS_BUILD_DIR}/Kbuild "obj-m := _helpers.o\n_helpers-y := helpers.o _helpers_mod.o\n")
   if(NOT EXISTS ${HELPERS_BUILD_DIR}/helpers.c)
     file(CREATE_LINK ${CMAKE_SOURCE_DIR}/rko-sys/src/helpers.c
          ${HELPERS_BUILD_DIR}/helpers.c SYMBOLIC)
@@ -25,16 +25,20 @@ if(NOT TARGET helpers_obj)
     file(CREATE_LINK ${CMAKE_SOURCE_DIR}/rko-sys/src/helpers.h
          ${HELPERS_BUILD_DIR}/helpers.h SYMBOLIC)
   endif()
+  if(NOT EXISTS ${HELPERS_BUILD_DIR}/_helpers_mod.c)
+    file(CREATE_LINK ${CMAKE_SOURCE_DIR}/rko-sys/src/_helpers_mod.c
+         ${HELPERS_BUILD_DIR}/_helpers_mod.c SYMBOLIC)
+  endif()
 
-  # Build the object. modpost will fail (no MODULE_LICENSE) but helpers.o
-  # is already compiled before that. We ignore the error and verify the file.
+  # Build helpers.o via kbuild.  _helpers_mod.c supplies MODULE_LICENSE so
+  # modpost succeeds and we no longer need to ignore errors.
   add_custom_command(
     OUTPUT ${HELPERS_OBJ}
     COMMAND $(MAKE) -C ${KDIR_ROOT} O=${KBIN_ROOT}
-            M=${HELPERS_BUILD_DIR} LLVM=1 modules 2>&1 || true
-    COMMAND test -f ${HELPERS_OBJ}
+            M=${HELPERS_BUILD_DIR} LLVM=1 modules
     DEPENDS ${CMAKE_SOURCE_DIR}/rko-sys/src/helpers.c
             ${CMAKE_SOURCE_DIR}/rko-sys/src/helpers.h
+            ${CMAKE_SOURCE_DIR}/rko-sys/src/_helpers_mod.c
     COMMENT "Kbuild helpers.o (once)"
     USES_TERMINAL
   )
