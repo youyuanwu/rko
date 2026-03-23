@@ -24,11 +24,11 @@ jobs:
     - name: Install rust stable
       uses: dtolnay/rust-toolchain@stable
       with:
-        toolchain: 1.93.0
+        toolchain: 1.94.0
         components: rustfmt, clippy, rust-src
 
     - name: Set rust version
-      run: rustup override set 1.93.0
+      run: rustup override set 1.94.0
 
     - uses: taiki-e/install-action@v2
       with:
@@ -43,7 +43,7 @@ jobs:
       run: |
         git clone --branch ${{ env.TAG }} --depth 1 https://github.com/torvalds/linux.git ./linux
       env:
-        TAG: v7.0-rc1
+        TAG: v7.0-rc5
 
     - name: Configure cmake
       run: cmake -S . -B build -DENABLE_KVM=OFF
