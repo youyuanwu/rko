@@ -173,12 +173,13 @@ impl<'a, Out, F: FnMut() -> Result<Out, Error> + Send + 'a> Future for SocketFut
                 );
 
                 // Register on the socket's wait queue.
-                // SAFETY: sock is a valid socket. We use a C helper to get
-                // the wait queue head because socket_wq has
-                // ____cacheline_aligned_in_smp which the Rust bindings
-                // don't model (field offsets would be wrong).
-                let wq_head = rko_sys::rko::helpers::rust_helper_sock_wq_head(this.sock);
-                rko_sys::rko::fs::add_wait_queue(wq_head, wq_entry_ptr);
+                // SAFETY: sock is a valid socket; wq.wait is its wait queue head.
+                // The bnd fork correctly pads socket_wq for cacheline alignment.
+                rko_sys::rko::fs::add_wait_queue(
+                    core::ptr::addr_of_mut!((*this.sock).wq.wait)
+                        .cast::<rko_sys::rko::fs::wait_queue_head>(),
+                    wq_entry_ptr,
+                );
             }
             this.is_queued = true;
         }
@@ -208,9 +209,9 @@ impl<'a, Out, F: FnMut() -> Result<Out, Error> + Send + 'a> Drop for SocketFutur
             // queue during poll. The socket and wq_entry are still valid.
             // Cast through raw pointer for cross-namespace type compat.
             unsafe {
-                let wq_head = rko_sys::rko::helpers::rust_helper_sock_wq_head(self.sock);
                 rko_sys::rko::fs::remove_wait_queue(
-                    wq_head,
+                    core::ptr::addr_of_mut!((*self.sock).wq.wait)
+                        .cast::<rko_sys::rko::fs::wait_queue_head>(),
                     Opaque::raw_get(&mut self.wq_entry as *mut _ as *mut _),
                 );
             }

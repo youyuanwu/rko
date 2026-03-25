@@ -577,7 +577,6 @@ pub struct ns_common {
     pub ops: *mut core::ffi::c_void,
     pub inum: u32,
     pub ns_common__anon_1: ns_common__anon_1,
-    pub _padding: [u8; 164],
 }
 #[cfg(all(
     feature = "dcache",
@@ -727,6 +726,7 @@ pub struct user_namespace {
     pub level: i32,
     pub owner: super::fs::kuid_t,
     pub group: super::fs::kgid_t,
+    pub _pad_0: [u8; 44],
     pub ns: ns_common,
     pub flags: u64,
     pub parent_could_setfcap: bool,
@@ -736,6 +736,7 @@ pub struct user_namespace {
     pub ucounts: *mut ucounts,
     pub ucount_max: [i64; 8],
     pub rlimit_max: [i64; 4],
+    pub _padding: [u8; 56],
 }
 #[cfg(all(
     feature = "dcache",

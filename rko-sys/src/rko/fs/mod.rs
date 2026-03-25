@@ -4711,7 +4711,6 @@ pub struct cred {
     pub ucounts: *mut core::ffi::c_void,
     pub group_info: *mut group_info,
     pub cred__anon_0: cred__anon_0,
-    pub _padding: [u8; 16],
 }
 #[cfg(all(feature = "sync", feature = "types"))]
 impl Default for cred {
@@ -5091,6 +5090,7 @@ impl Default for file_system_type {
 #[repr(C, packed(8))]
 #[derive(Clone, Copy)]
 pub struct filename {
+    pub _pad_0: [u8; 24],
     pub iname: [i8; 168],
 }
 impl Default for filename {
@@ -5806,7 +5806,6 @@ pub struct maple_range_64 {
     pub parent: *mut core::ffi::c_void,
     pub pivot: [u64; 15],
     pub maple_range_64__anon_0: maple_range_64__anon_0,
-    pub _padding: [u8; 128],
 }
 impl Default for maple_range_64 {
     fn default() -> Self {
@@ -6541,6 +6540,7 @@ pub struct super_block {
     pub destroy_work: super::workqueue::work_struct,
     pub s_sync_lock: super::sync::mutex,
     pub s_stack_depth: i32,
+    pub _pad_0: [u8; 28],
     pub s_inode_list_lock: super::sync::spinlock_t,
     pub s_inodes: super::types::list_head,
     pub s_inode_wblist_lock: super::sync::spinlock_t,
@@ -6858,7 +6858,6 @@ pub struct xa_node {
     pub xa_node__anon_0: xa_node__anon_0,
     pub slots: [*mut core::ffi::c_void; 64],
     pub xa_node__anon_1: xa_node__anon_1,
-    pub _padding: [u8; 24],
 }
 #[cfg(all(feature = "sync", feature = "types"))]
 impl Default for xa_node {

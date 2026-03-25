@@ -175,15 +175,6 @@ windows_link::link!("kernel" "C" fn rust_helper_schedule());
 windows_link::link!("kernel" "C" fn rust_helper_set_nlink(inode : *mut super::fs:: inode, nlink : u32));
 #[cfg(feature = "pagemap")]
 windows_link::link!("kernel" "C" fn rust_helper_set_wq_entry_private(wq : *mut super::pagemap:: wait_queue_entry, p : *mut core::ffi::c_void));
-#[cfg(all(
-    feature = "dcache",
-    feature = "fs",
-    feature = "net",
-    feature = "sync",
-    feature = "types",
-    feature = "workqueue"
-))]
-windows_link::link!("kernel" "C" fn rust_helper_sock_wq_head(sock : *mut super::net:: socket) -> *mut super::fs:: wait_queue_head);
 #[cfg(all(feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn rust_helper_spin_is_locked(lock : *mut super::sync:: spinlock_t) -> i32);
 #[cfg(all(feature = "sync", feature = "types"))]

@@ -140,9 +140,4 @@ void rust_helper_schedule(void);
 void rust_helper_init_waitqueue_func_entry(struct wait_queue_entry *wq_entry,
                                            wait_queue_func_t func);
 
-/* sock_wq_head — get the wait queue head from a socket.
- * Needed because socket_wq has ____cacheline_aligned_in_smp which
- * the Rust bindings don't model, making struct field access unsafe. */
-struct wait_queue_head *rust_helper_sock_wq_head(struct socket *sock);
-
 #endif /* _RKO_HELPERS_H */

@@ -1,8 +1,7 @@
 # bnd-winmd: `____cacheline_aligned` structs have wrong field offsets
 
-**Component:** [bnd-winmd](https://github.com/youyuanwu/bnd) v0.0.6
-(struct layout computation)  
-**Status:** 🟡 Open — workaround via C helper
+**Component:** [bnd-winmd](https://github.com/youyuanwu/bnd) (local fork)  
+**Status:** ✅ Fixed — local bnd fork generates `_pad_0: [u8; 24]` padding
 
 ## Problem
 

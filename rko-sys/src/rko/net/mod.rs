@@ -755,7 +755,6 @@ pub struct iov_iter {
     pub iov_offset: super::types::size_t,
     pub iov_iter__anon_0: iov_iter__anon_0,
     pub iov_iter__anon_1: iov_iter__anon_1,
-    pub _padding: [u8; 24],
 }
 #[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
 impl Default for iov_iter {
@@ -1066,6 +1065,7 @@ pub struct socket {
     pub file: *mut super::fs::file,
     pub sk: *mut core::ffi::c_void,
     pub ops: *mut proto_ops,
+    pub _pad_0: [u8; 24],
     pub wq: socket_wq,
 }
 #[cfg(all(

@@ -9,7 +9,7 @@ rko-sys = { path = "rko-sys" }
 rko-core = { path = "rko-core" }
 bitflags = "2"
 # bnd-winmd = { path = "../rs/bnd/bnd-winmd" }
-bnd-winmd = "0.0.6"
+bnd-winmd = "0.0.7"
 pinned-init = { version = "0.0.10", default-features = false }
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 windows-bindgen = "0.66"
