@@ -360,3 +360,19 @@ void rust_helper_schedule(void)
 	schedule();
 }
 
+
+// init_waitqueue_func_entry — inline in linux/wait.h
+void rust_helper_init_waitqueue_func_entry(struct wait_queue_entry *wq_entry,
+                                           wait_queue_func_t func)
+{
+init_waitqueue_func_entry(wq_entry, func);
+}
+
+// sock_wq_head — returns the wait queue head from socket.wq.wait.
+// We use a C helper because socket_wq has ____cacheline_aligned_in_smp
+// which the Rust bindings don't model (field offsets are wrong).
+#include <linux/net.h>
+struct wait_queue_head *rust_helper_sock_wq_head(struct socket *sock)
+{
+return &sock->wq.wait;
+}
