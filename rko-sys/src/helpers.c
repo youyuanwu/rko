@@ -12,6 +12,16 @@
 #include <linux/pagemap.h>
 #include <linux/highmem.h>
 #include <linux/slab.h>
+#include <linux/mutex.h>
+#include <linux/spinlock.h>
+#include <linux/rcupdate.h>
+#include <linux/lockdep.h>
+#include <linux/sched.h>
+#include <linux/sched/task.h>
+#include <linux/kthread.h>
+#include <linux/net.h>
+#include <net/net_namespace.h>
+#include <linux/workqueue.h>
 
 #include "helpers.h"
 
@@ -185,5 +195,168 @@ ssize_t rust_helper_generic_file_read_iter(struct kiocb *iocb,
 bool rust_helper_is_bad_inode(struct inode *inode)
 {
 	return is_bad_inode(inode);
+}
+
+// Mutex helpers
+
+void rust_helper___mutex_init(struct mutex *lock, const char *name,
+			      struct lock_class_key *key)
+{
+	__mutex_init(lock, name, key);
+}
+
+void rust_helper_mutex_lock(struct mutex *lock)
+{
+	mutex_lock(lock);
+}
+
+void rust_helper_mutex_unlock(struct mutex *lock)
+{
+	mutex_unlock(lock);
+}
+
+int rust_helper_mutex_trylock(struct mutex *lock)
+{
+	return mutex_trylock(lock);
+}
+
+bool rust_helper_mutex_is_locked(struct mutex *lock)
+{
+	return mutex_is_locked(lock);
+}
+
+// Spinlock helpers
+
+void rust_helper___spin_lock_init(spinlock_t *lock, const char *name,
+				  struct lock_class_key *key)
+{
+	spin_lock_init(lock);
+	(void)name;
+	(void)key;
+}
+
+void rust_helper_spin_lock(spinlock_t *lock)
+{
+	spin_lock(lock);
+}
+
+void rust_helper_spin_unlock(spinlock_t *lock)
+{
+	spin_unlock(lock);
+}
+
+int rust_helper_spin_trylock(spinlock_t *lock)
+{
+	return spin_trylock(lock);
+}
+
+int rust_helper_spin_is_locked(spinlock_t *lock)
+{
+	return spin_is_locked(lock);
+}
+
+// RCU helpers
+
+void rust_helper_rcu_read_lock(void)
+{
+	rcu_read_lock();
+}
+
+void rust_helper_rcu_read_unlock(void)
+{
+	rcu_read_unlock();
+}
+
+// Lockdep helpers
+
+void rust_helper_lockdep_register_key(struct lock_class_key *key)
+{
+	lockdep_register_key(key);
+}
+
+void rust_helper_lockdep_unregister_key(struct lock_class_key *key)
+{
+	lockdep_unregister_key(key);
+}
+
+// Waitqueue helpers
+
+void rust_helper___init_waitqueue_head(struct wait_queue_head *wq_head,
+				       const char *name,
+				       struct lock_class_key *key)
+{
+	__init_waitqueue_head(wq_head, name, key);
+}
+
+void rust_helper___wake_up(struct wait_queue_head *wq_head,
+			   unsigned int mode, int nr_exclusive, void *key)
+{
+	__wake_up(wq_head, mode, nr_exclusive, key);
+}
+
+// Task helpers
+
+struct task_struct *rust_helper_get_current(void)
+{
+	return current;
+}
+
+void rust_helper_get_task_struct(struct task_struct *t)
+{
+	get_task_struct(t);
+}
+
+void rust_helper_put_task_struct(struct task_struct *t)
+{
+	put_task_struct(t);
+}
+
+int rust_helper_kthread_should_stop(void)
+{
+	return kthread_should_stop();
+}
+
+// Network helpers
+
+void *rust_helper_get_net(void *net)
+{
+	return get_net((struct net *)net);
+}
+
+void rust_helper_put_net(void *net)
+{
+	put_net((struct net *)net);
+}
+
+void rust_helper_set_wq_entry_private(struct wait_queue_entry *wq, void *p)
+{
+	wq->private = p;
+}
+
+void *rust_helper_get_wq_entry_private(struct wait_queue_entry *wq)
+{
+	return wq->private;
+}
+
+// Workqueue helpers
+
+void rust_helper_init_work_with_key(struct work_struct *work,
+				    work_func_t func, bool onstack,
+				    const char *name,
+				    struct lock_class_key *key)
+{
+	__init_work(work, onstack);
+	work->data = (atomic_long_t) WORK_DATA_INIT();
+	lockdep_init_map(&work->lockdep_map, name, key, 0);
+	INIT_LIST_HEAD(&work->entry);
+	work->func = func;
+}
+
+// Schedule helper — schedule() is not inline but linux/sched.h is not
+// traversed, so we provide a thin wrapper.
+
+void rust_helper_schedule(void)
+{
+	schedule();
 }
 

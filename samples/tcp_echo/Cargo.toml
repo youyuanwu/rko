@@ -1,0 +1,15 @@
+[package]
+name = "tcp_echo"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[lib]
+name = "tcp_echo"
+path = "tcp_echo.rs"
+crate-type = ["staticlib"]
+test = false
+bench = false
+
+[dependencies]
+rko-core.workspace = true

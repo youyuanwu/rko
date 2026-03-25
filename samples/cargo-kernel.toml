@@ -1,3 +1,9 @@
+# Enable unstable Rust features (coerce_unsized, arbitrary_self_types, etc.)
+# for rustc. Cargo-level -Z flags still need RUSTC_BOOTSTRAP in the process
+# environment (set in cmake/kernel_module.cmake).
+[env]
+RUSTC_BOOTSTRAP = "1"
+
 [build]
 
 [unstable]

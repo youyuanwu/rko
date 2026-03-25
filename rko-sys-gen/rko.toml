@@ -182,6 +182,44 @@ library = "kernel"
 headers = ["../rko-sys/src/helpers.h"]
 traverse = ["../rko-sys/src/helpers.h"]
 
+# ── Partition 11: networking core ──────────────────────────────────
+# socket, sockaddr_in/in6, in_addr/in6_addr, sock_create_kern,
+# kernel_bind, kernel_listen, kernel_accept, kernel_sendmsg,
+# kernel_recvmsg, sock_release, init_net
+[[partition]]
+namespace = "rko.net"
+library = "kernel"
+headers = ["linux/net.h"]
+traverse = [
+  "linux/net.h",
+  "uapi/linux/net.h",
+  "uapi/linux/socket.h",
+  "linux/socket.h",
+  "uapi/linux/in.h",
+  "uapi/linux/in6.h",
+  "linux/uio.h",
+  "uapi/linux/uio.h",
+]
+
+# ── Partition 12: workqueue ────────────────────────────────────────
+# workqueue_struct, work_struct, queue_work_on, cancel_work_sync,
+# alloc_workqueue, destroy_workqueue, system_wq, WORK_CPU_UNBOUND
+[[partition]]
+namespace = "rko.workqueue"
+library = "kernel"
+headers = ["linux/workqueue.h"]
+traverse = [
+  "linux/workqueue.h",
+  "linux/workqueue_types.h",
+]
+
+# ── Partition 13: poll constants ───────────────────────────────────
+[[partition]]
+namespace = "rko.poll"
+library = "kernel"
+headers = ["uapi/asm-generic/poll.h"]
+traverse = ["uapi/asm-generic/poll.h"]
+
 # ── Injected types ─────────────────────────────────────────────────
 # Types bnd-winmd cannot extract (bitfield enums, anonymous enums) or
 # types we keep opaque to avoid cascading traverse expansion.
@@ -373,6 +411,37 @@ align = 4
 [[inject_type]]
 namespace = "rko.fs"
 name = "mnt_idmap"
+kind = "struct"
+size = 8
+align = 8
+
+# ── Networking inject_types ────────────────────────────────────────
+# Only types not resolvable from other partitions are injected here.
+# Types from linux/fs.h, linux/mm_types.h, linux/sched.h resolve
+# cross-partition from rko.fs/rko.pagemap.
+
+# Defined in vdso/time32.h — param of __sys_recvmmsg
+[[inject_type]]
+namespace = "rko.net"
+name = "old_timespec32"
+kind = "struct"
+size = 8
+align = 4
+
+# Defined in uapi/linux/time_types.h — param of __sys_recvmmsg
+[[inject_type]]
+namespace = "rko.net"
+name = "__kernel_timespec"
+kind = "struct"
+size = 16
+align = 8
+
+# ── Workqueue inject_types ─────────────────────────────────────────
+
+# Defined in linux/cpumask_types.h — embedded by value in workqueue_attrs
+[[inject_type]]
+namespace = "rko.workqueue"
+name = "cpumask"
 kind = "struct"
 size = 8
 align = 8

@@ -3,6 +3,13 @@
 version = 4
 
 [[package]]
+name = "async_echo"
+version = "0.1.0"
+dependencies = [
+ "rko-core",
+]
+
+[[package]]
 name = "bitflags"
 version = "2.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -107,6 +114,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d767eb0aabc880b29956c35734170f26ed551a859dbd361d140cdbeca61ab1e2"
 
 [[package]]
+name = "tcp_echo"
+version = "0.1.0"
+dependencies = [
+ "rko-core",
+]
+
+[[package]]
 name = "unicode-ident"
 version = "1.0.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -117,3 +131,10 @@ name = "windows-link"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f0805222e57f7521d6a62e36fa9163bc891acd422f971defe97d64e70d0a4fe5"
+
+[[package]]
+name = "workqueue_test"
+version = "0.1.0"
+dependencies = [
+ "rko-core",
+]

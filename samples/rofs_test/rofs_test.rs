@@ -43,10 +43,7 @@ impl fs::Type for RofsTest {
     const NAME: &'static core::ffi::CStr = c"rofs_test";
     const TABLES: &'static fs::vtable::Tables<Self> = &TABLES;
 
-    fn fill_super(
-        sb: &SuperBlock<Self>,
-        tables: &fs::vtable::Tables<Self>,
-    ) -> Result<(), Error> {
+    fn fill_super(sb: &SuperBlock<Self>, tables: &fs::vtable::Tables<Self>) -> Result<(), Error> {
         sb.init_simple(&SuperParams {
             maxbytes: i64::MAX,
             blocksize_bits: 12,

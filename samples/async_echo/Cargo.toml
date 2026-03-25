@@ -1,0 +1,15 @@
+[package]
+name = "async_echo"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[lib]
+name = "async_echo"
+path = "async_echo.rs"
+crate-type = ["staticlib"]
+test = false
+bench = false
+
+[dependencies]
+rko-core.workspace = true

@@ -74,4 +74,66 @@ long rust_helper_generic_file_read_iter(struct kiocb *iocb,
 /* is_bad_inode wrapper */
 _Bool rust_helper_is_bad_inode(struct inode *inode);
 
+/* ── Mutex helpers ─────────────────────────────────────────────────── */
+#include <linux/mutex.h>
+void rust_helper___mutex_init(struct mutex *lock, const char *name,
+                              struct lock_class_key *key);
+void rust_helper_mutex_lock(struct mutex *lock);
+void rust_helper_mutex_unlock(struct mutex *lock);
+int rust_helper_mutex_trylock(struct mutex *lock);
+_Bool rust_helper_mutex_is_locked(struct mutex *lock);
+
+/* ── Spinlock helpers ──────────────────────────────────────────────── */
+#include <linux/spinlock.h>
+void rust_helper___spin_lock_init(spinlock_t *lock, const char *name,
+                                  struct lock_class_key *key);
+void rust_helper_spin_lock(spinlock_t *lock);
+void rust_helper_spin_unlock(spinlock_t *lock);
+int rust_helper_spin_trylock(spinlock_t *lock);
+int rust_helper_spin_is_locked(spinlock_t *lock);
+
+/* ── RCU helpers ───────────────────────────────────────────────────── */
+#include <linux/rcupdate.h>
+void rust_helper_rcu_read_lock(void);
+void rust_helper_rcu_read_unlock(void);
+
+/* ── Lockdep helpers ───────────────────────────────────────────────── */
+#include <linux/lockdep.h>
+void rust_helper_lockdep_register_key(struct lock_class_key *key);
+void rust_helper_lockdep_unregister_key(struct lock_class_key *key);
+
+/* ── Waitqueue helpers ─────────────────────────────────────────────── */
+void rust_helper___init_waitqueue_head(struct wait_queue_head *wq_head,
+                                       const char *name,
+                                       struct lock_class_key *key);
+void rust_helper___wake_up(struct wait_queue_head *wq_head,
+                           unsigned int mode, int nr_exclusive, void *key);
+
+/* ── Task helpers ──────────────────────────────────────────────────── */
+#include <linux/sched.h>
+#include <linux/sched/task.h>
+#include <linux/kthread.h>
+struct task_struct *rust_helper_get_current(void);
+void rust_helper_get_task_struct(struct task_struct *t);
+void rust_helper_put_task_struct(struct task_struct *t);
+int rust_helper_kthread_should_stop(void);
+
+/* ── Network helpers ───────────────────────────────────────────────── */
+#include <linux/net.h>
+#include <net/net_namespace.h>
+void *rust_helper_get_net(void *net);
+void rust_helper_put_net(void *net);
+void rust_helper_set_wq_entry_private(struct wait_queue_entry *wq, void *p);
+void *rust_helper_get_wq_entry_private(struct wait_queue_entry *wq);
+
+/* ── Workqueue helpers ─────────────────────────────────────────────── */
+#include <linux/workqueue.h>
+void rust_helper_init_work_with_key(struct work_struct *work,
+                                    work_func_t func, _Bool onstack,
+                                    const char *name,
+                                    struct lock_class_key *key);
+
+/* schedule() — not inline but not in any traversed partition */
+void rust_helper_schedule(void);
+
 #endif /* _RKO_HELPERS_H */

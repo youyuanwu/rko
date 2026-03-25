@@ -1,0 +1,3313 @@
+diff --git a/include/linux/workqueue.h b/include/linux/workqueue.h
+index 1c1d06804d4509..cd897cea3f341e 100644
+--- a/include/linux/workqueue.h
++++ b/include/linux/workqueue.h
+@@ -274,24 +274,31 @@ static inline unsigned int work_static(struct work_struct *work) { return 0; }
+  * to generate better code.
+  */
+ #ifdef CONFIG_LOCKDEP
+-#define __INIT_WORK(_work, _func, _onstack)				\
++#define __INIT_WORK_WITH_KEY(_work, _func, _onstack, _key)		\
+ 	do {								\
+-		static struct lock_class_key __key;			\
+-									\
+ 		__init_work((_work), _onstack);				\
+ 		(_work)->data = (atomic_long_t) WORK_DATA_INIT();	\
+-		lockdep_init_map(&(_work)->lockdep_map, "(work_completion)"#_work, &__key, 0); \
++		lockdep_init_map(&(_work)->lockdep_map, "(work_completion)"#_work, _key, 0); \
+ 		INIT_LIST_HEAD(&(_work)->entry);			\
+ 		(_work)->func = (_func);				\
+ 	} while (0)
+-#else
++
+ #define __INIT_WORK(_work, _func, _onstack)				\
++	do {								\
++		static struct lock_class_key __key;			\
++		__INIT_WORK_WITH_KEY(_work, _func, _onstack, &__key);	\
++	} while (0)
++#else
++#define __INIT_WORK_WITH_KEY(_work, _func, _onstack, _key)		\
+ 	do {								\
+ 		__init_work((_work), _onstack);				\
+ 		(_work)->data = (atomic_long_t) WORK_DATA_INIT();	\
+ 		INIT_LIST_HEAD(&(_work)->entry);			\
+ 		(_work)->func = (_func);				\
+ 	} while (0)
++
++#define __INIT_WORK(_work, _func, _onstack)				\
++	__INIT_WORK_WITH_KEY(_work, _func, _onstack, NULL)
+ #endif
+ 
+ #define INIT_WORK(_work, _func)						\
+diff --git a/rust/bindings/bindings_helper.h b/rust/bindings/bindings_helper.h
+index c91a3c24f6070a..b4f68fac82cef4 100644
+--- a/rust/bindings/bindings_helper.h
++++ b/rust/bindings/bindings_helper.h
+@@ -8,8 +8,12 @@
+ 
+ #include <kunit/test.h>
+ #include <linux/errname.h>
+-#include <linux/slab.h>
++#include <linux/net.h>
++#include <linux/netdevice.h>
++#include <linux/poll.h>
+ #include <linux/refcount.h>
++#include <linux/skbuff.h>
++#include <linux/slab.h>
+ #include <linux/wait.h>
+ #include <linux/sched.h>
+ 
+@@ -17,3 +21,8 @@
+ const size_t BINDINGS_ARCH_SLAB_MINALIGN = ARCH_SLAB_MINALIGN;
+ const gfp_t BINDINGS_GFP_KERNEL = GFP_KERNEL;
+ const gfp_t BINDINGS___GFP_ZERO = __GFP_ZERO;
++
++const __poll_t BINDINGS_EPOLLIN = EPOLLIN;
++const __poll_t BINDINGS_EPOLLOUT = EPOLLOUT;
++const __poll_t BINDINGS_EPOLLERR = EPOLLERR;
++const __poll_t BINDINGS_EPOLLHUP = EPOLLHUP;
+diff --git a/rust/bindings/lib.rs b/rust/bindings/lib.rs
+index 9bcbea04dac305..0d59f5c453871b 100644
+--- a/rust/bindings/lib.rs
++++ b/rust/bindings/lib.rs
+@@ -51,3 +51,8 @@ pub use bindings_raw::*;
+ 
+ pub const GFP_KERNEL: gfp_t = BINDINGS_GFP_KERNEL;
+ pub const __GFP_ZERO: gfp_t = BINDINGS___GFP_ZERO;
++
++pub const EPOLLIN: __poll_t = BINDINGS_EPOLLIN;
++pub const EPOLLOUT: __poll_t = BINDINGS_EPOLLOUT;
++pub const EPOLLERR: __poll_t = BINDINGS_EPOLLERR;
++pub const EPOLLHUP: __poll_t = BINDINGS_EPOLLHUP;
+diff --git a/rust/helpers.c b/rust/helpers.c
+index 4c86fe4a7e05e7..9fa1c9a7d200c1 100644
+--- a/rust/helpers.c
++++ b/rust/helpers.c
+@@ -30,6 +30,8 @@
+ #include <linux/sched/signal.h>
+ #include <linux/spinlock.h>
+ #include <linux/wait.h>
++#include <linux/workqueue.h>
++#include <net/net_namespace.h>
+ 
+ __noreturn void rust_helper_BUG(void)
+ {
+@@ -72,6 +74,13 @@ void rust_helper_init_wait(struct wait_queue_entry *wq_entry)
+ }
+ EXPORT_SYMBOL_GPL(rust_helper_init_wait);
+ 
++void rust_helper_init_waitqueue_func_entry(struct wait_queue_entry *wq_entry,
++					   wait_queue_func_t func)
++{
++	init_waitqueue_func_entry(wq_entry, func);
++}
++EXPORT_SYMBOL_GPL(rust_helper_init_waitqueue_func_entry);
++
+ int rust_helper_signal_pending(struct task_struct *t)
+ {
+ 	return signal_pending(t);
+@@ -144,6 +153,25 @@ struct kunit *rust_helper_kunit_get_current_test(void)
+ }
+ EXPORT_SYMBOL_GPL(rust_helper_kunit_get_current_test);
+ 
++void rust_helper___INIT_WORK_WITH_KEY(struct work_struct *work,
++		work_func_t func, bool on_stack, struct lock_class_key *key)
++{
++	__INIT_WORK_WITH_KEY(work, func, on_stack, key);
++}
++EXPORT_SYMBOL_GPL(rust_helper___INIT_WORK_WITH_KEY);
++
++struct net *rust_helper_get_net(struct net *net)
++{
++	return get_net(net);
++}
++EXPORT_SYMBOL_GPL(rust_helper_get_net);
++
++void rust_helper_put_net(struct net *net)
++{
++	return put_net(net);
++}
++EXPORT_SYMBOL_GPL(rust_helper_put_net);
++
+ /*
+  * `bindgen` binds the C `size_t` type as the Rust `usize` type, so we can
+  * use it in contexts where Rust expects a `usize` like slice (array) indices.
+diff --git a/rust/kernel/kasync.rs b/rust/kernel/kasync.rs
+new file mode 100644
+index 00000000000000..d48e9041e8041b
+--- /dev/null
++++ b/rust/kernel/kasync.rs
+@@ -0,0 +1,50 @@
++// SPDX-License-Identifier: GPL-2.0
++
++//! Kernel async functionality.
++
++use core::{
++    future::Future,
++    pin::Pin,
++    task::{Context, Poll},
++};
++
++pub mod executor;
++#[cfg(CONFIG_NET)]
++pub mod net;
++
++/// Yields execution of the current task so that other tasks may execute.
++///
++/// The task continues to be in a "runnable" state though, so it will eventually run again.
++///
++/// # Examples
++///
++/// ```
++/// use kernel::kasync::yield_now;
++///
++/// async fn example() {
++///     pr_info!("Before yield\n");
++///     yield_now().await;
++///     pr_info!("After yield\n");
++/// }
++/// ```
++pub fn yield_now() -> impl Future<Output = ()> {
++    struct Yield {
++        first_poll: bool,
++    }
++
++    impl Future for Yield {
++        type Output = ();
++
++        fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<()> {
++            if !self.first_poll {
++                Poll::Ready(())
++            } else {
++                self.first_poll = false;
++                cx.waker().wake_by_ref();
++                Poll::Pending
++            }
++        }
++    }
++
++    Yield { first_poll: true }
++}
+diff --git a/rust/kernel/kasync/executor.rs b/rust/kernel/kasync/executor.rs
+new file mode 100644
+index 00000000000000..65869099c8f69f
+--- /dev/null
++++ b/rust/kernel/kasync/executor.rs
+@@ -0,0 +1,154 @@
++// SPDX-License-Identifier: GPL-2.0
++
++//! Kernel support for executing futures.
++
++use crate::{
++    error::Result,
++    sync::{Arc, ArcBorrow, LockClassKey},
++    types::ForeignOwnable,
++};
++use core::{
++    future::Future,
++    task::{RawWaker, RawWakerVTable, Waker},
++};
++
++pub mod workqueue;
++
++/// Spawns a new task to run in the given executor.
++///
++/// It also automatically defines a new lockdep lock class for executors (e.g., workqueue) that
++/// require one.
++#[macro_export]
++macro_rules! spawn_task {
++    ($executor:expr, $task:expr) => {{
++        static CLASS: $crate::sync::LockClassKey = $crate::sync::LockClassKey::new();
++        $crate::kasync::executor::Executor::spawn($executor, &CLASS, $task)
++    }};
++}
++
++/// A task spawned in an executor.
++pub trait Task {
++    /// Synchronously stops the task.
++    ///
++    /// It ensures that the task won't run again and releases resources needed to run the task
++    /// (e.g., the closure is dropped). If the task is inflight, it waits for the task to block or
++    /// complete before cleaning up and returning.
++    ///
++    /// Callers must not call this from within the task itself as it will likely lead to a
++    /// deadlock.
++    fn sync_stop(self: Arc<Self>);
++}
++
++/// An environment for executing tasks.
++pub trait Executor: Sync + Send {
++    /// Starts executing a task defined by the given future.
++    ///
++    /// Callers are encouraged to use the [`spawn_task`] macro because it automatically defines a
++    /// new lock class key.
++    fn spawn(
++        self: ArcBorrow<'_, Self>,
++        lock_class_key: &'static LockClassKey,
++        future: impl Future + 'static + Send,
++    ) -> Result<Arc<dyn Task>>
++    where
++        Self: Sized;
++
++    /// Stops the executor.
++    ///
++    /// After it is called, attempts to spawn new tasks will result in an error and existing ones
++    /// won't be polled anymore.
++    fn stop(&self);
++}
++
++/// A waker that is wrapped in [`Arc`] for its reference counting.
++///
++/// Types that implement this trait can get a [`Waker`] by calling [`ref_waker`].
++pub trait ArcWake: Send + Sync {
++    /// Wakes a task up.
++    fn wake_by_ref(self: ArcBorrow<'_, Self>);
++
++    /// Wakes a task up and consumes a reference.
++    fn wake(self: Arc<Self>) {
++        self.as_arc_borrow().wake_by_ref();
++    }
++}
++
++/// Creates a [`Waker`] from a [`Arc<T>`], where `T` implements the [`ArcWake`] trait.
++pub fn ref_waker<T: 'static + ArcWake>(w: Arc<T>) -> Waker {
++    fn raw_waker<T: 'static + ArcWake>(w: Arc<T>) -> RawWaker {
++        let data = w.into_foreign();
++        RawWaker::new(
++            data.cast(),
++            &RawWakerVTable::new(clone::<T>, wake::<T>, wake_by_ref::<T>, drop::<T>),
++        )
++    }
++
++    unsafe fn clone<T: 'static + ArcWake>(ptr: *const ()) -> RawWaker {
++        // SAFETY: The data stored in the raw waker is the result of a call to `into_foreign`.
++        let w = unsafe { Arc::<T>::borrow(ptr.cast()) };
++        raw_waker(w.into())
++    }
++
++    unsafe fn wake<T: 'static + ArcWake>(ptr: *const ()) {
++        // SAFETY: The data stored in the raw waker is the result of a call to `into_foreign`.
++        let w = unsafe { Arc::<T>::from_foreign(ptr.cast()) };
++        w.wake();
++    }
++
++    unsafe fn wake_by_ref<T: 'static + ArcWake>(ptr: *const ()) {
++        // SAFETY: The data stored in the raw waker is the result of a call to `into_foreign`.
++        let w = unsafe { Arc::<T>::borrow(ptr.cast()) };
++        w.wake_by_ref();
++    }
++
++    unsafe fn drop<T: 'static + ArcWake>(ptr: *const ()) {
++        // SAFETY: The data stored in the raw waker is the result of a call to `into_foreign`.
++        unsafe { Arc::<T>::from_foreign(ptr.cast()) };
++    }
++
++    let raw = raw_waker(w);
++    // SAFETY: The vtable of the raw waker satisfy the behaviour requirements of a waker.
++    unsafe { Waker::from_raw(raw) }
++}
++
++/// A handle to an executor that automatically stops it on drop.
++pub struct AutoStopHandle<T: Executor + ?Sized> {
++    executor: Option<Arc<T>>,
++}
++
++impl<T: Executor + ?Sized> AutoStopHandle<T> {
++    /// Creates a new instance of an [`AutoStopHandle`].
++    pub fn new(executor: Arc<T>) -> Self {
++        Self {
++            executor: Some(executor),
++        }
++    }
++
++    /// Detaches from the auto-stop handle.
++    ///
++    /// That is, extracts the executor from the handle and doesn't stop it anymore.
++    pub fn detach(mut self) -> Arc<T> {
++        self.executor.take().unwrap()
++    }
++
++    /// Returns the executor associated with the auto-stop handle.
++    ///
++    /// This is so that callers can, for example, spawn new tasks.
++    pub fn executor(&self) -> ArcBorrow<'_, T> {
++        self.executor.as_ref().unwrap().as_arc_borrow()
++    }
++}
++
++impl<T: Executor + ?Sized> Drop for AutoStopHandle<T> {
++    fn drop(&mut self) {
++        if let Some(ex) = self.executor.take() {
++            ex.stop();
++        }
++    }
++}
++
++impl<T: 'static + Executor> From<AutoStopHandle<T>> for AutoStopHandle<dyn Executor> {
++    fn from(src: AutoStopHandle<T>) -> Self {
++        Self::new(src.detach())
++    }
++}
+diff --git a/rust/kernel/kasync/executor/workqueue.rs b/rust/kernel/kasync/executor/workqueue.rs
+new file mode 100644
+index 00000000000000..0e00ab3ae17f0e
+--- /dev/null
++++ b/rust/kernel/kasync/executor/workqueue.rs
+@@ -0,0 +1,285 @@
++// SPDX-License-Identifier: GPL-2.0
++
++//! Kernel support for executing futures in C workqueues (`struct workqueue_struct`).
++
++use super::{ArcWake, AutoStopHandle};
++use crate::{
++    error::{code::*, Result},
++    pin_init,
++    revocable::AsyncRevocable,
++    sync::{Arc, ArcBorrow, LockClassKey, Mutex, UniqueArc},
++    types::Either::{self, Left, Right},
++    unsafe_list,
++    workqueue::{BoxedQueue, Queue, Work, WorkAdapter},
++};
++use core::{cell::UnsafeCell, future::Future, marker::PhantomPinned, pin::Pin, task::Context};
++use macros::pin_data;
++
++trait RevocableTask {
++    fn revoke(&self);
++    fn flush(self: Arc<Self>);
++    fn to_links(&self) -> &unsafe_list::Links<dyn RevocableTask>;
++}
++
++// SAFETY: `Task` has a single `links` field and only one adapter.
++unsafe impl unsafe_list::Adapter for dyn RevocableTask {
++    type EntryType = dyn RevocableTask;
++    fn to_links(obj: &dyn RevocableTask) -> &unsafe_list::Links<dyn RevocableTask> {
++        obj.to_links()
++    }
++}
++
++struct Task<T: 'static + Send + Future> {
++    links: unsafe_list::Links<dyn RevocableTask>,
++    executor: Arc<Executor>,
++    work: Work,
++    future: AsyncRevocable<UnsafeCell<T>>,
++}
++
++// SAFETY: The `future` field is only used by one thread at a time (in the `poll` method, which is
++// called by the work queue, who guarantees no reentrancy), so a task is `Sync` as long as the
++// future is `Send`.
++unsafe impl<T: 'static + Send + Future> Sync for Task<T> {}
++
++// SAFETY: If the future `T` is `Send`, so is the task.
++unsafe impl<T: 'static + Send + Future> Send for Task<T> {}
++
++impl<T: 'static + Send + Future> Task<T> {
++    fn try_new(
++        executor: Arc<Executor>,
++        key: &'static LockClassKey,
++        future: T,
++    ) -> Result<Arc<Self>> {
++        let task = UniqueArc::try_new(Self {
++            executor: executor.clone(),
++            links: unsafe_list::Links::new(),
++            // SAFETY: `work` is initialised below.
++            work: unsafe { Work::new() },
++            future: AsyncRevocable::new(UnsafeCell::new(future)),
++        })?;
++
++        Work::init(&task, key);
++
++        let task = Arc::from(task);
++
++        // Add task to list.
++        {
++            let mut guard = executor.inner.lock();
++            if guard.stopped {
++                return Err(EINVAL);
++            }
++
++            // Convert one reference into a pointer so that we hold on to a ref count while the
++            // task is in the list.
++            Arc::into_raw(task.clone());
++
++            // SAFETY: The task was just created, so it is not in any other lists. It remains alive
++            // because we incremented the refcount to account for it being in the list. It never
++            // moves because it's pinned behind a `Arc`.
++            unsafe { guard.tasks.push_back(&*task) };
++        }
++
++        Ok(task)
++    }
++}
++
++unsafe impl<T: 'static + Send + Future> WorkAdapter for Task<T> {
++    type Target = Self;
++    const FIELD_OFFSET: usize = core::mem::offset_of!(Self, work);
++    fn run(task: Arc<Task<T>>) {
++        let waker = super::ref_waker(task.clone());
++        let mut ctx = Context::from_waker(&waker);
++
++        let guard = if let Some(g) = task.future.try_access() {
++            g
++        } else {
++            return;
++        };
++
++        // SAFETY: `future` is pinned when the task is. The task is pinned because it's behind a
++        // `Arc`, which is always pinned.
++        //
++        // Work queues guarantee no reentrancy and this is the only place where the future is
++        // dereferenced, so it's ok to do it mutably.
++        let future = unsafe { Pin::new_unchecked(&mut *guard.get()) };
++        if future.poll(&mut ctx).is_ready() {
++            drop(guard);
++            task.revoke();
++        }
++    }
++}
++
++impl<T: 'static + Send + Future> super::Task for Task<T> {
++    fn sync_stop(self: Arc<Self>) {
++        self.revoke();
++        self.flush();
++    }
++}
++
++impl<T: 'static + Send + Future> RevocableTask for Task<T> {
++    fn revoke(&self) {
++        if !self.future.revoke() {
++            // Nothing to do if the task was already revoked.
++            return;
++        }
++
++        // SAFETY: The object is inserted into the list on creation and only removed when the
++        // future is first revoked. (Subsequent revocations don't result in additional attempts
++        // to remove per the check above.)
++        unsafe { self.executor.inner.lock().tasks.remove(self) };
++
++        // Decrement the refcount now that the task is no longer in the list.
++        //
++        // SAFETY: `into_raw` was called from `try_new` when the task was added to the list.
++        unsafe { Arc::from_raw(self) };
++    }
++
++    fn flush(self: Arc<Self>) {
++        Work::cancel(self.as_arc_borrow());
++    }
++
++    fn to_links(&self) -> &unsafe_list::Links<dyn RevocableTask> {
++        &self.links
++    }
++}
++
++impl<T: 'static + Send + Future> ArcWake for Task<T> {
++    fn wake(self: Arc<Self>) {
++        if self.future.is_revoked() {
++            return;
++        }
++
++        match &self.executor.queue {
++            Left(q) => q,
++            Right(q) => *q,
++        }
++        .enqueue(self.clone());
++    }
++
++    fn wake_by_ref(self: ArcBorrow<'_, Self>) {
++        Arc::from(self).wake();
++    }
++}
++
++struct ExecutorInner {
++    stopped: bool,
++    tasks: unsafe_list::List<dyn RevocableTask>,
++}
++
++/// An executor backed by a work queue.
++///
++/// # Examples
++///
++/// The following example runs two tasks on the shared system workqueue.
++///
++/// ```
++/// # use kernel::prelude::*;
++/// use kernel::kasync::executor::workqueue::Executor;
++/// use kernel::spawn_task;
++/// use kernel::workqueue;
++///
++/// let mut handle = Executor::try_new(workqueue::system())?;
++/// spawn_task!(handle.executor(), async {
++///     pr_info!("First workqueue task\n");
++/// })?;
++/// spawn_task!(handle.executor(), async {
++///     pr_info!("Second workqueue task\n");
++/// })?;
++/// handle.detach();
++///
++/// # Ok::<(), Error>(())
++/// ```
++#[pin_data]
++pub struct Executor {
++    queue: Either<BoxedQueue, &'static Queue>,
++    #[pin]
++    inner: Mutex<ExecutorInner>,
++    #[pin]
++    _pin: PhantomPinned,
++}
++
++// SAFETY: The executor is backed by a kernel `struct workqueue_struct`, which works from any
++// thread.
++unsafe impl Send for Executor {}
++
++// SAFETY: The executor is backed by a kernel `struct workqueue_struct`, which can be used
++// concurrently by multiple threads.
++unsafe impl Sync for Executor {}
++
++impl Executor {
++    /// Creates a new workqueue-based executor using a static work queue.
++    pub fn try_new(wq: &'static Queue) -> Result<AutoStopHandle<Self>> {
++        Self::new_internal(Right(wq))
++    }
++
++    /// Creates a new workqueue-based executor using an owned (boxed) work queue.
++    pub fn try_new_owned(wq: BoxedQueue) -> Result<AutoStopHandle<Self>> {
++        Self::new_internal(Left(wq))
++    }
++
++    /// Creates a new workqueue-based executor.
++    ///
++    /// It uses the given work queue to run its tasks.
++    fn new_internal(queue: Either<BoxedQueue, &'static Queue>) -> Result<AutoStopHandle<Self>> {
++        let e = Arc::pin_init(pin_init!(Self {
++            queue,
++            _pin: PhantomPinned,
++            inner <- crate::new_mutex!(ExecutorInner {
++                    stopped: false,
++                    tasks: unsafe_list::List::new(),
++                }),
++        }))?;
++        Ok(AutoStopHandle::new(e))
++    }
++}
++
++impl super::Executor for Executor {
++    fn spawn(
++        self: ArcBorrow<'_, Self>,
++        key: &'static LockClassKey,
++        future: impl Future + 'static + Send,
++    ) -> Result<Arc<dyn super::Task>> {
++        let task = Task::try_new(self.into(), key, future)?;
++        task.clone().wake();
++        Ok(task)
++    }
++
++    fn stop(&self) {
++        // Set the `stopped` flag.
++        self.inner.lock().stopped = true;
++
++        // Go through all tasks and revoke & flush them.
++        //
++        // N.B. If we decide to allow "asynchronous" stops, we need to ensure that tasks that have
++        // been revoked but not flushed yet remain in the list so that we can flush them here.
++        // Otherwise we may have a race where we may have a running task (was revoked while
++        // running) that isn't the list anymore, so we think we've synchronously stopped all tasks
++        // when we haven't really -- unloading a module in this situation leads to memory safety
++        // issues (running unloaded code).
++        loop {
++            let guard = self.inner.lock();
++
++            let front = if let Some(t) = guard.tasks.front() {
++                t
++            } else {
++                break;
++            };
++
++            // Get a new reference to the task.
++            //
++            // SAFETY: We know all entries in the list are of type `Arc<dyn RevocableTask>` and
++            // that a reference exists while the entry is in the list, and since we are holding the
++            // list lock, we know it cannot go away. The `into_raw` call below ensures that we
++            // don't decrement the refcount accidentally.
++            let tasktmp = unsafe { Arc::<dyn RevocableTask>::from_raw(front.as_ptr()) };
++            let task = tasktmp.clone();
++            Arc::into_raw(tasktmp);
++
++            // Release the mutex before revoking the task.
++            drop(guard);
++
++            task.revoke();
++            task.flush();
++        }
++    }
++}
+diff --git a/rust/kernel/kasync/net.rs b/rust/kernel/kasync/net.rs
+new file mode 100644
+index 00000000000000..2ae1d7018918a9
+--- /dev/null
++++ b/rust/kernel/kasync/net.rs
+@@ -0,0 +1,318 @@
++// SPDX-License-Identifier: GPL-2.0
++
++//! Async networking.
++
++use crate::{bindings, error::code::*, error::Result, net, sync::NoWaitLock, types::Opaque};
++use core::{
++    future::Future,
++    marker::{PhantomData, PhantomPinned},
++    ops::Deref,
++    pin::Pin,
++    task::{Context, Poll, Waker},
++};
++
++/// A socket listening on a TCP port.
++///
++/// The [`TcpListener::accept`] method is meant to be used in async contexts.
++pub struct TcpListener {
++    listener: net::TcpListener,
++}
++
++impl TcpListener {
++    /// Creates a new TCP listener.
++    ///
++    /// It is configured to listen on the given socket address for the given namespace.
++    pub fn try_new(ns: &net::Namespace, addr: &net::SocketAddr) -> Result<Self> {
++        Ok(Self {
++            listener: net::TcpListener::try_new(ns, addr)?,
++        })
++    }
++
++    /// Accepts a new connection.
++    ///
++    /// Returns a future that when ready indicates the result of the accept operation; on success,
++    /// it contains the newly-accepted tcp stream.
++    pub fn accept(&self) -> impl Future<Output = Result<TcpStream>> + '_ {
++        SocketFuture::from_listener(self, bindings::EPOLLIN | bindings::EPOLLERR, || {
++            Ok(TcpStream {
++                stream: self.listener.accept(false)?,
++            })
++        })
++    }
++}
++
++impl Deref for TcpListener {
++    type Target = net::TcpListener;
++
++    fn deref(&self) -> &Self::Target {
++        &self.listener
++    }
++}
++
++/// A connected TCP socket.
++///
++/// The potentially blocking methods (e.g., [`TcpStream::read`], [`TcpStream::write`]) are meant
++/// to be used in async contexts.
++///
++/// # Examples
++///
++/// ```
++/// # use kernel::prelude::*;
++/// # use kernel::kasync::net::TcpStream;
++/// async fn echo_server(stream: TcpStream) -> Result {
++///     let mut buf = [0u8; 1024];
++///     loop {
++///         let n = stream.read(&mut buf).await?;
++///         if n == 0 {
++///             return Ok(());
++///         }
++///         stream.write_all(&buf[..n]).await?;
++///     }
++/// }
++/// ```
++pub struct TcpStream {
++    stream: net::TcpStream,
++}
++
++impl TcpStream {
++    /// Reads data from a connected socket.
++    ///
++    /// Returns a future that when ready indicates the result of the read operation; on success, it
++    /// contains the number of bytes read, which will be zero if the connection is closed.
++    pub fn read<'a>(&'a self, buf: &'a mut [u8]) -> impl Future<Output = Result<usize>> + 'a {
++        SocketFuture::from_stream(
++            self,
++            bindings::EPOLLIN | bindings::EPOLLHUP | bindings::EPOLLERR,
++            || self.stream.read(buf, false),
++        )
++    }
++
++    /// Writes data to the connected socket.
++    ///
++    /// Returns a future that when ready indicates the result of the write operation; on success, it
++    /// contains the number of bytes written.
++    pub fn write<'a>(&'a self, buf: &'a [u8]) -> impl Future<Output = Result<usize>> + 'a {
++        SocketFuture::from_stream(
++            self,
++            bindings::EPOLLOUT | bindings::EPOLLHUP | bindings::EPOLLERR,
++            || self.stream.write(buf, false),
++        )
++    }
++
++    /// Writes all the data to the connected socket.
++    ///
++    /// Returns a future that when ready indicates the result of the write operation; on success, it
++    /// has written all the data.
++    pub async fn write_all<'a>(&'a self, buf: &'a [u8]) -> Result {
++        let mut rem = buf;
++
++        while !rem.is_empty() {
++            let n = self.write(rem).await?;
++            rem = &rem[n..];
++        }
++
++        Ok(())
++    }
++}
++
++impl Deref for TcpStream {
++    type Target = net::TcpStream;
++
++    fn deref(&self) -> &Self::Target {
++        &self.stream
++    }
++}
++
++/// A future for a socket operation.
++///
++/// # Invariants
++///
++/// `sock` is always non-null and valid for the duration of the lifetime of the instance.
++struct SocketFuture<'a, Out, F: FnMut() -> Result<Out> + Send + 'a> {
++    sock: *mut bindings::socket,
++    mask: u32,
++    is_queued: bool,
++    wq_entry: Opaque<bindings::wait_queue_entry>,
++    waker: NoWaitLock<Option<Waker>>,
++    _p: PhantomData<&'a ()>,
++    _pin: PhantomPinned,
++    operation: F,
++}
++
++// SAFETY: A kernel socket can be used from any thread, `wq_entry` is only used on drop and when
++// `is_queued` is initially `false`.
++unsafe impl<Out, F: FnMut() -> Result<Out> + Send> Send for SocketFuture<'_, Out, F> {}
++
++impl<'a, Out, F: FnMut() -> Result<Out> + Send + 'a> SocketFuture<'a, Out, F> {
++    /// Creates a new socket future.
++    ///
++    /// # Safety
++    ///
++    /// Callers must ensure that `sock` is non-null, valid, and remains valid for the lifetime
++    /// (`'a`) of the returned instance.
++    unsafe fn new(sock: *mut bindings::socket, mask: u32, operation: F) -> Self {
++        Self {
++            sock,
++            mask,
++            is_queued: false,
++            wq_entry: Opaque::uninit(),
++            waker: NoWaitLock::new(None),
++            operation,
++            _p: PhantomData,
++            _pin: PhantomPinned,
++        }
++    }
++
++    /// Creates a new socket future for a tcp listener.
++    fn from_listener(listener: &'a TcpListener, mask: u32, operation: F) -> Self {
++        // SAFETY: The socket is guaranteed to remain valid because it is bound to the reference to
++        // the listener (whose existence guarantees the socket remains valid).
++        unsafe { Self::new(listener.listener.sock, mask, operation) }
++    }
++
++    /// Creates a new socket future for a tcp stream.
++    fn from_stream(stream: &'a TcpStream, mask: u32, operation: F) -> Self {
++        // SAFETY: The socket is guaranteed to remain valid because it is bound to the reference to
++        // the stream (whose existence guarantees the socket remains valid).
++        unsafe { Self::new(stream.stream.sock, mask, operation) }
++    }
++
++    /// Callback called when the socket changes state.
++    ///
++    /// If the state matches the one we're waiting on, we wake up the task so that the future can be
++    /// polled again.
++    unsafe extern "C" fn wake_callback(
++        wq_entry: *mut bindings::wait_queue_entry,
++        _mode: core::ffi::c_uint,
++        _flags: core::ffi::c_int,
++        key: *mut core::ffi::c_void,
++    ) -> core::ffi::c_int {
++        let mask = key as u32;
++
++        // SAFETY: The future is valid while this callback is called because we remove from the
++        // queue on drop.
++        //
++        // There is a potential soundness issue here because we're generating a shared reference to
++        // `Self` while `Self::poll` has a mutable (unique) reference. However, for `!Unpin` types
++        // (like `Self`), `&mut T` is treated as `*mut T` per
++        // <https://github.com/rust-lang/rust/issues/63818> -- so we avoid the unsoundness. Once a
++        // more definitive solution is available, we can change this to use it.
++        let s = unsafe { &*crate::container_of!(wq_entry, Self, wq_entry) };
++        if mask & s.mask == 0 {
++            // Nothing to do as this notification doesn't interest us.
++            return 0;
++        }
++
++        // If we can't acquire the waker lock, the waker is in the process of being modified. Our
++        // attempt to acquire the lock will be reported to the lock owner, so it will trigger the
++        // wake up.
++        if let Some(guard) = s.waker.try_lock() {
++            if let Some(ref w) = *guard {
++                let cloned = w.clone();
++                drop(guard);
++                cloned.wake();
++                return 1;
++            }
++        }
++        0
++    }
++
++    /// Poll the future once.
++    ///
++    /// It calls the operation and converts `EAGAIN` errors into a pending state.
++    fn poll_once(self: Pin<&mut Self>) -> Poll<Result<Out>> {
++        // SAFETY: We never move out of `this`.
++        let this = unsafe { self.get_unchecked_mut() };
++        match (this.operation)() {
++            Ok(s) => Poll::Ready(Ok(s)),
++            Err(e) => {
++                if e == EAGAIN {
++                    Poll::Pending
++                } else {
++                    Poll::Ready(Err(e))
++                }
++            }
++        }
++    }
++
++    /// Updates the waker stored in the future.
++    ///
++    /// It automatically triggers a wake up on races with the reactor.
++    fn set_waker(&self, waker: &Waker) {
++        if let Some(mut guard) = self.waker.try_lock() {
++            let old = core::mem::replace(&mut *guard, Some(waker.clone()));
++            let contention = guard.unlock();
++            drop(old);
++            if !contention {
++                return;
++            }
++        }
++
++        // We either couldn't store the waker because the existing one is being awakened, or the
++        // reactor tried to acquire the lock while we held it (contention). In either case, we just
++        // wake it up to ensure we don't miss any notification.
++        waker.wake_by_ref();
++    }
++}
++
++impl<Out, F: FnMut() -> Result<Out> + Send> Future for SocketFuture<'_, Out, F> {
++    type Output = Result<Out>;
++
++    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
++        match self.as_mut().poll_once() {
++            Poll::Ready(r) => Poll::Ready(r),
++            Poll::Pending => {
++                // Store away the latest waker every time we may `Pending`.
++                self.set_waker(cx.waker());
++                if self.is_queued {
++                    // Nothing else to do was the waiter is already queued.
++                    return Poll::Pending;
++                }
++
++                // SAFETY: We never move out of `this`.
++                let this = unsafe { self.as_mut().get_unchecked_mut() };
++
++                this.is_queued = true;
++
++                // SAFETY: `wq_entry` is valid for write.
++                unsafe {
++                    bindings::init_waitqueue_func_entry(
++                        this.wq_entry.get(),
++                        Some(Self::wake_callback),
++                    )
++                };
++
++                // SAFETY: `wq_entry` was just initialised above and is valid for read/write.
++                // By the type invariants, the socket is always valid.
++                unsafe {
++                    bindings::add_wait_queue(
++                        core::ptr::addr_of_mut!((*this.sock).wq.wait),
++                        this.wq_entry.get(),
++                    )
++                };
++
++                // If the future wasn't queued yet, we need to poll again in case it reached
++                // the desired state between the last poll and being queued (in which case we
++                // would have missed the notification).
++                self.poll_once()
++            }
++        }
++    }
++}
++
++impl<Out, F: FnMut() -> Result<Out> + Send> Drop for SocketFuture<'_, Out, F> {
++    fn drop(&mut self) {
++        if !self.is_queued {
++            return;
++        }
++
++        // SAFETY: `wq_entry` is initialised because `is_queued` is set to `true`, so it is valid
++        // for read/write. By the type invariants, the socket is always valid.
++        unsafe {
++            bindings::remove_wait_queue(
++                core::ptr::addr_of_mut!((*self.sock).wq.wait),
++                self.wq_entry.get(),
++            )
++        };
++    }
++}
+diff --git a/rust/kernel/lib.rs b/rust/kernel/lib.rs
+index e8811700239aaf..aba7591ce39d4f 100644
+--- a/rust/kernel/lib.rs
++++ b/rust/kernel/lib.rs
+@@ -16,6 +16,8 @@
+ #![feature(coerce_unsized)]
+ #![feature(dispatch_from_dyn)]
+ #![feature(new_uninit)]
++#![feature(offset_of)]
++#![feature(ptr_metadata)]
+ #![feature(receiver_trait)]
+ #![feature(unsize)]
+ 
+@@ -34,10 +36,14 @@ mod build_assert;
+ pub mod error;
+ pub mod init;
+ pub mod ioctl;
++pub mod kasync;
+ #[cfg(CONFIG_KUNIT)]
+ pub mod kunit;
++#[cfg(CONFIG_NET)]
++pub mod net;
+ pub mod prelude;
+ pub mod print;
++pub mod revocable;
+ mod static_assert;
+ #[doc(hidden)]
+ pub mod std_vendor;
+@@ -45,6 +51,8 @@ pub mod str;
+ pub mod sync;
+ pub mod task;
+ pub mod types;
++pub mod unsafe_list;
++pub mod workqueue;
+ 
+ #[doc(hidden)]
+ pub use bindings;
+@@ -89,6 +97,38 @@ impl ThisModule {
+     }
+ }
+ 
++/// Produces a pointer to an object from a pointer to one of its fields.
++///
++/// # Safety
++///
++/// Callers must ensure that the pointer to the field is in fact a pointer to the specified field,
++/// as opposed to a pointer to another object of the same type. If this condition is not met,
++/// any dereference of the resulting pointer is UB.
++///
++/// # Examples
++///
++/// ```
++/// # use kernel::container_of;
++/// struct Test {
++///     a: u64,
++///     b: u32,
++/// }
++///
++/// let test = Test { a: 10, b: 20 };
++/// let b_ptr = &test.b;
++/// let test_alias = container_of!(b_ptr, Test, b);
++/// assert!(core::ptr::eq(&test, test_alias));
++/// ```
++#[macro_export]
++macro_rules! container_of {
++    ($ptr:expr, $type:ty, $($f:tt)*) => {{
++        let ptr = $ptr as *const _ as *const u8;
++        let offset = ::core::mem::offset_of!($type, $($f)*);
++        $crate::build_assert!(offset <= isize::MAX as usize);
++        ptr.wrapping_sub(offset) as *const $type
++    }}
++}
++
+ #[cfg(not(any(testlib, test)))]
+ #[panic_handler]
+ fn panic(info: &core::panic::PanicInfo<'_>) -> ! {
+diff --git a/rust/kernel/net.rs b/rust/kernel/net.rs
+new file mode 100644
+index 00000000000000..d00e4f94b12c08
+--- /dev/null
++++ b/rust/kernel/net.rs
+@@ -0,0 +1,311 @@
++// SPDX-License-Identifier: GPL-2.0
++
++//! Networking core.
++//!
++//! C headers: [`include/net/net_namespace.h`](../../../../include/linux/net/net_namespace.h),
++//! [`include/linux/netdevice.h`](../../../../include/linux/netdevice.h),
++
++use crate::error::{to_result, Error, Result};
++use crate::{bindings, types::AlwaysRefCounted};
++use core::{cell::UnsafeCell, ptr};
++
++/// A network namespace.
++///
++/// Wraps the kernel's `struct net`.
++#[repr(transparent)]
++pub struct Namespace(UnsafeCell<bindings::net>);
++
++// SAFETY: Instances of `Namespace` are created on the C side. They are always refcounted.
++unsafe impl AlwaysRefCounted for Namespace {
++    fn inc_ref(&self) {
++        // SAFETY: The existence of a shared reference means that the refcount is nonzero.
++        unsafe { bindings::get_net(self.0.get()) };
++    }
++
++    unsafe fn dec_ref(obj: ptr::NonNull<Self>) {
++        // SAFETY: The safety requirements guarantee that the refcount is nonzero.
++        unsafe { bindings::put_net(obj.cast().as_ptr()) };
++    }
++}
++
++/// Returns the network namespace for the `init` process.
++pub fn init_ns() -> &'static Namespace {
++    // SAFETY: `init_net` is always initialised and valid. We can cast it to `Namespace` because
++    // it's a transparent representation of `net`.
++    unsafe { &*core::ptr::addr_of!(bindings::init_net).cast() }
++}
++
++/// An IPv4 address.
++///
++/// This is equivalent to C's `in_addr`.
++#[repr(transparent)]
++pub struct Ipv4Addr(bindings::in_addr);
++
++impl Ipv4Addr {
++    /// A wildcard IPv4 address.
++    ///
++    /// Binding to this address means binding to all IPv4 addresses.
++    pub const ANY: Self = Self::new(0, 0, 0, 0);
++
++    /// The IPv4 loopback address.
++    pub const LOOPBACK: Self = Self::new(127, 0, 0, 1);
++
++    /// The IPv4 broadcast address.
++    pub const BROADCAST: Self = Self::new(255, 255, 255, 255);
++
++    /// Creates a new IPv4 address with the given components.
++    pub const fn new(a: u8, b: u8, c: u8, d: u8) -> Self {
++        Self(bindings::in_addr {
++            s_addr: u32::from_be_bytes([a, b, c, d]).to_be(),
++        })
++    }
++}
++
++/// An IPv6 address.
++///
++/// This is equivalent to C's `in6_addr`.
++#[repr(transparent)]
++pub struct Ipv6Addr(bindings::in6_addr);
++
++impl Ipv6Addr {
++    /// A wildcard IPv6 address.
++    ///
++    /// Binding to this address means binding to all IPv6 addresses.
++    pub const ANY: Self = Self::new(0, 0, 0, 0, 0, 0, 0, 0);
++
++    /// The IPv6 loopback address.
++    pub const LOOPBACK: Self = Self::new(0, 0, 0, 0, 0, 0, 0, 1);
++
++    /// Creates a new IPv6 address with the given components.
++    #[allow(clippy::too_many_arguments)]
++    pub const fn new(a: u16, b: u16, c: u16, d: u16, e: u16, f: u16, g: u16, h: u16) -> Self {
++        Self(bindings::in6_addr {
++            in6_u: bindings::in6_addr__bindgen_ty_1 {
++                u6_addr16: [
++                    a.to_be(),
++                    b.to_be(),
++                    c.to_be(),
++                    d.to_be(),
++                    e.to_be(),
++                    f.to_be(),
++                    g.to_be(),
++                    h.to_be(),
++                ],
++            },
++        })
++    }
++}
++
++/// A socket address.
++///
++/// It's an enum with either an IPv4 or IPv6 socket address.
++pub enum SocketAddr {
++    /// An IPv4 socket address.
++    V4(SocketAddrV4),
++
++    /// An IPv6 socket address.
++    V6(SocketAddrV6),
++}
++
++/// An IPv4 socket address.
++///
++/// This is equivalent to C's `sockaddr_in`.
++#[repr(transparent)]
++pub struct SocketAddrV4(bindings::sockaddr_in);
++
++impl SocketAddrV4 {
++    /// Creates a new IPv4 socket address.
++    pub const fn new(addr: Ipv4Addr, port: u16) -> Self {
++        Self(bindings::sockaddr_in {
++            sin_family: bindings::AF_INET as _,
++            sin_port: port.to_be(),
++            sin_addr: addr.0,
++            __pad: [0; 8],
++        })
++    }
++}
++
++/// An IPv6 socket address.
++///
++/// This is equivalent to C's `sockaddr_in6`.
++#[repr(transparent)]
++pub struct SocketAddrV6(bindings::sockaddr_in6);
++
++impl SocketAddrV6 {
++    /// Creates a new IPv6 socket address.
++    pub const fn new(addr: Ipv6Addr, port: u16, flowinfo: u32, scopeid: u32) -> Self {
++        Self(bindings::sockaddr_in6 {
++            sin6_family: bindings::AF_INET6 as _,
++            sin6_port: port.to_be(),
++            sin6_addr: addr.0,
++            sin6_flowinfo: flowinfo,
++            sin6_scope_id: scopeid,
++        })
++    }
++}
++
++/// A socket listening on a TCP port.
++///
++/// # Invariants
++///
++/// The socket pointer is always non-null and valid.
++pub struct TcpListener {
++    pub(crate) sock: *mut bindings::socket,
++}
++
++// SAFETY: `TcpListener` is just a wrapper for a kernel socket, which can be used from any thread.
++unsafe impl Send for TcpListener {}
++
++// SAFETY: `TcpListener` is just a wrapper for a kernel socket, which can be used from any thread.
++unsafe impl Sync for TcpListener {}
++
++impl TcpListener {
++    /// Creates a new TCP listener.
++    ///
++    /// It is configured to listen on the given socket address for the given namespace.
++    pub fn try_new(ns: &Namespace, addr: &SocketAddr) -> Result<Self> {
++        let mut socket = core::ptr::null_mut();
++        let (pf, addr, addrlen) = match addr {
++            SocketAddr::V4(addr) => (
++                bindings::PF_INET,
++                addr as *const _ as _,
++                core::mem::size_of::<bindings::sockaddr_in>(),
++            ),
++            SocketAddr::V6(addr) => (
++                bindings::PF_INET6,
++                addr as *const _ as _,
++                core::mem::size_of::<bindings::sockaddr_in6>(),
++            ),
++        };
++
++        // SAFETY: The namespace is valid and the output socket pointer is valid for write.
++        to_result(unsafe {
++            bindings::sock_create_kern(
++                ns.0.get(),
++                pf as _,
++                bindings::sock_type_SOCK_STREAM as _,
++                bindings::IPPROTO_TCP as _,
++                &mut socket,
++            )
++        })?;
++
++        // INVARIANT: The socket was just created, so it is valid.
++        let listener = Self { sock: socket };
++
++        // SAFETY: The type invariant guarantees that the socket is valid, and `addr` and `addrlen`
++        // were initialised based on valid values provided in the address enum.
++        to_result(unsafe { bindings::kernel_bind(socket, addr, addrlen as _) })?;
++
++        // SAFETY: The socket is valid per the type invariant.
++        to_result(unsafe { bindings::kernel_listen(socket, bindings::SOMAXCONN as _) })?;
++
++        Ok(listener)
++    }
++
++    /// Accepts a new connection.
++    ///
++    /// On success, returns the newly-accepted socket stream.
++    ///
++    /// If no connection is available to be accepted, one of two behaviours will occur:
++    /// - If `block` is `false`, returns [`crate::error::code::EAGAIN`];
++    /// - If `block` is `true`, blocks until an error occurs or some connection can be accepted.
++    pub fn accept(&self, block: bool) -> Result<TcpStream> {
++        let mut new = core::ptr::null_mut();
++        let flags = if block { 0 } else { bindings::O_NONBLOCK };
++        // SAFETY: The type invariant guarantees that the socket is valid, and the output argument
++        // is also valid for write.
++        to_result(unsafe { bindings::kernel_accept(self.sock, &mut new, flags as _) })?;
++        Ok(TcpStream { sock: new })
++    }
++}
++
++impl Drop for TcpListener {
++    fn drop(&mut self) {
++        // SAFETY: The type invariant guarantees that the socket is valid.
++        unsafe { bindings::sock_release(self.sock) };
++    }
++}
++
++/// A connected TCP socket.
++///
++/// # Invariants
++///
++/// The socket pointer is always non-null and valid.
++pub struct TcpStream {
++    pub(crate) sock: *mut bindings::socket,
++}
++
++// SAFETY: `TcpStream` is just a wrapper for a kernel socket, which can be used from any thread.
++unsafe impl Send for TcpStream {}
++
++// SAFETY: `TcpStream` is just a wrapper for a kernel socket, which can be used from any thread.
++unsafe impl Sync for TcpStream {}
++
++impl TcpStream {
++    /// Reads data from a connected socket.
++    ///
++    /// On success, returns the number of bytes read, which will be zero if the connection is
++    /// closed.
++    ///
++    /// If no data is immediately available for reading, one of two behaviours will occur:
++    /// - If `block` is `false`, returns [`crate::error::code::EAGAIN`];
++    /// - If `block` is `true`, blocks until an error occurs, the connection is closed, or some
++    ///   becomes readable.
++    pub fn read(&self, buf: &mut [u8], block: bool) -> Result<usize> {
++        let mut msg = bindings::msghdr::default();
++        let mut vec = bindings::kvec {
++            iov_base: buf.as_mut_ptr().cast(),
++            iov_len: buf.len(),
++        };
++        // SAFETY: The type invariant guarantees that the socket is valid, and `vec` was
++        // initialised with the output buffer.
++        let r = unsafe {
++            bindings::kernel_recvmsg(
++                self.sock,
++                &mut msg,
++                &mut vec,
++                1,
++                vec.iov_len,
++                if block { 0 } else { bindings::MSG_DONTWAIT } as _,
++            )
++        };
++        if r < 0 {
++            Err(Error::from_errno(r))
++        } else {
++            Ok(r as _)
++        }
++    }
++
++    /// Writes data to the connected socket.
++    ///
++    /// On success, returns the number of bytes written.
++    ///
++    /// If the send buffer of the socket is full, one of two behaviours will occur:
++    /// - If `block` is `false`, returns [`crate::error::code::EAGAIN`];
++    /// - If `block` is `true`, blocks until an error occurs or some data is written.
++    pub fn write(&self, buf: &[u8], block: bool) -> Result<usize> {
++        let mut msg = bindings::msghdr {
++            msg_flags: if block { 0 } else { bindings::MSG_DONTWAIT },
++            ..bindings::msghdr::default()
++        };
++        let mut vec = bindings::kvec {
++            iov_base: buf.as_ptr() as *mut u8 as _,
++            iov_len: buf.len(),
++        };
++        // SAFETY: The type invariant guarantees that the socket is valid, and `vec` was
++        // initialised with the input  buffer.
++        let r = unsafe { bindings::kernel_sendmsg(self.sock, &mut msg, &mut vec, 1, vec.iov_len) };
++        if r < 0 {
++            Err(Error::from_errno(r))
++        } else {
++            Ok(r as _)
++        }
++    }
++}
++
++impl Drop for TcpStream {
++    fn drop(&mut self) {
++        // SAFETY: The type invariant guarantees that the socket is valid.
++        unsafe { bindings::sock_release(self.sock) };
++    }
++}
+diff --git a/rust/kernel/revocable.rs b/rust/kernel/revocable.rs
+new file mode 100644
+index 00000000000000..bcf1d0bfc34102
+--- /dev/null
++++ b/rust/kernel/revocable.rs
+@@ -0,0 +1,243 @@
++// SPDX-License-Identifier: GPL-2.0
++
++//! Revocable objects.
++
++use core::{
++    cell::UnsafeCell,
++    mem::MaybeUninit,
++    ops::Deref,
++    ptr::drop_in_place,
++    sync::atomic::{fence, AtomicU32, Ordering},
++};
++
++/// An object that can become inaccessible at runtime.
++///
++/// Once access is revoked and all concurrent users complete (i.e., all existing instances of
++/// [`AsyncRevocableGuard`] are dropped), the wrapped object is also dropped.
++///
++/// [`AsyncRevocable`] does not wait for concurrent users of the wrapped object to finish before
++/// [`AsyncRevocable::revoke`] completes -- thus the async qualifier. This has the advantage of not
++/// requiring RCU locks or waits of any kind.
++///
++/// # Examples
++///
++/// ```
++/// # use kernel::revocable::AsyncRevocable;
++///
++/// struct Example {
++///     a: u32,
++///     b: u32,
++/// }
++///
++/// fn add_two(v: &AsyncRevocable<Example>) -> Option<u32> {
++///     let guard = v.try_access()?;
++///     Some(guard.a + guard.b)
++/// }
++///
++/// let v = AsyncRevocable::new(Example { a: 10, b: 20 });
++/// assert_eq!(add_two(&v), Some(30));
++/// v.revoke();
++/// assert_eq!(add_two(&v), None);
++/// ```
++///
++/// Example where revocation happens while there is a user:
++///
++/// ```
++/// # use kernel::revocable::AsyncRevocable;
++/// use core::sync::atomic::{AtomicBool, Ordering};
++///
++/// struct Example {
++///     a: u32,
++///     b: u32,
++/// }
++///
++/// static DROPPED: AtomicBool = AtomicBool::new(false);
++///
++/// impl Drop for Example {
++///     fn drop(&mut self) {
++///         DROPPED.store(true, Ordering::Relaxed);
++///     }
++/// }
++///
++/// fn add_two(v: &AsyncRevocable<Example>) -> Option<u32> {
++///     let guard = v.try_access()?;
++///     Some(guard.a + guard.b)
++/// }
++///
++/// let v = AsyncRevocable::new(Example { a: 10, b: 20 });
++/// assert_eq!(add_two(&v), Some(30));
++///
++/// let guard = v.try_access().unwrap();
++/// assert!(!v.is_revoked());
++/// assert!(!DROPPED.load(Ordering::Relaxed));
++/// v.revoke();
++/// assert!(!DROPPED.load(Ordering::Relaxed));
++/// assert!(v.is_revoked());
++/// assert!(v.try_access().is_none());
++/// assert_eq!(guard.a + guard.b, 30);
++/// drop(guard);
++/// assert!(DROPPED.load(Ordering::Relaxed));
++/// ```
++pub struct AsyncRevocable<T> {
++    usage_count: AtomicU32,
++    data: MaybeUninit<UnsafeCell<T>>,
++}
++
++// SAFETY: `AsyncRevocable` is `Send` if the wrapped object is also `Send`. This is because while
++// the functionality exposed by `AsyncRevocable` can be accessed from any thread/CPU, it is
++// possible that this isn't supported by the wrapped object.
++unsafe impl<T: Send> Send for AsyncRevocable<T> {}
++
++// SAFETY: `AsyncRevocable` is `Sync` if the wrapped object is both `Send` and `Sync`. We require
++// `Send` from the wrapped object as well because  of `AsyncRevocable::revoke`, which can trigger
++// the `Drop` implementation of the wrapped object from an arbitrary thread.
++unsafe impl<T: Sync + Send> Sync for AsyncRevocable<T> {}
++
++const REVOKED: u32 = 0x80000000;
++const COUNT_MASK: u32 = !REVOKED;
++const SATURATED_COUNT: u32 = REVOKED - 1;
++
++impl<T> AsyncRevocable<T> {
++    /// Creates a new asynchronously revocable instance of the given data.
++    pub fn new(data: T) -> Self {
++        Self {
++            usage_count: AtomicU32::new(0),
++            data: MaybeUninit::new(UnsafeCell::new(data)),
++        }
++    }
++
++    /// Tries to access the \[revocable\] wrapped object.
++    ///
++    /// Returns `None` if the object has been revoked and is therefore no longer accessible.
++    ///
++    /// Returns a guard that gives access to the object otherwise; the object is guaranteed to
++    /// remain accessible while the guard is alive.
++    pub fn try_access(&self) -> Option<AsyncRevocableGuard<'_, T>> {
++        loop {
++            let count = self.usage_count.load(Ordering::Relaxed);
++
++            // Fail attempt to access if the object is already revoked.
++            if count & REVOKED != 0 {
++                return None;
++            }
++
++            // No need to increment if the count is saturated.
++            if count == SATURATED_COUNT
++                || self
++                    .usage_count
++                    .compare_exchange(count, count + 1, Ordering::Relaxed, Ordering::Relaxed)
++                    .is_ok()
++            {
++                return Some(AsyncRevocableGuard { revocable: self });
++            }
++        }
++    }
++
++    /// Revokes access to the protected object.
++    ///
++    /// Returns `true` if access has been revoked, or `false` when the object has already been
++    /// revoked by a previous call to [`AsyncRevocable::revoke`].
++    ///
++    /// This call is non-blocking, that is, no new users of the revocable object will be allowed,
++    /// but potential current users are able to continue to use it and the thread won't wait for
++    /// them to finish. In such cases, the object will be dropped when the last user completes.
++    pub fn revoke(&self) -> bool {
++        // Set the `REVOKED` bit.
++        //
++        // The acquire barrier matches up with the release when decrementing the usage count.
++        let prev = self.usage_count.fetch_or(REVOKED, Ordering::Acquire);
++        if prev & REVOKED != 0 {
++            // Another thread already revoked this object.
++            return false;
++        }
++
++        if prev == 0 {
++            // SAFETY: This thread just revoked the object and the usage count is zero, so the
++            // object is valid and there will be no future users.
++            unsafe { drop_in_place(UnsafeCell::raw_get(self.data.as_ptr())) };
++        }
++
++        true
++    }
++
++    /// Returns whether access to the object has been revoked.
++    pub fn is_revoked(&self) -> bool {
++        self.usage_count.load(Ordering::Relaxed) & REVOKED != 0
++    }
++}
++
++impl<T> Drop for AsyncRevocable<T> {
++    fn drop(&mut self) {
++        let count = *self.usage_count.get_mut();
++        if count != REVOKED {
++            // The object hasn't been dropped yet, so we do it now.
++
++            // This matches with the release when decrementing the usage count.
++            fence(Ordering::Acquire);
++
++            // SAFETY: Since `count` is does not indicate a count of 0 and the REVOKED bit set, the
++            // object is still valid.
++            unsafe { drop_in_place(UnsafeCell::raw_get(self.data.as_ptr())) };
++        }
++    }
++}
++
++/// A guard that allows access to a revocable object and keeps it alive.
++///
++/// # Invariants
++///
++/// The owner owns an increment on the usage count (which may have saturated it), which keeps the
++/// revocable object alive.
++pub struct AsyncRevocableGuard<'a, T> {
++    revocable: &'a AsyncRevocable<T>,
++}
++
++impl<T> Deref for AsyncRevocableGuard<'_, T> {
++    type Target = T;
++
++    fn deref(&self) -> &Self::Target {
++        // SAFETY: The type invariants guarantee that the caller owns an increment.
++        unsafe { &*self.revocable.data.assume_init_ref().get() }
++    }
++}
++
++impl<T> Drop for AsyncRevocableGuard<'_, T> {
++    fn drop(&mut self) {
++        loop {
++            let count = self.revocable.usage_count.load(Ordering::Relaxed);
++            let actual_count = count & COUNT_MASK;
++            if actual_count == SATURATED_COUNT {
++                // The count is saturated, so we won't decrement (nor do we drop the object).
++                return;
++            }
++
++            if actual_count == 0 {
++                // Trying to underflow the count.
++                panic!("actual_count is zero");
++            }
++
++            // On success, we use release ordering, which matches with the acquire in one of the
++            // places where we drop the object, namely: below, in `AsyncRevocable::revoke`, or in
++            // `AsyncRevocable::drop`.
++            if self
++                .revocable
++                .usage_count
++                .compare_exchange(count, count - 1, Ordering::Release, Ordering::Relaxed)
++                .is_ok()
++            {
++                if count == 1 | REVOKED {
++                    // `count`  is now zero and it is revoked, so free it now.
++
++                    // This matches with the release above (which may have happened in other
++                    // threads concurrently).
++                    fence(Ordering::Acquire);
++
++                    // SAFETY: Since `count` was 1, the object is still alive.
++                    unsafe { drop_in_place(UnsafeCell::raw_get(self.revocable.data.as_ptr())) };
++                }
++
++                return;
++            }
++        }
++    }
++}
+diff --git a/rust/kernel/sync.rs b/rust/kernel/sync.rs
+index d219ee518eff15..f54c550e2a0408 100644
+--- a/rust/kernel/sync.rs
++++ b/rust/kernel/sync.rs
+@@ -11,11 +11,13 @@ mod arc;
+ mod condvar;
+ pub mod lock;
+ mod locked_by;
++mod nowait;
+ 
+ pub use arc::{Arc, ArcBorrow, UniqueArc};
+ pub use condvar::CondVar;
+ pub use lock::{mutex::Mutex, spinlock::SpinLock};
+ pub use locked_by::LockedBy;
++pub use nowait::{NoWaitLock, NoWaitLockGuard};
+ 
+ /// Represents a lockdep class. It's a wrapper around C's `lock_class_key`.
+ #[repr(transparent)]
+diff --git a/rust/kernel/sync/arc.rs b/rust/kernel/sync/arc.rs
+index 7f04e4f00a2c74..1a80e7f338a8d8 100644
+--- a/rust/kernel/sync/arc.rs
++++ b/rust/kernel/sync/arc.rs
+@@ -24,13 +24,13 @@ use crate::{
+ };
+ use alloc::boxed::Box;
+ use core::{
+-    alloc::AllocError,
++    alloc::{AllocError, Layout},
+     fmt,
+     marker::{PhantomData, Unsize},
+     mem::{ManuallyDrop, MaybeUninit},
+     ops::{Deref, DerefMut},
+     pin::Pin,
+-    ptr::NonNull,
++    ptr::{self, NonNull},
+ };
+ use macros::pin_data;
+ 
+@@ -231,6 +231,42 @@ impl<T: ?Sized> Arc<T> {
+     pub fn ptr_eq(this: &Self, other: &Self) -> bool {
+         core::ptr::eq(this.ptr.as_ptr(), other.ptr.as_ptr())
+     }
++
++    /// Deconstructs a [`Arc`] object into a raw pointer.
++    ///
++    /// It can be reconstructed once via [`Arc::from_raw`].
++    pub fn into_raw(obj: Self) -> *const T {
++        let ret = &*obj as *const T;
++        core::mem::forget(obj);
++        ret
++    }
++
++    /// Recreates a [`Arc`] instance previously deconstructed via [`Arc::into_raw`].
++    ///
++    /// This code relies on the `repr(C)` layout of structs as described in
++    /// <https://doc.rust-lang.org/reference/type-layout.html#reprc-structs>.
++    ///
++    /// # Safety
++    ///
++    /// `ptr` must have been returned by a previous call to [`Arc::into_raw`]. Additionally, it
++    /// can only be called once for each previous call to [`Arc::into_raw`].
++    pub unsafe fn from_raw(ptr: *const T) -> Self {
++        // SAFETY: The safety requirement ensures that the pointer is valid.
++        let align = core::mem::align_of_val(unsafe { &*ptr });
++        let offset = Layout::new::<ArcInner<()>>()
++            .align_to(align)
++            .unwrap()
++            .pad_to_align()
++            .size();
++        // SAFETY: The pointer is in bounds because by the safety requirements `ptr` came from
++        // `Arc::into_raw`, so it is a pointer `offset` bytes from the beginning of the allocation.
++        let data = unsafe { (ptr as *const u8).sub(offset) };
++        let metadata = ptr::metadata(ptr as *const ArcInner<T>);
++        let ptr = ptr::from_raw_parts_mut(data as _, metadata);
++        // SAFETY: By the safety requirements we know that `ptr` came from `Arc::into_raw`, so the
++        // reference count held then will be owned by the new `Arc` object.
++        unsafe { Self::from_inner(NonNull::new(ptr).unwrap()) }
++    }
+ }
+ 
+ impl<T: 'static> ForeignOwnable for Arc<T> {
+diff --git a/rust/kernel/sync/nowait.rs b/rust/kernel/sync/nowait.rs
+new file mode 100644
+index 00000000000000..57b36642dd0c27
+--- /dev/null
++++ b/rust/kernel/sync/nowait.rs
+@@ -0,0 +1,188 @@
++// SPDX-License-Identifier: GPL-2.0
++
++//! A lock that never waits.
++
++use core::cell::UnsafeCell;
++use core::sync::atomic::{AtomicU8, Ordering};
++
++const LOCKED: u8 = 1;
++const CONTENDED: u8 = 2;
++
++/// A lock that only offers a [`try_lock`](NoWaitLock::try_lock) method.
++///
++/// That is, on contention it doesn't offer a way for the caller to block waiting for the current
++/// owner to release the lock. This is useful for best-effort kind of scenarios where waiting is
++/// never needed: in such cases, users don't need a full-featured mutex or spinlock.
++///
++/// When the lock is released via call to [`NoWaitLockGuard::unlock`], it indicates to the caller
++/// whether there was contention (i.e., if another thread tried and failed to acquire this lock).
++/// If the return value is `false`, there was definitely no contention but if it is `true`, it's
++/// possible that the contention happened when attempting to acquire the lock.
++///
++/// # Examples
++///
++/// ```
++/// use kernel::sync::NoWaitLock;
++///
++/// #[derive(PartialEq)]
++/// struct Example {
++///     a: u32,
++///     b: u32,
++/// }
++///
++/// let x = NoWaitLock::new(Example { a: 10, b: 20 });
++///
++/// // Modifying the protected value.
++/// {
++///     let mut guard = x.try_lock().unwrap();
++///     assert_eq!(guard.a, 10);
++///     assert_eq!(guard.b, 20);
++///     guard.a += 20;
++///     guard.b += 20;
++///     assert_eq!(guard.a, 30);
++///     assert_eq!(guard.b, 40);
++/// }
++///
++/// // Reading the protected value.
++/// {
++///     let guard = x.try_lock().unwrap();
++///     assert_eq!(guard.a, 30);
++///     assert_eq!(guard.b, 40);
++/// }
++///
++/// // Second acquire fails, but succeeds after the guard is dropped.
++/// {
++///     let guard = x.try_lock().unwrap();
++///     assert!(x.try_lock().is_none());
++///
++///     drop(guard);
++///     assert!(x.try_lock().is_some());
++/// }
++/// ```
++///
++/// The following examples use the [`NoWaitLockGuard::unlock`] to release the lock and check for
++/// contention.
++///
++/// ```
++/// use kernel::sync::NoWaitLock;
++///
++/// #[derive(PartialEq)]
++/// struct Example {
++///     a: u32,
++///     b: u32,
++/// }
++///
++/// let x = NoWaitLock::new(Example { a: 10, b: 20 });
++///
++/// // No contention when lock is released.
++/// let guard = x.try_lock().unwrap();
++/// assert_eq!(guard.unlock(), false);
++///
++/// // Contention detected.
++/// let guard = x.try_lock().unwrap();
++/// assert!(x.try_lock().is_none());
++/// assert_eq!(guard.unlock(), true);
++///
++/// // No contention again.
++/// let guard = x.try_lock().unwrap();
++/// assert_eq!(guard.a, 10);
++/// assert_eq!(guard.b, 20);
++/// assert_eq!(guard.unlock(), false);
++/// ```
++pub struct NoWaitLock<T: ?Sized> {
++    state: AtomicU8,
++    data: UnsafeCell<T>,
++}
++
++// SAFETY: `NoWaitLock` can be transferred across thread boundaries iff the data it protects can.
++unsafe impl<T: ?Sized + Send> Send for NoWaitLock<T> {}
++
++// SAFETY: `NoWaitLock` only allows a single thread at a time to access the interior mutability it
++// provides, so it is `Sync` as long as the data it protects is `Send`.
++unsafe impl<T: ?Sized + Send> Sync for NoWaitLock<T> {}
++
++impl<T> NoWaitLock<T> {
++    /// Creates a new instance of the no-wait lock.
++    pub fn new(data: T) -> Self {
++        Self {
++            state: AtomicU8::new(0),
++            data: UnsafeCell::new(data),
++        }
++    }
++}
++
++impl<T: ?Sized> NoWaitLock<T> {
++    /// Tries to acquire the lock.
++    ///
++    /// If no other thread/CPU currently owns the lock, it returns a guard that can be used to
++    /// access the protected data. Otherwise (i.e., the lock is already owned), it returns `None`.
++    pub fn try_lock(&self) -> Option<NoWaitLockGuard<'_, T>> {
++        // Fast path -- just set the LOCKED bit.
++        //
++        // Acquire ordering matches the release in `NoWaitLockGuard::drop` or
++        // `NoWaitLockGuard::unlock`.
++        if self.state.fetch_or(LOCKED, Ordering::Acquire) & LOCKED == 0 {
++            // INVARIANTS: The thread that manages to set the `LOCKED` bit becomes the owner.
++            return Some(NoWaitLockGuard { lock: self });
++        }
++
++        // Set the `CONTENDED` bit.
++        //
++        // If the `LOCKED` bit has since been reset, the lock was released and the caller becomes
++        // the owner of the lock. It will see the `CONTENDED` bit when it releases the lock even if
++        // there was no additional contention but this is allowed by the interface.
++        if self.state.fetch_or(CONTENDED | LOCKED, Ordering::Relaxed) & LOCKED == 0 {
++            // INVARIANTS: The thread that manages to set the `LOCKED` bit becomes the owner.
++            Some(NoWaitLockGuard { lock: self })
++        } else {
++            None
++        }
++    }
++}
++
++/// A guard for the holder of the no-wait lock.
++///
++/// # Invariants
++///
++/// Only the current owner can have an instance of [`NoWaitLockGuard`].
++pub struct NoWaitLockGuard<'a, T: ?Sized> {
++    lock: &'a NoWaitLock<T>,
++}
++
++impl<T: ?Sized> NoWaitLockGuard<'_, T> {
++    /// Unlocks the no-wait lock.
++    ///
++    /// The return value indicates whether there was contention while the lock was held, that is,
++    /// whether another thread tried (and failed) to acquire the lock.
++    pub fn unlock(self) -> bool {
++        // Matches the acquire in `NoWaitLock::try_lock`.
++        let contention = self.lock.state.swap(0, Ordering::Release) & CONTENDED != 0;
++        core::mem::forget(self);
++        contention
++    }
++}
++
++impl<T: ?Sized> core::ops::Deref for NoWaitLockGuard<'_, T> {
++    type Target = T;
++
++    fn deref(&self) -> &Self::Target {
++        // SAFETY: The type invariant guarantees that only the owner has an instance of the guard,
++        // so the owner is the only one that can call this function.
++        unsafe { &*self.lock.data.get() }
++    }
++}
++
++impl<T: ?Sized> core::ops::DerefMut for NoWaitLockGuard<'_, T> {
++    fn deref_mut(&mut self) -> &mut Self::Target {
++        // SAFETY: The type invariant guarantees that only the owner has an instance of the guard,
++        // so the owner is the only one that can call this function.
++        unsafe { &mut *self.lock.data.get() }
++    }
++}
++
++impl<T: ?Sized> Drop for NoWaitLockGuard<'_, T> {
++    fn drop(&mut self) {
++        // Matches the acquire in `NoWaitLock::try_lock`.
++        self.lock.state.store(0, Ordering::Release);
++    }
++}
+diff --git a/rust/kernel/task.rs b/rust/kernel/task.rs
+index b2299bc7ac1ff5..ce6001f5f094ec 100644
+--- a/rust/kernel/task.rs
++++ b/rust/kernel/task.rs
+@@ -4,8 +4,10 @@
+ //!
+ //! C header: [`include/linux/sched.h`](../../../../include/linux/sched.h).
+ 
+-use crate::{bindings, types::Opaque};
+-use core::{marker::PhantomData, ops::Deref, ptr};
++use crate::types::{ARef, ForeignOwnable, Opaque, ScopeGuard};
++use crate::{bindings, c_str, error::code::*, error::from_err_ptr, error::Result, ThisModule};
++use alloc::boxed::Box;
++use core::{fmt, marker::PhantomData, ops::Deref, ptr};
+ 
+ /// Returns the currently running task.
+ #[macro_export]
+@@ -113,6 +115,12 @@ impl Task {
+         }
+     }
+ 
++    /// Determines if the running thread was sked to stop.
++    pub fn should_stop() -> bool {
++        // SAFETY: There are no extra safety requirements.
++        unsafe { bindings::kthread_should_stop() }
++    }
++
+     /// Returns the group leader of the given task.
+     pub fn group_leader(&self) -> &Task {
+         // SAFETY: By the type invariant, we know that `self.0` is a valid task. Valid tasks always
+@@ -145,6 +153,134 @@ impl Task {
+         // running.
+         unsafe { bindings::wake_up_process(self.0.get()) };
+     }
++
++    /// Starts a new thread.
++    ///
++    /// It will also increment the refcount on the given module before starting the thread, and
++    /// automatically decrement it when the thread goes away.
++    ///
++    /// # Safety
++    ///
++    /// `module` must be a valid module or NULL.
++    unsafe fn spawn_internal<T: FnOnce() + Send + 'static>(
++        module: *mut bindings::module,
++        name: fmt::Arguments<'_>,
++        func: T,
++    ) -> Result<KTask> {
++        unsafe extern "C" fn threadfn<T: FnOnce() + Send + 'static>(
++            arg: *mut core::ffi::c_void,
++        ) -> core::ffi::c_int {
++            // SAFETY: The thread argument is always a `Box<T, module>` because it is only called
++            // via the thread creation below.
++            let bpair = unsafe { Box::<(T, *mut bindings::module)>::from_foreign(arg) };
++            bpair.0();
++            // SAFETY: By the safety requirements of `spawn_internal`, we know `bpair.1` is a valid
++            // argument (either a valid module or NULL).
++            unsafe { bindings::__module_put_and_kthread_exit(bpair.1, 0) };
++        }
++
++        let arg = Box::try_new((func, module))?.into_foreign();
++
++        // SAFETY: `arg` was just created with a call to `into_foreign` above.
++        let guard = ScopeGuard::new(|| unsafe {
++            Box::<T>::from_foreign(arg);
++        });
++
++        // SAFETY: The safety requirements of this function ensure that module is either a valid
++        // module or NULL, both of which are valid arguments for `try_module_get`.
++        if !unsafe { bindings::try_module_get(module) } {
++            return Err(EBUSY);
++        }
++
++        // SAFETY: The safety requirements of this function ensure that `module` is either a valid
++        // module or NULL, both of which are valid arguments for `module_put`. Additionally, the
++        // refcount of the module was just successfully incremented above, so it's safe to
++        // decrement on exit (except on successful exits, when this guard gets dismissed).
++        let mod_guard = ScopeGuard::new(|| unsafe { bindings::module_put(module) });
++
++        // SAFETY: The function pointer is always valid (as long as the module remains loaded).
++        // Ownership of `raw` is transferred to the new thread (if one is actually created), so it
++        // remains valid. Lastly, the C format string is a constant that require formatting as the
++        // one and only extra argument.
++        let ktask = from_err_ptr(unsafe {
++            bindings::kthread_create_on_node(
++                Some(threadfn::<T>),
++                arg as _,
++                bindings::NUMA_NO_NODE,
++                c_str!("%pA").as_char_ptr(),
++                &name as *const _ as *const core::ffi::c_void,
++            )
++        })?;
++
++        // SAFETY: Since the kthread creation succeeded and we haven't run it yet, we know the task
++        // is valid.
++        let task = ARef::from(unsafe { &*(ktask.cast::<Task>()) });
++
++        // Wakes up the thread, otherwise it won't run.
++        task.wake_up();
++
++        guard.dismiss();
++        mod_guard.dismiss();
++
++        Ok(KTask { task: Some(task) })
++    }
++
++    /// Starts a new kernel thread and runs it.
++    ///
++    /// # Examples
++    ///
++    /// Launches 10 threads and waits for them to complete.
++    ///
++    /// ```ignore
++    /// use core::sync::atomic::{AtomicU32, Ordering};
++    /// use kernel::sync::{CondVar, Mutex};
++    /// use kernel::task::Task;
++    ///
++    /// kernel::init_static_sync! {
++    ///     static COUNT: Mutex<u32> = 0;
++    ///     static COUNT_IS_ZERO: CondVar;
++    /// }
++    ///
++    /// fn threadfn() {
++    ///     pr_info!("Running from thread {}\n", Task::current().pid());
++    ///     let mut guard = COUNT.lock();
++    ///     *guard -= 1;
++    ///     if *guard == 0 {
++    ///         COUNT_IS_ZERO.notify_all();
++    ///     }
++    /// }
++    ///
++    /// // Set count to 10 and spawn 10 threads.
++    /// *COUNT.lock() = 10;
++    /// for i in 0..10 {
++    ///     Task::spawn(fmt!("test{i}"), threadfn).unwrap().detach();
++    /// }
++    ///
++    /// // Wait for count to drop to zero.
++    /// let mut guard = COUNT.lock();
++    /// while (*guard != 0) {
++    ///     COUNT_IS_ZERO.wait(&mut guard);
++    /// }
++    /// ```
++    pub fn spawn(name: fmt::Arguments<'_>, func: impl FnOnce() + Send + 'static) -> Result<KTask> {
++        // SAFETY: `module` is NULL, which satisfies the requirements.
++        unsafe { Self::spawn_internal(ptr::null_mut(), name, func) }
++    }
++
++    /// Increments the given module's refcount and starts a new kernel thread.
++    ///
++    /// The module's refcount is decremented when the thread stops.
++    ///
++    /// [`Task::spawn`] has examples of starting kernel threads.
++    pub fn spawn_with_module(
++        module: &ThisModule,
++        name: fmt::Arguments<'_>,
++        func: impl FnOnce() + Send + 'static,
++    ) -> Result<KTask> {
++        // SAFETY: `module` is either NULL (when code is not compiled as a module) or a valid
++        // module.
++        unsafe { Self::spawn_internal(module.0, name, func) }
++    }
+ }
+ 
+ // SAFETY: The type invariants guarantee that `Task` is always ref-counted.
+@@ -159,3 +295,43 @@ unsafe impl crate::types::AlwaysRefCounted for Task {
+         unsafe { bindings::put_task_struct(obj.cast().as_ptr()) }
+     }
+ }
++
++/// A kernel task.
++///
++/// It has all properties of a task, but its [`Drop`] implementation requests that the task stop
++/// and waits for it to do so. When this behaviour is not desired, the caller can call
++/// [`KTask::detach`] to convert a [`KTask`] to an [`ARef<Task>`].
++pub struct KTask {
++    task: Option<ARef<Task>>,
++}
++
++// SAFETY: `KTask` can be shared across threads for the same reason as `Task`.
++unsafe impl Sync for KTask {}
++
++impl KTask {
++    /// Detaches from the kernel thread so that we don't have to wait for it to complete on `drop`.
++    pub fn detach(mut self) -> ARef<Task> {
++        // SAFETY: We know that `self.task` is `Some(_)` because the only way for it not to be is
++        // to call this function, but it consumes `self`, so one cannot call it twice.
++        unsafe { self.task.take().unwrap_unchecked() }
++    }
++}
++
++impl Deref for KTask {
++    type Target = Task;
++
++    fn deref(&self) -> &Self::Target {
++        // SAFETY: We know that `self.task` is `Some(_)` because the only way for it not to be is
++        // to `KTask::detach`, but that consumes `KTask` so one cannot call `deref`.
++        unsafe { self.task.as_ref().unwrap_unchecked() }
++    }
++}
++
++impl Drop for KTask {
++    fn drop(&mut self) {
++        if let Some(task) = self.task.take() {
++            // SAFETY: We hold a reference to the task, so it's safe to call this function.
++            unsafe { bindings::kthread_stop(task.0.get()) };
++        }
++    }
++}
+diff --git a/rust/kernel/unsafe_list.rs b/rust/kernel/unsafe_list.rs
+new file mode 100644
+index 00000000000000..df496667c03389
+--- /dev/null
++++ b/rust/kernel/unsafe_list.rs
+@@ -0,0 +1,680 @@
++// SPDX-License-Identifier: GPL-2.0
++
++//! Intrusive circular doubly-linked lists.
++//!
++//! We don't use the C version for two main reasons:
++//! - Next/prev pointers do not support `?Sized` types, so wouldn't be able to have a list of, for
++//!   example, `dyn Trait`.
++//! - It would require the list head to be pinned (in addition to the list entries).
++
++use core::{cell::UnsafeCell, iter, marker::PhantomPinned, mem::MaybeUninit, ptr::NonNull};
++
++/// An intrusive circular doubly-linked list.
++///
++/// Membership of elements of the list must be tracked by the owner of the list.
++///
++/// While elements of the list must remain pinned while in the list, the list itself does not
++/// require pinning. In other words, users are allowed to move instances of [`List`].
++///
++/// # Invariants
++///
++/// The links of an entry are wrapped in [`UnsafeCell`] and they are acessible when the list itself
++/// is. For example, when a thread has a mutable reference to a list, it may also safely get
++/// mutable references to the links of the elements in the list.
++///
++/// The links of an entry are also wrapped in [`MaybeUninit`] and they are initialised when they
++/// are present in a list. Otherwise they are uninitialised.
++///
++/// # Examples
++///
++/// ```
++/// # use kernel::unsafe_list::{Adapter, Links, List};
++///
++/// struct Example {
++///     v: usize,
++///     links: Links<Example>,
++/// }
++///
++/// // SAFETY: This adapter is the only one that uses `Example::links`.
++/// unsafe impl Adapter for Example {
++///     type EntryType = Self;
++///     fn to_links(obj: &Self) -> &Links<Self> {
++///         &obj.links
++///     }
++/// }
++///
++/// let a = Example {
++///     v: 0,
++///     links: Links::new(),
++/// };
++/// let b = Example {
++///     v: 1,
++///     links: Links::new(),
++/// };
++///
++/// let mut list = List::<Example>::new();
++/// assert!(list.is_empty());
++///
++/// // SAFETY: `a` was declared above, it's not in any lists yet, is never moved, and outlives the
++/// // list.
++/// unsafe { list.push_back(&a) };
++///
++/// // SAFETY: `b` was declared above, it's not in any lists yet, is never moved, and outlives the
++/// // list.
++/// unsafe { list.push_back(&b) };
++///
++/// assert!(core::ptr::eq(&a, list.front().unwrap().as_ptr()));
++/// assert!(core::ptr::eq(&b, list.back().unwrap().as_ptr()));
++///
++/// for (i, e) in list.iter().enumerate() {
++///     assert_eq!(i, e.v);
++/// }
++///
++/// for e in &list {
++///     pr_info!("{}", e.v);
++/// }
++///
++/// // SAFETY: `b` was added to the list above and wasn't removed yet.
++/// unsafe { list.remove(&b) };
++///
++/// assert!(core::ptr::eq(&a, list.front().unwrap().as_ptr()));
++/// assert!(core::ptr::eq(&a, list.back().unwrap().as_ptr()));
++/// ```
++pub struct List<A: Adapter + ?Sized> {
++    first: Option<NonNull<A::EntryType>>,
++}
++
++// SAFETY: The list is itself can be safely sent to other threads but we restrict it to being `Send`
++// only when its entries are also `Send`.
++unsafe impl<A: Adapter + ?Sized> Send for List<A> where A::EntryType: Send {}
++
++// SAFETY: The list is itself usable from other threads via references but we restrict it to being
++// `Sync` only when its entries are also `Sync`.
++unsafe impl<A: Adapter + ?Sized> Sync for List<A> where A::EntryType: Sync {}
++
++impl<A: Adapter + ?Sized> List<A> {
++    /// Constructs a new empty list.
++    pub const fn new() -> Self {
++        Self { first: None }
++    }
++
++    /// Determines if the list is empty.
++    pub fn is_empty(&self) -> bool {
++        self.first.is_none()
++    }
++
++    /// Inserts the only entry to a list.
++    ///
++    /// This must only be called when the list is empty.
++    pub fn insert_only_entry(&mut self, obj: &A::EntryType) {
++        let obj_ptr = NonNull::from(obj);
++
++        // SAFETY: We have mutable access to the list, so we also have access to the entry
++        // we're about to insert (and it's not in any other lists per the function safety
++        // requirements).
++        let obj_inner = unsafe { &mut *A::to_links(obj).0.get() };
++
++        // INVARIANTS: All fields of the links of the newly-inserted object are initialised
++        // below.
++        obj_inner.write(LinksInner {
++            next: obj_ptr,
++            prev: obj_ptr,
++            _pin: PhantomPinned,
++        });
++        self.first = Some(obj_ptr);
++    }
++
++    /// Adds the given object to the end of the list.
++    ///
++    /// # Safety
++    ///
++    /// Callers must ensure that:
++    /// - The object is not currently in any lists.
++    /// - The object remains alive until it is removed from the list.
++    /// - The object is not moved until it is removed from the list.
++    pub unsafe fn push_back(&mut self, obj: &A::EntryType) {
++        if let Some(first) = self.first {
++            // SAFETY: The previous entry to the first one is necessarily present in the list (it
++            // may in fact be the first entry itself as this is a circular list). The safety
++            // requirements of this function regarding `obj` satisfy those of `insert_after`.
++            unsafe { self.insert_after(self.inner_ref(first).prev, obj) };
++        } else {
++            self.insert_only_entry(obj);
++        }
++    }
++
++    /// Adds the given object to the beginning of the list.
++    ///
++    /// # Safety
++    ///
++    /// Callers must ensure that:
++    /// - The object is not currently in any lists.
++    /// - The object remains alive until it is removed from the list.
++    /// - The object is not moved until it is removed from the list.
++    pub unsafe fn push_front(&mut self, obj: &A::EntryType) {
++        if let Some(first) = self.first {
++            // SAFETY: The safety requirements of this function regarding `obj` satisfy those of
++            // `insert_before`. Additionally, `first` is in the list.
++            unsafe { self.insert_before(first, obj) };
++        } else {
++            self.insert_only_entry(obj);
++        }
++    }
++
++    /// Removes the given object from the list.
++    ///
++    /// # Safety
++    ///
++    /// The object must be in the list. In other words, the object must have previously been
++    /// inserted into this list and not removed yet.
++    pub unsafe fn remove(&mut self, entry: &A::EntryType) {
++        // SAFETY: Per the function safety requirements, `entry` is in the list.
++        let inner = unsafe { self.inner_ref(NonNull::from(entry)) };
++        let next = inner.next;
++        let prev = inner.prev;
++
++        // SAFETY: We have mutable access to the list, so we also have access to the entry we're
++        // about to remove (which we know is in the list per the function safety requirements).
++        let inner = unsafe { &mut *A::to_links(entry).0.get() };
++
++        // SAFETY: Since the entry was in the list, it was initialised.
++        unsafe { inner.assume_init_drop() };
++
++        if core::ptr::eq(next.as_ptr(), entry) {
++            // Removing the only element.
++            self.first = None;
++        } else {
++            // SAFETY: `prev` is in the list because it is pointed at by the entry being removed.
++            unsafe { self.inner(prev).next = next };
++            // SAFETY: `next` is in the list because it is pointed at by the entry being removed.
++            unsafe { self.inner(next).prev = prev };
++
++            if core::ptr::eq(self.first.unwrap().as_ptr(), entry) {
++                // Update the pointer to the first element as we're removing it.
++                self.first = Some(next);
++            }
++        }
++    }
++
++    /// Adds the given object after another object already in the list.
++    ///
++    /// # Safety
++    ///
++    /// Callers must ensure that:
++    /// - The existing object is currently in the list.
++    /// - The new object is not currently in any lists.
++    /// - The new object remains alive until it is removed from the list.
++    /// - The new object is not moved until it is removed from the list.
++    pub unsafe fn insert_after(&mut self, existing: NonNull<A::EntryType>, new: &A::EntryType) {
++        // SAFETY: We have mutable access to the list, so we also have access to the entry we're
++        // about to insert (and it's not in any other lists per the function safety requirements).
++        let new_inner = unsafe { &mut *A::to_links(new).0.get() };
++
++        // SAFETY: Per the function safety requirements, `existing` is in the list.
++        let existing_inner = unsafe { self.inner(existing) };
++        let next = existing_inner.next;
++
++        // INVARIANTS: All fields of the links of the newly-inserted object are initialised below.
++        new_inner.write(LinksInner {
++            next,
++            prev: existing,
++            _pin: PhantomPinned,
++        });
++
++        existing_inner.next = NonNull::from(new);
++
++        // SAFETY: `next` is in the list because it's pointed at by the existing entry.
++        unsafe { self.inner(next).prev = NonNull::from(new) };
++    }
++
++    /// Adds the given object before another object already in the list.
++    ///
++    /// # Safety
++    ///
++    /// Callers must ensure that:
++    /// - The existing object is currently in the list.
++    /// - The new object is not currently in any lists.
++    /// - The new object remains alive until it is removed from the list.
++    /// - The new object is not moved until it is removed from the list.
++    pub unsafe fn insert_before(&mut self, existing: NonNull<A::EntryType>, new: &A::EntryType) {
++        // SAFETY: The safety requirements of this function satisfy those of `insert_after`.
++        unsafe { self.insert_after(self.inner_ref(existing).prev, new) };
++
++        if self.first.unwrap() == existing {
++            // Update the pointer to the first element as we're inserting before it.
++            self.first = Some(NonNull::from(new));
++        }
++    }
++
++    /// Returns the first element of the list, if one exists.
++    pub fn front(&self) -> Option<NonNull<A::EntryType>> {
++        self.first
++    }
++
++    /// Returns the last element of the list, if one exists.
++    pub fn back(&self) -> Option<NonNull<A::EntryType>> {
++        // SAFETY: Having a pointer to it guarantees that the object is in the list.
++        self.first.map(|f| unsafe { self.inner_ref(f).prev })
++    }
++
++    /// Returns an iterator for the list starting at the first entry.
++    pub fn iter(&self) -> Iterator<'_, A> {
++        Iterator::new(self.cursor_front())
++    }
++
++    /// Returns an iterator for the list starting at the last entry.
++    pub fn iter_back(&self) -> impl iter::DoubleEndedIterator<Item = &'_ A::EntryType> {
++        Iterator::new(self.cursor_back())
++    }
++
++    /// Returns a cursor starting on the first (front) element of the list.
++    pub fn cursor_front(&self) -> Cursor<'_, A> {
++        // SAFETY: `front` is in the list (or is `None`) because we've read it from the list head
++        // and the list cannot have changed because we hold a shared reference to it.
++        unsafe { Cursor::new(self, self.front()) }
++    }
++
++    /// Returns a cursor starting on the last (back) element of the list.
++    pub fn cursor_back(&self) -> Cursor<'_, A> {
++        // SAFETY: `back` is in the list (or is `None`) because we've read it from the list head
++        // and the list cannot have changed because we hold a shared reference to it.
++        unsafe { Cursor::new(self, self.back()) }
++    }
++
++    /// Returns a mutable reference to the links of a given object.
++    ///
++    /// # Safety
++    ///
++    /// Callers must ensure that the element is in the list.
++    unsafe fn inner(&mut self, ptr: NonNull<A::EntryType>) -> &mut LinksInner<A::EntryType> {
++        // SAFETY: The safety requirements guarantee that we the links are initialised because
++        // that's part of the type invariants. Additionally, the type invariants also guarantee
++        // that having a mutable reference to the list guarantees that the links are mutably
++        // accessible as well.
++        unsafe { (*A::to_links(ptr.as_ref()).0.get()).assume_init_mut() }
++    }
++
++    /// Returns a shared reference to the links of a given object.
++    ///
++    /// # Safety
++    ///
++    /// Callers must ensure that the element is in the list.
++    unsafe fn inner_ref(&self, ptr: NonNull<A::EntryType>) -> &LinksInner<A::EntryType> {
++        // SAFETY: The safety requirements guarantee that we the links are initialised because
++        // that's part of the type invariants. Additionally, the type invariants also guarantee
++        // that having a shared reference to the list guarantees that the links are accessible in
++        // shared mode as well.
++        unsafe { (*A::to_links(ptr.as_ref()).0.get()).assume_init_ref() }
++    }
++}
++
++impl<'a, A: Adapter + ?Sized> iter::IntoIterator for &'a List<A> {
++    type Item = &'a A::EntryType;
++    type IntoIter = Iterator<'a, A>;
++    fn into_iter(self) -> Self::IntoIter {
++        self.iter()
++    }
++}
++
++/// An iterator for the linked list.
++pub struct Iterator<'a, A: Adapter + ?Sized> {
++    cursor: Cursor<'a, A>,
++}
++
++impl<'a, A: Adapter + ?Sized> Iterator<'a, A> {
++    fn new(cursor: Cursor<'a, A>) -> Self {
++        Self { cursor }
++    }
++}
++
++impl<'a, A: Adapter + ?Sized> iter::Iterator for Iterator<'a, A> {
++    type Item = &'a A::EntryType;
++
++    fn next(&mut self) -> Option<Self::Item> {
++        let ret = self.cursor.current()?;
++        self.cursor.move_next();
++        Some(ret)
++    }
++}
++
++impl<A: Adapter + ?Sized> iter::DoubleEndedIterator for Iterator<'_, A> {
++    fn next_back(&mut self) -> Option<Self::Item> {
++        let ret = self.cursor.current()?;
++        self.cursor.move_prev();
++        Some(ret)
++    }
++}
++
++/// A linked-list adapter.
++///
++/// It is a separate type (as opposed to implemented by the type of the elements of the list)
++/// so that a given type can be inserted into multiple lists at the same time; in such cases, each
++/// list needs its own adapter that returns a different pointer to links.
++///
++/// It may, however, be implemented by the type itself to be inserted into lists, which makes it
++/// more readable.
++///
++/// # Safety
++///
++/// Implementers must ensure that the links returned by [`Adapter::to_links`] are unique to the
++/// adapter. That is, different adapters must return different links for a given object.
++///
++/// The reason for this requirement is to avoid confusion that may lead to UB. In particular, if
++/// two adapters were to use the same links, a user may have two lists (one for each adapter) and
++/// try to insert the same object into both at the same time; although this clearly violates the
++/// list safety requirements (e.g., those in [`List::push_back`]), for users to notice it, they'd
++/// have to dig into the details of the two adapters.
++///
++/// By imposing the requirement on the adapter, we make it easier for users to check compliance
++/// with the requirements when using the list.
++///
++/// # Examples
++///
++/// ```
++/// # use kernel::unsafe_list::{Adapter, Links, List};
++///
++/// struct Example {
++///     a: u32,
++///     b: u32,
++///     links1: Links<Example>,
++///     links2: Links<Example>,
++/// }
++///
++/// // SAFETY: This adapter is the only one that uses `Example::links1`.
++/// unsafe impl Adapter for Example {
++///     type EntryType = Self;
++///     fn to_links(obj: &Self) -> &Links<Self> {
++///         &obj.links1
++///     }
++/// }
++///
++/// struct ExampleAdapter;
++///
++/// // SAFETY: This adapter is the only one that uses `Example::links2`.
++/// unsafe impl Adapter for ExampleAdapter {
++///     type EntryType = Example;
++///     fn to_links(obj: &Example) -> &Links<Example> {
++///         &obj.links2
++///     }
++/// }
++///
++/// static LIST1: List<Example> = List::new();
++/// static LIST2: List<ExampleAdapter> = List::new();
++/// ```
++pub unsafe trait Adapter {
++    /// The type of the enties in the list.
++    type EntryType: ?Sized;
++
++    /// Retrieves the linked list links for the given object.
++    fn to_links(obj: &Self::EntryType) -> &Links<Self::EntryType>;
++}
++
++struct LinksInner<T: ?Sized> {
++    next: NonNull<T>,
++    prev: NonNull<T>,
++    _pin: PhantomPinned,
++}
++
++/// Links of a linked list.
++///
++/// List entries need one of these per concurrent list.
++pub struct Links<T: ?Sized>(UnsafeCell<MaybeUninit<LinksInner<T>>>);
++
++// SAFETY: `Links` can be safely sent to other threads but we restrict it to being `Send` only when
++// the list entries it points to are also `Send`.
++unsafe impl<T: ?Sized> Send for Links<T> {}
++
++// SAFETY: `Links` is usable from other threads via references but we restrict it to being `Sync`
++// only when the list entries it points to are also `Sync`.
++unsafe impl<T: ?Sized> Sync for Links<T> {}
++
++impl<T: ?Sized> Links<T> {
++    /// Constructs a new instance of the linked-list links.
++    pub const fn new() -> Self {
++        Self(UnsafeCell::new(MaybeUninit::uninit()))
++    }
++}
++
++pub(crate) struct CommonCursor<A: Adapter + ?Sized> {
++    pub(crate) cur: Option<NonNull<A::EntryType>>,
++}
++
++impl<A: Adapter + ?Sized> CommonCursor<A> {
++    pub(crate) fn new(cur: Option<NonNull<A::EntryType>>) -> Self {
++        Self { cur }
++    }
++
++    /// Moves the cursor to the next entry of the list.
++    ///
++    /// # Safety
++    ///
++    /// Callers must ensure that the cursor is either [`None`] or points to an entry that is in
++    /// `list`.
++    pub(crate) unsafe fn move_next(&mut self, list: &List<A>) {
++        match self.cur.take() {
++            None => self.cur = list.first,
++            Some(cur) => {
++                if let Some(head) = list.first {
++                    // SAFETY: Per the function safety requirements, `cur` is in the list.
++                    let links = unsafe { list.inner_ref(cur) };
++                    if links.next != head {
++                        self.cur = Some(links.next);
++                    }
++                }
++            }
++        }
++    }
++
++    /// Moves the cursor to the previous entry of the list.
++    ///
++    /// # Safety
++    ///
++    /// Callers must ensure that the cursor is either [`None`] or points to an entry that is in
++    /// `list`.
++    pub(crate) unsafe fn move_prev(&mut self, list: &List<A>) {
++        match list.first {
++            None => self.cur = None,
++            Some(head) => {
++                let next = match self.cur.take() {
++                    None => head,
++                    Some(cur) => {
++                        if cur == head {
++                            return;
++                        }
++                        cur
++                    }
++                };
++                // SAFETY: `next` is either `head` or `cur`. The former is in the list because it's
++                // its head; the latter is in the list per the function safety requirements.
++                self.cur = Some(unsafe { list.inner_ref(next) }.prev);
++            }
++        }
++    }
++}
++
++/// A list cursor that allows traversing a linked list and inspecting elements.
++pub struct Cursor<'a, A: Adapter + ?Sized> {
++    cursor: CommonCursor<A>,
++    list: &'a List<A>,
++}
++
++impl<'a, A: Adapter + ?Sized> Cursor<'a, A> {
++    /// Creates a new cursor.
++    ///
++    /// # Safety
++    ///
++    /// Callers must ensure that `cur` is either [`None`] or points to an entry in `list`.
++    pub(crate) unsafe fn new(list: &'a List<A>, cur: Option<NonNull<A::EntryType>>) -> Self {
++        Self {
++            list,
++            cursor: CommonCursor::new(cur),
++        }
++    }
++
++    /// Returns the element the cursor is currently positioned on.
++    pub fn current(&self) -> Option<&'a A::EntryType> {
++        let cur = self.cursor.cur?;
++        // SAFETY: `cursor` starts off in the list and only changes within the list. Additionally,
++        // the list cannot change because we hold a shared reference to it, so the cursor is always
++        // within the list.
++        Some(unsafe { cur.as_ref() })
++    }
++
++    /// Moves the cursor to the next element.
++    pub fn move_next(&mut self) {
++        // SAFETY: `cursor` starts off in the list and only changes within the list. Additionally,
++        // the list cannot change because we hold a shared reference to it, so the cursor is always
++        // within the list.
++        unsafe { self.cursor.move_next(self.list) };
++    }
++
++    /// Moves the cursor to the previous element.
++    pub fn move_prev(&mut self) {
++        // SAFETY: `cursor` starts off in the list and only changes within the list. Additionally,
++        // the list cannot change because we hold a shared reference to it, so the cursor is always
++        // within the list.
++        unsafe { self.cursor.move_prev(self.list) };
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use alloc::{boxed::Box, vec::Vec};
++    use core::ptr::NonNull;
++
++    struct Example {
++        links: super::Links<Self>,
++    }
++
++    // SAFETY: This is the only adapter that uses `Example::links`.
++    unsafe impl super::Adapter for Example {
++        type EntryType = Self;
++        fn to_links(obj: &Self) -> &super::Links<Self> {
++            &obj.links
++        }
++    }
++
++    fn build_vector(size: usize) -> Vec<Box<Example>> {
++        let mut v = Vec::new();
++        v.reserve(size);
++        for _ in 0..size {
++            v.push(Box::new(Example {
++                links: super::Links::new(),
++            }));
++        }
++        v
++    }
++
++    #[track_caller]
++    fn assert_list_contents(v: &[Box<Example>], list: &super::List<Example>) {
++        let n = v.len();
++
++        // Assert that the list is ok going forward.
++        let mut count = 0;
++        for (i, e) in list.iter().enumerate() {
++            assert!(core::ptr::eq(e, &*v[i]));
++            count += 1;
++        }
++        assert_eq!(count, n);
++
++        // Assert that the list is ok going backwards.
++        let mut count = 0;
++        for (i, e) in list.iter_back().rev().enumerate() {
++            assert!(core::ptr::eq(e, &*v[n - 1 - i]));
++            count += 1;
++        }
++        assert_eq!(count, n);
++    }
++
++    #[track_caller]
++    fn test_each_element(
++        min_len: usize,
++        max_len: usize,
++        test: impl Fn(&mut Vec<Box<Example>>, &mut super::List<Example>, usize, Box<Example>),
++    ) {
++        for n in min_len..=max_len {
++            for i in 0..n {
++                let extra = Box::new(Example {
++                    links: super::Links::new(),
++                });
++                let mut v = build_vector(n);
++                let mut list = super::List::<Example>::new();
++
++                // Build list.
++                for j in 0..n {
++                    // SAFETY: The entry was allocated above, it's not in any lists yet, is never
++                    // moved, and outlives the list.
++                    unsafe { list.push_back(&v[j]) };
++                }
++
++                // Call the test case.
++                test(&mut v, &mut list, i, extra);
++
++                // Check that the list is ok.
++                assert_list_contents(&v, &list);
++            }
++        }
++    }
++
++    #[test]
++    fn test_push_back() {
++        const MAX: usize = 10;
++        let v = build_vector(MAX);
++        let mut list = super::List::<Example>::new();
++
++        for n in 1..=MAX {
++            // SAFETY: The entry was allocated above, it's not in any lists yet, is never moved,
++            // and outlives the list.
++            unsafe { list.push_back(&v[n - 1]) };
++            assert_list_contents(&v[..n], &list);
++        }
++    }
++
++    #[test]
++    fn test_push_front() {
++        const MAX: usize = 10;
++        let v = build_vector(MAX);
++        let mut list = super::List::<Example>::new();
++
++        for n in 1..=MAX {
++            // SAFETY: The entry was allocated above, it's not in any lists yet, is never moved,
++            // and outlives the list.
++            unsafe { list.push_front(&v[MAX - n]) };
++            assert_list_contents(&v[MAX - n..], &list);
++        }
++    }
++
++    #[test]
++    fn test_one_removal() {
++        test_each_element(1, 10, |v, list, i, _| {
++            // Remove the i-th element.
++            // SAFETY: The i-th element was added to the list above, and wasn't removed yet.
++            unsafe { list.remove(&v[i]) };
++            v.remove(i);
++        });
++    }
++
++    #[test]
++    fn test_one_insert_after() {
++        test_each_element(1, 10, |v, list, i, extra| {
++            // Insert after the i-th element.
++            // SAFETY: The i-th element was added to the list above, and wasn't removed yet.
++            // Additionally, the new element isn't in any list yet, isn't moved, and outlives
++            // the list.
++            unsafe { list.insert_after(NonNull::from(&*v[i]), &*extra) };
++            v.insert(i + 1, extra);
++        });
++    }
++
++    #[test]
++    fn test_one_insert_before() {
++        test_each_element(1, 10, |v, list, i, extra| {
++            // Insert before the i-th element.
++            // SAFETY: The i-th element was added to the list above, and wasn't removed yet.
++            // Additionally, the new element isn't in any list yet, isn't moved, and outlives
++            // the list.
++            unsafe { list.insert_before(NonNull::from(&*v[i]), &*extra) };
++            v.insert(i, extra);
++        });
++    }
++}
+diff --git a/rust/kernel/workqueue.rs b/rust/kernel/workqueue.rs
+new file mode 100644
+index 00000000000000..3a1597a06a7376
+--- /dev/null
++++ b/rust/kernel/workqueue.rs
+@@ -0,0 +1,517 @@
++// SPDX-License-Identifier: GPL-2.0
++
++//! Work queues.
++//!
++//! C header: [`include/linux/workqueue.h`](../../../../include/linux/workqueue.h)
++
++use crate::{
++    bindings, c_str,
++    error::{code::*, Result},
++    sync::{Arc, ArcBorrow, LockClassKey, UniqueArc},
++    types::Opaque,
++};
++use core::{fmt, ops::Deref, ptr::NonNull};
++
++/// Spawns a new work item to run in the work queue.
++///
++/// It also automatically defines a new lockdep lock class for the work item.
++#[macro_export]
++macro_rules! spawn_work_item {
++    ($queue:expr, $func:expr) => {{
++        static CLASS: $crate::sync::LockClassKey = $crate::sync::LockClassKey::new();
++        $crate::workqueue::Queue::try_spawn($queue, &CLASS, $func)
++    }};
++}
++
++/// Implements the [`WorkAdapter`] trait for a type where its [`Work`] instance is a field.
++///
++/// # Examples
++///
++/// ```
++/// # use kernel::workqueue::Work;
++///
++/// struct Example {
++///     work: Work,
++/// }
++///
++/// kernel::impl_self_work_adapter!(Example, work, |_| {});
++/// ```
++#[macro_export]
++macro_rules! impl_self_work_adapter {
++    ($work_type:ty, $field:ident, $closure:expr) => {
++        $crate::impl_work_adapter!($work_type, $work_type, $field, $closure);
++    };
++}
++
++/// Implements the [`WorkAdapter`] trait for an adapter type.
++///
++/// # Examples
++///
++/// ```
++/// # use kernel::workqueue::Work;
++///
++/// struct Example {
++///     work: Work,
++/// }
++///
++/// struct Adapter;
++///
++/// kernel::impl_work_adapter!(Adapter, Example, work, |_| {});
++/// ```
++#[macro_export]
++macro_rules! impl_work_adapter {
++    ($adapter:ty, $work_type:ty, $field:ident, $closure:expr) => {
++        // SAFETY: We use `offset_of` to ensure that the field is within the given type, and we
++        // also check its type is `Work`.
++        unsafe impl $crate::workqueue::WorkAdapter for $adapter {
++            type Target = $work_type;
++            const FIELD_OFFSET: usize = ::core::mem::offset_of!(Self::Target, $field);
++            fn run(w: $crate::sync::Arc<Self::Target>) {
++                let closure: fn($crate::sync::Arc<Self::Target>) = $closure;
++                closure(w);
++                return;
++
++                // Checks that the type of the field is actually `Work`.
++                let tmp = core::mem::MaybeUninit::<$work_type>::uninit();
++                // SAFETY: The pointer is valid and aligned, just not initialised; `addr_of`
++                // ensures that we don't actually read from it (which would be UB) nor create an
++                // intermediate reference.
++                let _x: *const $crate::workqueue::Work =
++                    unsafe { core::ptr::addr_of!((*tmp.as_ptr()).$field) };
++            }
++        }
++    };
++}
++
++/// Initialises a work item.
++///
++/// It automatically defines a new lockdep lock class for the work item.
++#[macro_export]
++macro_rules! init_work_item {
++    ($work_container:expr) => {{
++        static CLASS: $crate::sync::LockClassKey = $crate::sync::LockClassKey::new();
++        $crate::workqueue::Work::init($work_container, &CLASS)
++    }};
++}
++
++/// Initialises a work item with the given adapter.
++///
++/// It automatically defines a new lockdep lock class for the work item.
++#[macro_export]
++macro_rules! init_work_item_adapter {
++    ($adapter:ty, $work_container:expr) => {{
++        static CLASS: $crate::sync::LockClassKey = $crate::sync::LockClassKey::new();
++        $crate::workqueue::Work::init_with_adapter::<$adapter>($work_container, &CLASS)
++    }};
++}
++
++/// A kernel work queue.
++///
++/// Wraps the kernel's C `struct workqueue_struct`.
++///
++/// It allows work items to be queued to run on thread pools managed by the kernel. Several are
++/// always available, for example, the ones returned by [`system`], [`system_highpri`],
++/// [`system_long`], etc.
++///
++/// # Examples
++///
++/// The following example is the simplest way to launch a work item:
++///
++/// ```
++/// # use kernel::{spawn_work_item, workqueue};
++/// spawn_work_item!(workqueue::system(), || pr_info!("Hello from a work item\n"))?;
++///
++/// # Ok::<(), Error>(())
++/// ```
++///
++/// The following example is used to create a work item and enqueue it several times. We note that
++/// enqueuing while the work item is already queued is a no-op, so we enqueue it when it is not
++/// enqueued yet.
++///
++/// ```
++/// # use kernel::workqueue::{self, Work};
++/// use core::sync::atomic::{AtomicU32, Ordering};
++/// use kernel::sync::UniqueArc;
++///
++/// struct Example {
++///     count: AtomicU32,
++///     work: Work,
++/// }
++///
++/// kernel::impl_self_work_adapter!(Example, work, |w| {
++///     let count = w.count.fetch_add(1, Ordering::Relaxed);
++///     pr_info!("Called with count={}\n", count);
++///
++///     // Queue again if the count is less than 10.
++///     if count < 10 {
++///         workqueue::system().enqueue(w);
++///     }
++/// });
++///
++/// let e = UniqueArc::try_new(Example {
++///     count: AtomicU32::new(0),
++///     // SAFETY: `work` is initialised below.
++///     work: unsafe { Work::new() },
++/// })?;
++///
++/// kernel::init_work_item!(&e);
++///
++/// // Queue the first time.
++/// workqueue::system().enqueue(e.into());
++///
++/// # Ok::<(), Error>(())
++/// ```
++///
++/// The following example has two different work items in the same struct, which allows it to be
++/// queued twice.
++///
++/// ```
++/// # use kernel::workqueue::{self, Work, WorkAdapter};
++/// use core::sync::atomic::{AtomicU32, Ordering};
++/// use kernel::sync::{Arc, UniqueArc};
++///
++/// struct Example {
++///     work1: Work,
++///     work2: Work,
++/// }
++///
++/// kernel::impl_self_work_adapter!(Example, work1, |_| pr_info!("First work\n"));
++///
++/// struct SecondAdapter;
++/// kernel::impl_work_adapter!(SecondAdapter, Example, work2, |_| pr_info!("Second work\n"));
++///
++/// let e = UniqueArc::try_new(Example {
++///     // SAFETY: `work1` is initialised below.
++///     work1: unsafe { Work::new() },
++///     // SAFETY: `work2` is initialised below.
++///     work2: unsafe { Work::new() },
++/// })?;
++///
++/// kernel::init_work_item!(&e);
++/// kernel::init_work_item_adapter!(SecondAdapter, &e);
++///
++/// let e = Arc::from(e);
++///
++/// // Enqueue the two different work items.
++/// workqueue::system().enqueue(e.clone());
++/// workqueue::system().enqueue_adapter::<SecondAdapter>(e);
++///
++/// # Ok::<(), Error>(())
++/// ```
++#[repr(transparent)]
++pub struct Queue(Opaque<bindings::workqueue_struct>);
++
++// SAFETY: Kernel workqueues are usable from any thread.
++unsafe impl Sync for Queue {}
++
++impl Queue {
++    /// Tries to allocate a new work queue.
++    ///
++    /// Callers should first consider using one of the existing ones (e.g. [`system`]) before
++    /// deciding to create a new one.
++    pub fn try_new(name: fmt::Arguments<'_>) -> Result<BoxedQueue> {
++        // SAFETY: We use a format string that requires an `fmt::Arguments` pointer as the first
++        // and only argument.
++        let ptr = unsafe {
++            bindings::alloc_workqueue(
++                c_str!("%pA").as_char_ptr(),
++                0,
++                0,
++                &name as *const _ as *const core::ffi::c_void,
++            )
++        };
++        if ptr.is_null() {
++            return Err(ENOMEM);
++        }
++
++        // SAFETY: `ptr` was just allocated and checked above, so it non-null and valid. Plus, it
++        // isn't touched after the call below, so ownership is transferred.
++        Ok(unsafe { BoxedQueue::new(ptr) })
++    }
++
++    /// Enqueues a work item.
++    ///
++    /// Returns `true` if the work item was successfully enqueue; returns `false` if it had already
++    /// been (and continued to be) enqueued.
++    pub fn enqueue<T: WorkAdapter<Target = T>>(&self, w: Arc<T>) -> bool {
++        self.enqueue_adapter::<T>(w)
++    }
++
++    /// Enqueues a work item with an explicit adapter.
++    ///
++    /// Returns `true` if the work item was successfully enqueue; returns `false` if it had already
++    /// been (and continued to be) enqueued.
++    pub fn enqueue_adapter<A: WorkAdapter + ?Sized>(&self, w: Arc<A::Target>) -> bool {
++        let ptr = Arc::into_raw(w);
++        let field_ptr =
++            (ptr as *const u8).wrapping_add(A::FIELD_OFFSET) as *mut bindings::work_struct;
++
++        // SAFETY: Having a shared reference to work queue guarantees that it remains valid, while
++        // the work item remains valid because we called `into_raw` and only call `from_raw` again
++        // if the object was already queued (so a previous call already guarantees it remains
++        // alive), when the work item runs, or when the work item is canceled.
++        let ret = unsafe {
++            bindings::queue_work_on(bindings::WORK_CPU_UNBOUND as _, self.0.get(), field_ptr)
++        };
++
++        if !ret {
++            // SAFETY: `ptr` comes from a previous call to `into_raw`. Additionally, given that
++            // `queue_work_on` returned `false`, we know that no-one is going to use the result of
++            // `into_raw`, so we must drop it here to avoid a reference leak.
++            unsafe { Arc::from_raw(ptr) };
++        }
++
++        ret
++    }
++
++    /// Tries to spawn the given function or closure as a work item.
++    ///
++    /// Users are encouraged to use [`spawn_work_item`] as it automatically defines the lock class
++    /// key to be used.
++    pub fn try_spawn<T: 'static + Send + Fn()>(
++        &self,
++        key: &'static LockClassKey,
++        func: T,
++    ) -> Result {
++        let w = UniqueArc::<ClosureAdapter<T>>::try_new(ClosureAdapter {
++            // SAFETY: `work` is initialised below.
++            work: unsafe { Work::new() },
++            func,
++        })?;
++        Work::init(&w, key);
++        self.enqueue(w.into());
++        Ok(())
++    }
++}
++
++struct ClosureAdapter<T: Fn() + Send> {
++    work: Work,
++    func: T,
++}
++
++// SAFETY: `ClosureAdapter::work` is of type `Work`.
++unsafe impl<T: Fn() + Send> WorkAdapter for ClosureAdapter<T> {
++    type Target = Self;
++    const FIELD_OFFSET: usize = core::mem::offset_of!(Self, work);
++
++    fn run(w: Arc<Self::Target>) {
++        (w.func)();
++    }
++}
++
++/// An adapter for work items.
++///
++/// For the most usual case where a type has a [`Work`] in it and is itself the adapter, it is
++/// recommended that they use the [`impl_self_work_adapter`] or [`impl_work_adapter`] macros
++/// instead of implementing the [`WorkAdapter`] manually. The great advantage is that they don't
++/// require any unsafe blocks.
++///
++/// # Safety
++///
++/// Implementers must ensure that there is a [`Work`] instance `FIELD_OFFSET` bytes from the
++/// beginning of a valid `Target` type. It is normally safe to use the [`core::mem::offset_of`]
++/// macro for this.
++pub unsafe trait WorkAdapter {
++    /// The type that this work adapter is meant to use.
++    type Target;
++
++    /// The offset, in bytes, from the beginning of [`Self::Target`] to the instance of [`Work`].
++    const FIELD_OFFSET: usize;
++
++    /// Runs when the work item is picked up for execution after it has been enqueued to some work
++    /// queue.
++    fn run(w: Arc<Self::Target>);
++}
++
++/// A work item.
++///
++/// Wraps the kernel's C `struct work_struct`.
++///
++/// Users must add a field of this type to a structure, then implement [`WorkAdapter`] so that it
++/// can be queued for execution in a thread pool. Examples of it being used are available in the
++/// documentation for [`Queue`].
++#[repr(transparent)]
++pub struct Work(Opaque<bindings::work_struct>);
++
++impl Work {
++    /// Creates a new instance of [`Work`].
++    ///
++    /// # Safety
++    ///
++    /// Callers must call either [`Work::init`] or [`Work::init_with_adapter`] before the work item
++    /// can be used.
++    pub unsafe fn new() -> Self {
++        Self(Opaque::uninit())
++    }
++
++    /// Initialises the work item.
++    ///
++    /// Users should prefer the [`init_work_item`] macro because it automatically defines a new
++    /// lock class key.
++    pub fn init<T: WorkAdapter<Target = T>>(obj: &UniqueArc<T>, key: &'static LockClassKey) {
++        Self::init_with_adapter::<T>(obj, key)
++    }
++
++    /// Initialises the work item with the given adapter.
++    ///
++    /// Users should prefer the [`init_work_item_adapter`] macro because it automatically defines a
++    /// new lock class key.
++    pub fn init_with_adapter<A: WorkAdapter>(
++        obj: &UniqueArc<A::Target>,
++        key: &'static LockClassKey,
++    ) {
++        let ptr = &**obj as *const _ as *const u8;
++        let field_ptr = ptr.wrapping_add(A::FIELD_OFFSET) as *mut bindings::work_struct;
++
++        // SAFETY: `work` is valid for writes -- the `UniqueArc` instance guarantees that it has
++        // been allocated and there is only one pointer to it. Additionally, `work_func` is a valid
++        // callback for the work item.
++        unsafe {
++            bindings::__INIT_WORK_WITH_KEY(
++                field_ptr,
++                Some(Self::work_func::<A>),
++                false,
++                key.as_ptr(),
++            )
++        };
++    }
++
++    /// Cancels the work item.
++    ///
++    /// It is ok for this to be called when the work is not queued.
++    pub fn cancel<T: WorkAdapter<Target = T>>(obj: ArcBorrow<'_, T>) {
++        Self::cancel_adapter::<T>(obj)
++    }
++
++    /// Cancels the work item with the given adapter.
++    ///
++    /// It is ok for this to be called when the work is not queued.
++    pub fn cancel_adapter<A: WorkAdapter>(obj: ArcBorrow<'_, A::Target>) {
++        let field_ptr = (obj.deref() as *const _ as *const u8).wrapping_add(A::FIELD_OFFSET)
++            as *mut bindings::work_struct;
++
++        // SAFETY: The work is valid (we have a reference to it), and the function can be called
++        // whether the work is queued or not.
++        if unsafe { bindings::cancel_work_sync(field_ptr) } {
++            // SAFETY: When the work was queued, a call to `into_raw` was made. We just canceled
++            // the work without it having the chance to run, so we need to explicitly destroy this
++            // reference (which would have happened in `work_func` if it did run).
++            unsafe { Arc::from_raw(&*obj) };
++        }
++    }
++
++    unsafe extern "C" fn work_func<A: WorkAdapter>(work: *mut bindings::work_struct) {
++        let field_ptr = work as *const _ as *const u8;
++        let ptr = field_ptr.wrapping_sub(A::FIELD_OFFSET) as *const A::Target;
++
++        // SAFETY: This callback is only ever used by the `init_with_adapter` method, so it is
++        // always the case that the work item is embedded in a `Work` (Self) struct.
++        let w = unsafe { Arc::from_raw(ptr) };
++        A::run(w);
++    }
++}
++
++/// A boxed owned workqueue.
++///
++/// # Invariants
++///
++/// `ptr` is owned by this instance of [`BoxedQueue`], so it's always valid.
++pub struct BoxedQueue {
++    ptr: NonNull<Queue>,
++}
++
++impl BoxedQueue {
++    /// Creates a new instance of [`BoxedQueue`].
++    ///
++    /// # Safety
++    ///
++    /// `ptr` must be non-null and valid. Additionally, ownership must be handed over to new
++    /// instance of [`BoxedQueue`].
++    unsafe fn new(ptr: *mut bindings::workqueue_struct) -> Self {
++        Self {
++            // SAFETY: We checked above that `ptr` is non-null.
++            ptr: unsafe { NonNull::new_unchecked(ptr.cast()) },
++        }
++    }
++}
++
++impl Deref for BoxedQueue {
++    type Target = Queue;
++
++    fn deref(&self) -> &Queue {
++        // SAFETY: The type invariants guarantee that `ptr` is always valid.
++        unsafe { self.ptr.as_ref() }
++    }
++}
++
++impl Drop for BoxedQueue {
++    fn drop(&mut self) {
++        // SAFETY: The type invariants guarantee that `ptr` is always valid.
++        unsafe { bindings::destroy_workqueue(self.ptr.as_ref().0.get()) };
++    }
++}
++
++/// Returns the system work queue (`system_wq`).
++///
++/// It is the one used by schedule\[_delayed\]_work\[_on\](). Multi-CPU multi-threaded. There are
++/// users which expect relatively short queue flush time.
++///
++/// Callers shouldn't queue work items which can run for too long.
++pub fn system() -> &'static Queue {
++    // SAFETY: `system_wq` is a C global, always available.
++    unsafe { &*bindings::system_wq.cast() }
++}
++
++/// Returns the system high-priority work queue (`system_highpri_wq`).
++///
++/// It is similar to the one returned by [`system`] but for work items which require higher
++/// scheduling priority.
++pub fn system_highpri() -> &'static Queue {
++    // SAFETY: `system_highpri_wq` is a C global, always available.
++    unsafe { &*bindings::system_highpri_wq.cast() }
++}
++
++/// Returns the system work queue for potentially long-running work items (`system_long_wq`).
++///
++/// It is similar to the one returned by [`system`] but may host long running work items. Queue
++/// flushing might take relatively long.
++pub fn system_long() -> &'static Queue {
++    // SAFETY: `system_long_wq` is a C global, always available.
++    unsafe { &*bindings::system_long_wq.cast() }
++}
++
++/// Returns the system unbound work queue (`system_unbound_wq`).
++///
++/// Workers are not bound to any specific CPU, not concurrency managed, and all queued work items
++/// are executed immediately as long as `max_active` limit is not reached and resources are
++/// available.
++pub fn system_unbound() -> &'static Queue {
++    // SAFETY: `system_unbound_wq` is a C global, always available.
++    unsafe { &*bindings::system_unbound_wq.cast() }
++}
++
++/// Returns the system freezable work queue (`system_freezable_wq`).
++///
++/// It is equivalent to the one returned by [`system`] except that it's freezable.
++pub fn system_freezable() -> &'static Queue {
++    // SAFETY: `system_freezable_wq` is a C global, always available.
++    unsafe { &*bindings::system_freezable_wq.cast() }
++}
++
++/// Returns the system power-efficient work queue (`system_power_efficient_wq`).
++///
++/// It is inclined towards saving power and is converted to "unbound" variants if the
++/// `workqueue.power_efficient` kernel parameter is specified; otherwise, it is similar to the one
++/// returned by [`system`].
++pub fn system_power_efficient() -> &'static Queue {
++    // SAFETY: `system_power_efficient_wq` is a C global, always available.
++    unsafe { &*bindings::system_power_efficient_wq.cast() }
++}
++
++/// Returns the system freezable power-efficient work queue (`system_freezable_power_efficient_wq`).
++///
++/// It is similar to the one returned by [`system_power_efficient`] except that is freezable.
++pub fn system_freezable_power_efficient() -> &'static Queue {
++    // SAFETY: `system_freezable_power_efficient_wq` is a C global, always available.
++    unsafe { &*bindings::system_freezable_power_efficient_wq.cast() }
++}
+diff --git a/scripts/Makefile.build b/scripts/Makefile.build
+index 82e3fb19fdafc9..da37bfa97211eb 100644
+--- a/scripts/Makefile.build
++++ b/scripts/Makefile.build
+@@ -262,7 +262,7 @@ $(obj)/%.lst: $(src)/%.c FORCE
+ # Compile Rust sources (.rs)
+ # ---------------------------------------------------------------------------
+ 
+-rust_allowed_features := new_uninit
++rust_allowed_features := new_uninit,offset_of
+ 
+ # `--out-dir` is required to avoid temporaries being created by `rustc` in the
+ # current working directory, which may be not accessible in the out-of-tree

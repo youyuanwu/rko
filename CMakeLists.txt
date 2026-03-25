@@ -72,6 +72,9 @@ add_custom_target(configure_linux
   COMMAND scripts/config --set-val CONFIG_CPU_MITIGATIONS y --file ${KBIN_ROOT}/.config
   COMMAND scripts/config --set-val CONFIG_STACKPROTECTOR y --file ${KBIN_ROOT}/.config
   COMMAND scripts/config --set-val CONFIG_STACKPROTECTOR_STRONG y --file ${KBIN_ROOT}/.config
+  # Networking support (always enabled for rko networking modules)
+  COMMAND scripts/config --set-val CONFIG_NET y --file ${KBIN_ROOT}/.config
+  COMMAND scripts/config --set-val CONFIG_INET y --file ${KBIN_ROOT}/.config
   # Resolve dependencies and verify Rust
   COMMAND $(MAKE) LLVM=1 olddefconfig O=${KBIN_ROOT}
   COMMAND $(MAKE) LLVM=1 rustavailable
@@ -108,9 +111,12 @@ include(cmake/kernel_module.cmake)
 add_subdirectory(samples/hello)
 add_subdirectory(samples/kvec_test)
 add_subdirectory(samples/rofs_test)
+add_subdirectory(samples/workqueue_test)
+add_subdirectory(samples/tcp_echo)
+add_subdirectory(samples/async_echo)
 
 # Clean all sample build directories
 add_custom_target(clean_samples
-  DEPENDS hello_ko_clean kvec_test_ko_clean rofs_test_ko_clean
+  DEPENDS hello_ko_clean kvec_test_ko_clean rofs_test_ko_clean workqueue_test_ko_clean tcp_echo_ko_clean async_echo_ko_clean
   COMMENT "Cleaning all sample modules"
 )

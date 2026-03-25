@@ -12,21 +12,24 @@
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn __filemap_add_folio(mapping : *mut super::fs:: address_space, folio : *mut super::fs:: folio, index : u64, gfp : super::types:: gfp_t, shadowp : *mut *mut core::ffi::c_void) -> i32);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn __filemap_get_folio(mapping : *mut super::fs:: address_space, index : u64, fgf_flags : fgf_t, gfp : super::types:: gfp_t) -> *mut super::fs:: folio);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn __filemap_get_folio_mpol(mapping : *mut super::fs:: address_space, index : u64, fgf_flags : fgf_t, gfp : super::types:: gfp_t, policy : *mut core::ffi::c_void) -> *mut super::fs:: folio);
 #[cfg(feature = "fs")]
@@ -35,7 +38,8 @@ windows_link::link!("kernel" "C" fn __filemap_remove_folio(folio : *mut super::f
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn __filemap_set_wb_err(mapping : *mut super::fs:: address_space, err : i32));
 #[cfg(feature = "fs")]
@@ -50,7 +54,8 @@ windows_link::link!("kernel" "C" fn __folio_lock_or_retry(folio : *mut super::fs
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn __folio_mark_dirty(folio : *mut super::fs:: folio, param1 : *mut super::fs:: address_space, warn : i32));
 #[cfg(feature = "types")]
@@ -59,21 +64,24 @@ windows_link::link!("kernel" "C" fn __page_cache_alloc(gfp : super::types:: gfp_
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn __readahead_batch(rac : *mut readahead_control, array : *mut *mut page, array_sz : u32) -> u32);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn __readahead_folio(ractl : *mut readahead_control) -> *mut super::fs:: folio);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn add_to_page_cache_lru(page : *mut page, mapping : *mut super::fs:: address_space, index : u64, gfp : super::types:: gfp_t) -> i32);
 windows_link::link!("kernel" "C" fn attach_page_private(page : *mut page, data : *mut core::ffi::c_void));
@@ -82,7 +90,8 @@ windows_link::link!("kernel" "C" fn clear_page_dirty_for_io(page : *mut page) ->
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn delete_from_page_cache_batch(mapping : *mut super::fs:: address_space, fbatch : *mut core::ffi::c_void));
 windows_link::link!("kernel" "C" fn detach_page_private(page : *mut page) -> *mut core::ffi::c_void);
@@ -90,7 +99,8 @@ windows_link::link!("kernel" "C" fn detach_page_private(page : *mut page) -> *mu
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn dir_pages(inode : *const super::fs:: inode) -> u64);
 windows_link::link!("kernel" "C" fn end_page_writeback(page : *mut page));
@@ -108,14 +118,16 @@ windows_link::link!("kernel" "C" fn fgf_set_order(size : super::types:: size_t) 
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn file_sample_sb_err(file : *mut super::fs:: file) -> u32);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn filemap_add_folio(mapping : *mut super::fs:: address_space, folio : *mut super::fs:: folio, index : u64, gfp : super::types:: gfp_t) -> i32);
 #[cfg(all(feature = "fs", feature = "types"))]
@@ -124,112 +136,128 @@ windows_link::link!("kernel" "C" fn filemap_alloc_folio_noprof(gfp : super::type
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn filemap_check_errors(mapping : *mut super::fs:: address_space) -> i32);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn filemap_check_wb_err(mapping : *mut super::fs:: address_space, since : u32) -> i32);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn filemap_fdatawait(mapping : *mut super::fs:: address_space) -> i32);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn filemap_fdatawait_keep_errors(mapping : *mut super::fs:: address_space) -> i32);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn filemap_fdatawait_range(param0 : *mut super::fs:: address_space, lstart : super::types:: loff_t, lend : super::types:: loff_t) -> i32);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn filemap_fdatawait_range_keep_errors(mapping : *mut super::fs:: address_space, start_byte : super::types:: loff_t, end_byte : super::types:: loff_t) -> i32);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn filemap_fdatawrite(param0 : *mut super::fs:: address_space) -> i32);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn filemap_fdatawrite_range(mapping : *mut super::fs:: address_space, start : super::types:: loff_t, end : super::types:: loff_t) -> i32);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn filemap_flush(param0 : *mut super::fs:: address_space) -> i32);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn filemap_flush_nr(mapping : *mut super::fs:: address_space, nr_to_write : *mut i64) -> i32);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn filemap_get_entry(mapping : *mut super::fs:: address_space, index : u64) -> *mut core::ffi::c_void);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn filemap_get_folio(mapping : *mut super::fs:: address_space, index : u64) -> *mut super::fs:: folio);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn filemap_get_folios(mapping : *mut super::fs:: address_space, start : *mut u64, end : u64, fbatch : *mut core::ffi::c_void) -> u32);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn filemap_get_folios_contig(mapping : *mut super::fs:: address_space, start : *mut u64, end : u64, fbatch : *mut core::ffi::c_void) -> u32);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn filemap_get_folios_dirty(mapping : *mut super::fs:: address_space, start : *mut u64, end : u64, fbatch : *mut core::ffi::c_void) -> u32);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn filemap_get_folios_tag(mapping : *mut super::fs:: address_space, start : *mut u64, end : u64, tag : super::fs:: xa_mark_t, fbatch : *mut core::ffi::c_void) -> u32);
 #[cfg(feature = "types")]
@@ -238,70 +266,80 @@ windows_link::link!("kernel" "C" fn filemap_get_order(size : super::types:: size
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn filemap_grab_folio(mapping : *mut super::fs:: address_space, index : u64) -> *mut super::fs:: folio);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn filemap_invalidate_inode(inode : *mut super::fs:: inode, flush : bool, start : super::types:: loff_t, end : super::types:: loff_t) -> i32);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn filemap_invalidate_pages(mapping : *mut super::fs:: address_space, pos : super::types:: loff_t, end : super::types:: loff_t, nowait : bool) -> i32);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn filemap_lock_folio(mapping : *mut super::fs:: address_space, index : u64) -> *mut super::fs:: folio);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn filemap_nr_thps(mapping : *const super::fs:: address_space) -> i32);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn filemap_nr_thps_dec(mapping : *mut super::fs:: address_space));
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn filemap_nr_thps_inc(mapping : *mut super::fs:: address_space));
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn filemap_range_has_page(param0 : *mut super::fs:: address_space, lstart : super::types:: loff_t, lend : super::types:: loff_t) -> bool);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn filemap_range_has_writeback(mapping : *mut super::fs:: address_space, start_byte : super::types:: loff_t, end_byte : super::types:: loff_t) -> bool);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn filemap_range_needs_writeback(mapping : *mut super::fs:: address_space, start_byte : super::types:: loff_t, end_byte : super::types:: loff_t) -> bool);
 #[cfg(all(feature = "fs", feature = "types"))]
@@ -312,56 +350,64 @@ windows_link::link!("kernel" "C" fn filemap_remove_folio(folio : *mut super::fs:
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn filemap_sample_wb_err(mapping : *mut super::fs:: address_space) -> u32);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn filemap_set_wb_err(mapping : *mut super::fs:: address_space, err : i32));
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn filemap_write_and_wait(mapping : *mut super::fs:: address_space) -> i32);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn filemap_write_and_wait_range(mapping : *mut super::fs:: address_space, lstart : super::types:: loff_t, lend : super::types:: loff_t) -> i32);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn find_get_page(mapping : *mut super::fs:: address_space, offset : u64) -> *mut page);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn find_get_page_flags(mapping : *mut super::fs:: address_space, offset : u64, fgp_flags : fgf_t) -> *mut page);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn find_lock_page(mapping : *mut super::fs:: address_space, index : u64) -> *mut page);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn find_or_create_page(mapping : *mut super::fs:: address_space, index : u64, gfp_mask : super::types:: gfp_t) -> *mut page);
 #[cfg(feature = "fs")]
@@ -394,14 +440,16 @@ windows_link::link!("kernel" "C" fn folio_file_page(folio : *mut super::fs:: fol
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn folio_flush_mapping(folio : *mut super::fs:: folio) -> *mut super::fs:: address_space);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn folio_inode(folio : *mut super::fs:: folio) -> *mut super::fs:: inode);
 #[cfg(all(feature = "fs", feature = "types"))]
@@ -416,14 +464,16 @@ windows_link::link!("kernel" "C" fn folio_lock_or_retry(folio : *mut super::fs::
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn folio_mapping(folio : *const super::fs:: folio) -> *mut super::fs:: address_space);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn folio_mkwrite_check_truncate(folio : *const super::fs:: folio, inode : *const super::fs:: inode) -> super::types:: ssize_t);
 #[cfg(feature = "fs")]
@@ -460,70 +510,80 @@ windows_link::link!("kernel" "C" fn folio_wait_writeback_killable(folio : *mut s
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn grab_cache_page_nowait(mapping : *mut super::fs:: address_space, index : u64) -> *mut page);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn i_blocks_per_folio(inode : *const super::fs:: inode, folio : *const super::fs:: folio) -> u32);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_drain_writes(inode : *mut super::fs:: inode) -> i32);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn invalidate_inode_pages2(mapping : *mut super::fs:: address_space) -> i32);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn invalidate_inode_pages2_range(mapping : *mut super::fs:: address_space, start : u64, end : u64) -> i32);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn invalidate_mapping_pages(mapping : *mut super::fs:: address_space, start : u64, end : u64) -> u64);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn invalidate_remote_inode(inode : *mut super::fs:: inode));
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn kiocb_invalidate_pages(iocb : *mut super::fs:: kiocb, count : super::types:: size_t) -> i32);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn kiocb_invalidate_post_direct_write(iocb : *mut super::fs:: kiocb, count : super::types:: size_t));
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn kiocb_write_and_wait(iocb : *mut super::fs:: kiocb, count : super::types:: size_t) -> i32);
 #[cfg(feature = "fs")]
@@ -533,84 +593,96 @@ windows_link::link!("kernel" "C" fn lock_page(page : *mut page));
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mapping_align_index(mapping : *const super::fs:: address_space, index : u64) -> u64);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mapping_clear_release_always(mapping : *mut super::fs:: address_space));
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mapping_clear_stable_writes(mapping : *mut super::fs:: address_space));
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mapping_clear_unevictable(mapping : *mut super::fs:: address_space));
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mapping_empty(mapping : *const super::fs:: address_space) -> bool);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mapping_exiting(mapping : *const super::fs:: address_space) -> i32);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mapping_gfp_constraint(mapping : *const super::fs:: address_space, gfp_mask : super::types:: gfp_t) -> super::types:: gfp_t);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mapping_gfp_mask(mapping : *const super::fs:: address_space) -> super::types:: gfp_t);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mapping_inaccessible(mapping : *const super::fs:: address_space) -> bool);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mapping_large_folio_support(mapping : *const super::fs:: address_space) -> bool);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mapping_max_folio_order(mapping : *const super::fs:: address_space) -> u32);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mapping_max_folio_size(mapping : *const super::fs:: address_space) -> super::types:: size_t);
 #[cfg(feature = "types")]
@@ -619,231 +691,264 @@ windows_link::link!("kernel" "C" fn mapping_max_folio_size_supported() -> super:
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mapping_min_folio_nrbytes(mapping : *const super::fs:: address_space) -> u64);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mapping_min_folio_nrpages(mapping : *const super::fs:: address_space) -> u64);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mapping_min_folio_order(mapping : *const super::fs:: address_space) -> u32);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mapping_no_data_integrity(mapping : *const super::fs:: address_space) -> bool);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mapping_read_folio_gfp(param0 : *mut super::fs:: address_space, index : u64, flags : super::types:: gfp_t) -> *mut super::fs:: folio);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mapping_release_always(mapping : *const super::fs:: address_space) -> bool);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mapping_seek_hole_data(param0 : *mut super::fs:: address_space, start : super::types:: loff_t, end : super::types:: loff_t, whence : i32) -> super::types:: loff_t);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mapping_set_error(mapping : *mut super::fs:: address_space, error : i32));
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mapping_set_exiting(mapping : *mut super::fs:: address_space));
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mapping_set_folio_min_order(mapping : *mut super::fs:: address_space, min : u32));
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mapping_set_folio_order_range(mapping : *mut super::fs:: address_space, min : u32, max : u32));
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mapping_set_gfp_mask(m : *mut super::fs:: address_space, mask : super::types:: gfp_t));
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mapping_set_inaccessible(mapping : *mut super::fs:: address_space));
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mapping_set_large_folios(mapping : *mut super::fs:: address_space));
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mapping_set_no_data_integrity(mapping : *mut super::fs:: address_space));
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mapping_set_no_writeback_tags(mapping : *mut super::fs:: address_space));
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mapping_set_release_always(mapping : *mut super::fs:: address_space));
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mapping_set_stable_writes(mapping : *mut super::fs:: address_space));
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mapping_set_unevictable(mapping : *mut super::fs:: address_space));
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mapping_set_writeback_may_deadlock_on_reclaim(mapping : *mut super::fs:: address_space));
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mapping_shrinkable(mapping : *const super::fs:: address_space) -> bool);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mapping_stable_writes(mapping : *const super::fs:: address_space) -> bool);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mapping_unevictable(mapping : *const super::fs:: address_space) -> bool);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mapping_use_writeback_tags(mapping : *const super::fs:: address_space) -> i32);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mapping_writeback_may_deadlock_on_reclaim(mapping : *const super::fs:: address_space) -> bool);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn noop_dirty_folio(mapping : *mut super::fs:: address_space, folio : *mut super::fs:: folio) -> bool);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn page_cache_async_ra(param0 : *mut readahead_control, param1 : *mut super::fs:: folio, req_count : u64));
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn page_cache_async_readahead(mapping : *mut super::fs:: address_space, ra : *mut super::fs:: file_ra_state, file : *mut super::fs:: file, folio : *mut super::fs:: folio, req_count : u64));
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn page_cache_next_miss(mapping : *mut super::fs:: address_space, index : u64, max_scan : u64) -> u64);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn page_cache_prev_miss(mapping : *mut super::fs:: address_space, index : u64, max_scan : u64) -> u64);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn page_cache_ra_unbounded(param0 : *mut readahead_control, nr_to_read : u64, lookahead_count : u64));
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn page_cache_sync_ra(param0 : *mut readahead_control, req_count : u64));
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn page_cache_sync_readahead(mapping : *mut super::fs:: address_space, ra : *mut super::fs:: file_ra_state, file : *mut super::fs:: file, index : u64, req_count : u64));
 #[cfg(feature = "types")]
@@ -854,98 +959,112 @@ windows_link::link!("kernel" "C" fn page_pgoff(folio : *const super::fs:: folio,
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn pagecache_get_page(mapping : *mut super::fs:: address_space, index : u64, fgp_flags : fgf_t, gfp : super::types:: gfp_t) -> *mut page);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn read_cache_folio(param0 : *mut super::fs:: address_space, index : u64, filler : *mut filler_t, file : *mut super::fs:: file) -> *mut super::fs:: folio);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn read_cache_page(param0 : *mut super::fs:: address_space, index : u64, filler : *mut filler_t, file : *mut super::fs:: file) -> *mut page);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn read_cache_page_gfp(mapping : *mut super::fs:: address_space, index : u64, gfp_mask : super::types:: gfp_t) -> *mut page);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn read_mapping_folio(mapping : *mut super::fs:: address_space, index : u64, file : *mut super::fs:: file) -> *mut super::fs:: folio);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn read_mapping_page(mapping : *mut super::fs:: address_space, index : u64, file : *mut super::fs:: file) -> *mut page);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn readahead_batch_length(rac : *const readahead_control) -> super::types:: size_t);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn readahead_count(rac : *const readahead_control) -> u32);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn readahead_expand(ractl : *mut readahead_control, new_start : super::types:: loff_t, new_len : super::types:: size_t));
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn readahead_folio(ractl : *mut readahead_control) -> *mut super::fs:: folio);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn readahead_gfp_mask(x : *mut super::fs:: address_space) -> super::types:: gfp_t);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn readahead_index(rac : *const readahead_control) -> u64);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn readahead_length(rac : *const readahead_control) -> super::types:: size_t);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn readahead_pos(rac : *const readahead_control) -> super::types:: loff_t);
 #[cfg(feature = "fs")]
@@ -959,14 +1078,16 @@ windows_link::link!("kernel" "C" fn wake_page_match(wait_page : *mut wait_page_q
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn write_begin_get_folio(iocb : *const super::fs:: kiocb, mapping : *mut super::fs:: address_space, index : u64, len : super::types:: size_t) -> *mut super::fs:: folio);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn write_inode_now(param0 : *mut super::fs:: inode, sync : i32) -> i32);
 pub const AS_EIO: u32 = 0u32;
@@ -990,7 +1111,8 @@ pub type fgf_t = u32;
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 pub type filler_t = Option<
     unsafe extern "system" fn(
@@ -1014,7 +1136,8 @@ impl Default for page {
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 #[derive(Clone, Copy)]
 pub struct readahead_control {
@@ -1032,7 +1155,8 @@ pub struct readahead_control {
     feature = "dcache",
     feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "workqueue"
 ))]
 impl Default for readahead_control {
     fn default() -> Self {

@@ -23,6 +23,19 @@ impl Error {
     pub const EEXIST: Self = Error::new(rko_sys::rko::err::EEXIST);
     pub const EIO: Self = Error::new(rko_sys::rko::err::EIO);
     pub const EPERM: Self = Error::new(rko_sys::rko::err::EPERM);
+    pub const ECONNRESET: Self = Error::new(rko_sys::rko::err::ECONNRESET);
+    pub const ECONNABORTED: Self = Error::new(rko_sys::rko::err::ECONNABORTED);
+
+    /// Create an `Error` from a raw negative errno returned by a kernel function.
+    ///
+    /// If `errno` is zero or positive, returns `EINVAL` as a fallback.
+    pub const fn from_errno(errno: core::ffi::c_int) -> Self {
+        if errno < 0 {
+            Error(errno)
+        } else {
+            Self::EINVAL
+        }
+    }
 }
 
 impl core::fmt::Debug for Error {

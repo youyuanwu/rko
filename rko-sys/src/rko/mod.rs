@@ -22,11 +22,17 @@ pub mod gfp;
 pub mod helpers;
 #[cfg(feature = "highmem")]
 pub mod highmem;
+#[cfg(feature = "net")]
+pub mod net;
 #[cfg(feature = "pagemap")]
 pub mod pagemap;
+#[cfg(feature = "poll")]
+pub mod poll;
 #[cfg(feature = "slab")]
 pub mod slab;
 #[cfg(feature = "sync")]
 pub mod sync;
 #[cfg(feature = "types")]
 pub mod types;
+#[cfg(feature = "workqueue")]
+pub mod workqueue;
