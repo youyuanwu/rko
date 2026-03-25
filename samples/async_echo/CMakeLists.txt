@@ -1,3 +1,3 @@
 add_kernel_module(
-  CHECKS "async echo: listening on 0.0.0.0:8080"
+  CHECKS "async echo: listening on 0.0.0.0:8080" "async_echo: echo test passed"
 )
