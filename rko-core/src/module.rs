@@ -144,7 +144,7 @@ macro_rules! module {
         #[unsafe(link_section = ".exit.text")]
         pub extern "C" fn cleanup_module() {
             unsafe {
-                __MOD.assume_init_ref().exit();
+                $crate::module::Module::exit(__MOD.assume_init_ref());
                 __MOD.assume_init_drop();
             }
         }

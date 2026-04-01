@@ -1,7 +1,7 @@
 [workspace]
 resolver = "2"
 
-members = ["hello", "kvec_test", "rofs_test", "workqueue_test", "tcp_echo", "async_echo"]
+members = ["hello", "kvec_test", "rofs_test", "tarfs", "workqueue_test", "tcp_echo", "async_echo"]
 
 [workspace.dependencies]
 rko-core = { path = "../rko-core" }

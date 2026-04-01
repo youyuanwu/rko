@@ -12,7 +12,7 @@ use rko_sys::rko::{
     fs as bindings, fs_context as fc_bindings, gfp as gfp_b, helpers as bindings_h, slab as slab_b,
 };
 
-use super::Type;
+use super::FileSystem;
 use super::inode::INodeWithData;
 use super::vtable;
 
@@ -45,7 +45,7 @@ impl Registration {
     /// Creates a `Registration` for filesystem type `T`.
     ///
     /// Allocates the inode slab cache and wires all callbacks.
-    pub fn new_for<T: Type>() -> Result<Self> {
+    pub fn new_for<T: FileSystem>() -> Result<Self> {
         let ctx_ops = vtable::fs_context_ops::<T>();
 
         let fs_type = bindings::file_system_type {
@@ -112,7 +112,7 @@ impl Registration {
 /// `inode_init_once` constructor for the slab cache.
 ///
 /// Called once per slab object to initialize the kernel inode internals.
-unsafe extern "C" fn inode_init_once_callback<T: Type>(ptr: *mut c_void) {
+unsafe extern "C" fn inode_init_once_callback<T: FileSystem>(ptr: *mut c_void) {
     let obj = ptr.cast::<INodeWithData<T::INodeData>>();
     unsafe {
         bindings::inode_init_once(ptr::addr_of_mut!((*obj).inode));

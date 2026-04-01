@@ -118,3 +118,23 @@ impl<T: ?Sized, A: Allocator> Drop for Box<T, A> {
 // SAFETY: Box owns its value, so Send/Sync follow T.
 unsafe impl<T: ?Sized + Send, A: Allocator> Send for Box<T, A> {}
 unsafe impl<T: ?Sized + Sync, A: Allocator> Sync for Box<T, A> {}
+
+// SAFETY: into_foreign/from_foreign correctly transfer ownership via raw pointer.
+unsafe impl<T: Send, A: Allocator> crate::types::ForeignOwnable for Box<T, A> {
+    fn into_foreign(self) -> *const core::ffi::c_void {
+        Box::into_raw(self).as_ptr().cast()
+    }
+
+    unsafe fn from_foreign(ptr: *const core::ffi::c_void) -> Self {
+        unsafe { Box::from_raw(NonNull::new_unchecked(ptr.cast_mut().cast())) }
+    }
+
+    unsafe fn borrow<'a>(ptr: *const core::ffi::c_void) -> &'a Self {
+        // NOTE: This reinterprets the *const T as *const Box<T>.
+        // Box is { ptr: NonNull<T>, _alloc: PhantomData } — not actually
+        // at the address we have. Use SuperBlock::data() for typed access
+        // instead of calling this directly.
+        // TODO: Return a guard type instead of &Self.
+        unsafe { &*((&raw const ptr).cast::<Self>()) }
+    }
+}

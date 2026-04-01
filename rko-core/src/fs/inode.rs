@@ -7,7 +7,7 @@ use core::mem::{ManuallyDrop, MaybeUninit};
 use core::ptr;
 
 use crate::error::Error;
-use crate::types::{ARef, AlwaysRefCounted, Opaque};
+use crate::types::{ARef, AlwaysRefCounted, Lockable, Opaque};
 use rko_sys::rko::{fs as bindings, helpers as bindings_h};
 
 type Result<T = ()> = core::result::Result<T, Error>;
@@ -27,9 +27,9 @@ pub const S_IFSOCK: u16 = 0o140000;
 ///
 /// Instances are always ref-counted via `ihold`/`iput`.
 #[repr(transparent)]
-pub struct INode<T: super::Type>(Opaque<bindings::inode>, PhantomData<T>);
+pub struct INode<T: super::FileSystem>(Opaque<bindings::inode>, PhantomData<T>);
 
-impl<T: super::Type> INode<T> {
+impl<T: super::FileSystem> INode<T> {
     /// Returns the inode number.
     pub fn ino(&self) -> u64 {
         // SAFETY: `i_ino` is immutable after creation.
@@ -55,10 +55,15 @@ impl<T: super::Type> INode<T> {
             &*(*outer).data.as_ptr()
         }
     }
+
+    /// Returns the file size in bytes (`i_size`).
+    pub fn size(&self) -> super::Offset {
+        unsafe { (*self.0.get()).i_size }
+    }
 }
 
 // SAFETY: Ref-counted via ihold/iput.
-unsafe impl<T: super::Type> AlwaysRefCounted for INode<T> {
+unsafe impl<T: super::FileSystem> AlwaysRefCounted for INode<T> {
     fn inc_ref(&self) {
         // SAFETY: Shared reference implies non-zero refcount.
         unsafe { bindings::ihold(self.0.get()) };
@@ -67,6 +72,21 @@ unsafe impl<T: super::Type> AlwaysRefCounted for INode<T> {
     unsafe fn dec_ref(obj: ptr::NonNull<Self>) {
         // SAFETY: Caller guarantees non-zero refcount.
         unsafe { bindings::iput(obj.cast().as_ptr()) }
+    }
+}
+
+/// Marker type for the inode's read semaphore (`i_rwsem` in shared mode).
+pub struct ReadSem;
+
+// SAFETY: inode_lock_shared/inode_unlock_shared correctly acquire and
+// release the inode's i_rwsem in shared (read) mode.
+unsafe impl<T: super::FileSystem> Lockable<ReadSem> for INode<T> {
+    fn raw_lock(&self) {
+        unsafe { bindings::inode_lock_shared(self.0.get()) }
+    }
+
+    unsafe fn unlock(&self) {
+        unsafe { bindings::inode_unlock_shared(self.0.get()) }
     }
 }
 
@@ -96,13 +116,40 @@ unsafe fn container_of<T>(inode_ptr: *const u8) -> *const INodeWithData<T> {
 ///
 /// Must be initialized via [`init`](NewINode::init) or it will be failed
 /// via `iget_failed` on drop.
-#[repr(transparent)]
-pub struct NewINode<T: super::Type>(ARef<INode<T>>);
+pub struct NewINode<T: super::FileSystem> {
+    inner: ARef<INode<T>>,
+    custom_iops: Option<*const bindings::inode_operations>,
+    custom_fops: Option<*const bindings::file_operations>,
+    custom_aops: Option<*const bindings::address_space_operations>,
+}
 
-impl<T: super::Type> NewINode<T> {
+impl<T: super::FileSystem> NewINode<T> {
     /// Creates a `NewINode` from a raw ARef. Used internally.
     pub(crate) fn new(inode: ARef<INode<T>>) -> Self {
-        Self(inode)
+        Self {
+            inner: inode,
+            custom_iops: None,
+            custom_fops: None,
+            custom_aops: None,
+        }
+    }
+
+    /// Override inode operations for this inode.
+    pub fn set_iops(&mut self, ops: *const bindings::inode_operations) -> &mut Self {
+        self.custom_iops = Some(ops);
+        self
+    }
+
+    /// Override file operations for this inode.
+    pub fn set_fops(&mut self, ops: *const bindings::file_operations) -> &mut Self {
+        self.custom_fops = Some(ops);
+        self
+    }
+
+    /// Override address space operations for this inode.
+    pub fn set_aops(&mut self, ops: *const bindings::address_space_operations) -> &mut Self {
+        self.custom_aops = Some(ops);
+        self
     }
 
     /// Initializes the inode with the given parameters.
@@ -114,7 +161,7 @@ impl<T: super::Type> NewINode<T> {
         params: INodeParams<T::INodeData>,
         tables: &super::vtable::Tables<T>,
     ) -> Result<ARef<INode<T>>> {
-        let inode_ptr = self.0.0.get();
+        let inode_ptr = self.inner.0.get();
         let outer = unsafe { &mut *container_of_mut::<T::INodeData>(inode_ptr.cast()) };
 
         // Always write data first — drop expects it initialized.
@@ -148,24 +195,46 @@ impl<T: super::Type> NewINode<T> {
             bindings_h::rust_helper_i_uid_write(inode, params.uid);
             bindings_h::rust_helper_i_gid_write(inode, params.gid);
 
-            // Set ops tables based on inode type.
+            // Set ops tables: use custom overrides if set, else defaults from Tables.
             match params.typ {
                 INodeType::Dir => {
-                    inode.i_op = &tables.dir_inode_ops as *const _ as *mut _;
-                    bindings_h::rust_helper_inode_set_fop(inode, &tables.dir_file_ops);
+                    let iops = self
+                        .custom_iops
+                        .unwrap_or(&tables.dir_inode_ops as *const _);
+                    inode.i_op = iops as *mut _;
+                    let fops = self.custom_fops.unwrap_or(&tables.dir_file_ops as *const _);
+                    bindings_h::rust_helper_inode_set_fop(inode, fops);
                 }
                 INodeType::Reg => {
-                    inode.i_op = &tables.reg_inode_ops as *const _ as *mut _;
-                    bindings_h::rust_helper_inode_set_fop(inode, &tables.reg_file_ops);
-                    bindings_h::rust_helper_inode_set_aops(inode, &tables.reg_aops);
+                    let iops = self
+                        .custom_iops
+                        .unwrap_or(&tables.reg_inode_ops as *const _);
+                    inode.i_op = iops as *mut _;
+                    let fops = self.custom_fops.unwrap_or(&tables.reg_file_ops as *const _);
+                    bindings_h::rust_helper_inode_set_fop(inode, fops);
+                    if let Some(aops) = self.custom_aops {
+                        bindings_h::rust_helper_inode_set_aops(inode, aops);
+                    } else {
+                        bindings_h::rust_helper_inode_set_aops(inode, &tables.reg_aops);
+                    }
                     bindings_h::rust_helper_mapping_set_large_folios(ptr::addr_of_mut!(
                         inode.i_data
                     ));
                 }
                 INodeType::Lnk => {
-                    inode.i_op = &tables.symlink_inode_ops as *const _ as *mut _;
+                    let iops = self
+                        .custom_iops
+                        .unwrap_or(&tables.symlink_inode_ops as *const _);
+                    inode.i_op = iops as *mut _;
                 }
-                _ => {}
+                _ => {
+                    if let Some(iops) = self.custom_iops {
+                        inode.i_op = iops as *mut _;
+                    }
+                    if let Some(fops) = self.custom_fops {
+                        bindings_h::rust_helper_inode_set_fop(inode, fops);
+                    }
+                }
             }
 
             bindings::unlock_new_inode(inode);
@@ -173,14 +242,14 @@ impl<T: super::Type> NewINode<T> {
 
         // Prevent Drop from calling iget_failed, extract the ARef.
         let me = ManuallyDrop::new(self);
-        Ok(unsafe { (&me.0 as *const ARef<INode<T>>).read() })
+        Ok(unsafe { (&me.inner as *const ARef<INode<T>>).read() })
     }
 }
 
-impl<T: super::Type> Drop for NewINode<T> {
+impl<T: super::FileSystem> Drop for NewINode<T> {
     fn drop(&mut self) {
         // SAFETY: The inode was never successfully initialized.
-        unsafe { bindings::iget_failed(self.0.0.get()) };
+        unsafe { bindings::iget_failed(self.inner.0.get()) };
     }
 }
 
@@ -209,6 +278,7 @@ pub enum INodeType {
 }
 
 /// Time specification for inode timestamps.
+#[derive(Copy, Clone)]
 pub struct Time {
     /// Seconds since the Unix epoch.
     pub secs: u64,

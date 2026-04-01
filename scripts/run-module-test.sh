@@ -20,7 +20,8 @@ mkdir -p "$WORK"/{bin,lib/modules,proc,sys,dev,etc,mnt,tmp}
 BUSYBOX=$(which busybox)
 cp "$BUSYBOX" "$WORK/bin/busybox"
 for cmd in sh mount umount insmod rmmod dmesg grep poweroff \
-           ls cat mkdir echo wc head tail nc ifconfig printf sleep; do
+           ls cat mkdir echo wc head tail nc ifconfig printf sleep \
+           losetup dd; do
     ln -s busybox "$WORK/bin/$cmd"
 done
 
@@ -33,6 +34,11 @@ if [ -f "$SAMPLE_DIR/test.sh" ]; then
     chmod +x "$WORK/etc/test_custom.sh"
     HAS_TEST=1
 fi
+
+# Copy optional test data files (*.img, *.bin) from sample build dir
+for f in "$BUILD_DIR"/*.img "$BUILD_DIR"/*.bin; do
+    [ -f "$f" ] && cp "$f" "$WORK/etc/"
+done
 
 # Write test config sourced by init
 {

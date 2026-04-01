@@ -22,6 +22,8 @@ pub mod gfp;
 pub mod helpers;
 #[cfg(feature = "highmem")]
 pub mod highmem;
+#[cfg(feature = "iomap")]
+pub mod iomap;
 #[cfg(feature = "net")]
 pub mod net;
 #[cfg(feature = "pagemap")]
@@ -30,9 +32,13 @@ pub mod pagemap;
 pub mod poll;
 #[cfg(feature = "slab")]
 pub mod slab;
+#[cfg(feature = "statfs")]
+pub mod statfs;
 #[cfg(feature = "sync")]
 pub mod sync;
 #[cfg(feature = "types")]
 pub mod types;
 #[cfg(feature = "workqueue")]
 pub mod workqueue;
+#[cfg(feature = "xattr")]
+pub mod xattr;

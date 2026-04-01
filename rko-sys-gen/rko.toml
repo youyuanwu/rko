@@ -172,6 +172,35 @@ library = "kernel"
 headers = ["linux/highmem.h"]
 traverse = ["linux/highmem.h"]
 
+# ── Partition 9b: statfs ───────────────────────────────────────────
+# kstatfs struct for filesystem statistics (statfs/fstatfs)
+[[partition]]
+namespace = "rko.statfs"
+library = "kernel"
+headers = ["linux/statfs.h"]
+traverse = ["linux/statfs.h", "asm/statfs.h", "uapi/asm-generic/statfs.h"]
+
+# ── Partition 9c: xattr ───────────────────────────────────────────
+# xattr_handler struct for extended attribute support
+[[partition]]
+namespace = "rko.xattr"
+library = "kernel"
+headers = ["linux/xattr.h"]
+traverse = ["linux/xattr.h"]
+
+# ── Partition 9d: iomap ───────────────────────────────────────────
+# iomap struct, iomap_ops, iomap_read_folio, iomap_readahead
+[[partition]]
+namespace = "rko.iomap"
+library = "kernel"
+headers = ["linux/iomap.h"]
+traverse = [
+  "linux/iomap.h",
+  "linux/blk_types.h",
+  "linux/bio.h",
+  "linux/pagevec.h",
+]
+
 # ── Partition 10: C helpers ────────────────────────────────────────
 # Wrappers for static inline functions / macros that Rust cannot link
 # directly (folio_get, i_uid_write, dir_emit, kmap_local_folio, etc.)
@@ -442,6 +471,88 @@ align = 8
 [[inject_type]]
 namespace = "rko.workqueue"
 name = "cpumask"
+kind = "struct"
+size = 8
+align = 8
+
+# ── iomap inject_types ─────────────────────────────────────────────
+
+# Pointer-only deps of block_device (linux/blk_types.h)
+[[inject_type]]
+namespace = "rko.iomap"
+name = "gendisk"
+kind = "struct"
+size = 8
+align = 8
+
+[[inject_type]]
+namespace = "rko.iomap"
+name = "request_queue"
+kind = "struct"
+size = 8
+align = 8
+
+[[inject_type]]
+namespace = "rko.iomap"
+name = "blk_holder_ops"
+kind = "struct"
+size = 8
+align = 8
+
+[[inject_type]]
+namespace = "rko.iomap"
+name = "kobject"
+kind = "struct"
+size = 64
+align = 8
+
+[[inject_type]]
+namespace = "rko.iomap"
+name = "partition_meta_info"
+kind = "struct"
+size = 8
+align = 8
+
+[[inject_type]]
+namespace = "rko.iomap"
+name = "device"
+kind = "struct"
+size = 8
+align = 8
+
+# Embedded by value in bio (linux/blk_types.h)
+[[inject_type]]
+namespace = "rko.iomap"
+name = "bio_vec"
+kind = "struct"
+size = 16
+align = 8
+
+[[inject_type]]
+namespace = "rko.iomap"
+name = "bvec_iter"
+kind = "struct"
+size = 16
+align = 4
+
+# Param-only
+[[inject_type]]
+namespace = "rko.iomap"
+name = "bvec_iter_all"
+kind = "struct"
+size = 24
+align = 8
+
+[[inject_type]]
+namespace = "rko.iomap"
+name = "queue_limits"
+kind = "struct"
+size = 8
+align = 8
+
+[[inject_type]]
+namespace = "rko.iomap"
+name = "mempool"
 kind = "struct"
 size = 8
 align = 8

@@ -28,6 +28,7 @@ windows_link::link!("kernel" "C" fn rust_helper___wake_up(wq_head : *mut super::
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn rust_helper_alloc_inode_sb(sb : *mut super::fs:: super_block, cache : *mut core::ffi::c_void, gfp : super::types:: gfp_t) -> *mut core::ffi::c_void);
+windows_link::link!("kernel" "C" fn rust_helper_bdev_nr_sectors(bdev : *mut core::ffi::c_void) -> u64);
 #[cfg(all(
     feature = "dcache",
     feature = "fs",
@@ -164,6 +165,30 @@ windows_link::link!("kernel" "C" fn rust_helper_put_net(net : *mut core::ffi::c_
 windows_link::link!("kernel" "C" fn rust_helper_put_task_struct(t : *mut super::fs:: task_struct));
 windows_link::link!("kernel" "C" fn rust_helper_rcu_read_lock());
 windows_link::link!("kernel" "C" fn rust_helper_rcu_read_unlock());
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types",
+    feature = "workqueue"
+))]
+windows_link::link!("kernel" "C" fn rust_helper_sb_bdev_mapping(sb : *mut super::fs:: super_block) -> *mut super::fs:: address_space);
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types",
+    feature = "workqueue"
+))]
+windows_link::link!("kernel" "C" fn rust_helper_sb_min_blocksize(sb : *mut super::fs:: super_block, size : i32) -> i32);
+#[cfg(all(
+    feature = "dcache",
+    feature = "fs",
+    feature = "sync",
+    feature = "types",
+    feature = "workqueue"
+))]
+windows_link::link!("kernel" "C" fn rust_helper_sb_set_blocksize(sb : *mut super::fs:: super_block, size : i32) -> i32);
 windows_link::link!("kernel" "C" fn rust_helper_schedule());
 #[cfg(all(
     feature = "dcache",

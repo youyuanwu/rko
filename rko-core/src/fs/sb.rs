@@ -2,11 +2,12 @@
 
 //! SuperBlock wrapper for filesystem implementations.
 
+use core::ffi::c_void;
 use core::marker::PhantomData;
 
 use crate::error::Error;
 use crate::types::{ARef, Opaque};
-use rko_sys::rko::{dcache as dcache_b, fs as bindings};
+use rko_sys::rko::{dcache as dcache_b, fs as bindings, helpers as bindings_h};
 
 use super::inode::{INode, NewINode};
 
@@ -14,6 +15,15 @@ type Result<T = ()> = core::result::Result<T, Error>;
 
 /// I_NEW flag — set on freshly-allocated inodes from `iget_locked`.
 const I_NEW: u32 = 1;
+
+/// How a filesystem's superblocks are keyed.
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub enum Type {
+    /// Memory-backed, anonymous mount (`get_tree_nodev`).
+    Independent,
+    /// Block-device-backed mount (`get_tree_bdev`).
+    BlockDev,
+}
 
 /// Wraps the kernel's `struct super_block`.
 ///
@@ -26,9 +36,9 @@ const I_NEW: u32 = 1;
 /// callbacks (fill_super through kill_sb). `s_fs_info` points to `T`
 /// data owned by the caller.
 #[repr(transparent)]
-pub struct SuperBlock<T: super::Type>(Opaque<bindings::super_block>, PhantomData<T>);
+pub struct SuperBlock<T: super::FileSystem>(Opaque<bindings::super_block>, PhantomData<T>);
 
-impl<T: super::Type> SuperBlock<T> {
+impl<T: super::FileSystem> SuperBlock<T> {
     /// Creates a reference from a raw `*mut super_block`.
     ///
     /// # Safety
@@ -60,13 +70,34 @@ impl<T: super::Type> SuperBlock<T> {
         }
     }
 
+    /// Sets the filesystem magic number.
+    pub fn set_magic(&self, magic: usize) {
+        unsafe { (*self.0.get()).s_magic = magic as u64 };
+    }
+
+    /// Returns the per-superblock data stored in `s_fs_info`.
+    ///
+    /// For `Data = ()`, this is a no-op. For `Data = KBox<T>`, the
+    /// foreign pointer is a `*const T`, so this returns `&T`.
+    ///
+    /// # Safety
+    ///
+    /// Only valid after `fill_super` has completed and before `kill_sb`.
+    pub unsafe fn data<D>(&self) -> &D {
+        let ptr = unsafe { (*self.0.get()).s_fs_info };
+        // SAFETY: s_fs_info was set from ForeignOwnable::into_foreign in
+        // fill_super_callback. For KBox<T>, into_foreign returns a *const T.
+        // The caller specifies the concrete inner type D.
+        unsafe { &*ptr.cast::<D>() }
+    }
+
     /// Stores a pointer to filesystem-private data in `s_fs_info`.
     ///
     /// # Safety
     ///
     /// The pointed-to data must live at least as long as the super_block
     /// and must not be aliased mutably.
-    pub unsafe fn set_fs_info(&self, ptr: *mut core::ffi::c_void) {
+    pub unsafe fn set_fs_info(&self, ptr: *mut c_void) {
         unsafe { (*self.0.get()).s_fs_info = ptr };
     }
 
@@ -111,13 +142,35 @@ impl<T: super::Type> SuperBlock<T> {
     pub fn set_root(&self, root_inode: ARef<INode<T>>) -> Result {
         // d_make_root consumes the inode reference (calls iput on failure).
         let inode_ptr = ARef::into_raw(root_inode);
-        let dentry =
-            unsafe { dcache_b::d_make_root(inode_ptr.as_ptr().cast::<core::ffi::c_void>()) };
+        let dentry = unsafe { dcache_b::d_make_root(inode_ptr.as_ptr().cast::<c_void>()) };
         if dentry.is_null() {
             return Err(Error::new(-12)); // ENOMEM
         }
         unsafe { (*self.0.get()).s_root = dentry };
         Ok(())
+    }
+
+    // --- Block device methods ---
+
+    /// Returns the raw block device pointer (`s_bdev`).
+    ///
+    /// Only valid for block-device-backed filesystems (`SUPER_TYPE = BlockDev`).
+    pub fn bdev_raw(&self) -> *mut c_void {
+        unsafe { (*self.0.get()).s_bdev }
+    }
+
+    /// Returns the total number of sectors on the block device.
+    ///
+    /// Only valid for block-device-backed filesystems.
+    pub fn sector_count(&self) -> u64 {
+        unsafe { bindings_h::rust_helper_bdev_nr_sectors(self.bdev_raw()) }
+    }
+
+    /// Sets the minimum block size. Returns the actual block size set.
+    ///
+    /// Only valid for block-device-backed filesystems.
+    pub fn min_blocksize(&self, size: i32) -> i32 {
+        unsafe { bindings_h::rust_helper_sb_min_blocksize(self.0.get(), size) }
     }
 }
 

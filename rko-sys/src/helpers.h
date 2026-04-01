@@ -140,4 +140,11 @@ void rust_helper_schedule(void);
 void rust_helper_init_waitqueue_func_entry(struct wait_queue_entry *wq_entry,
                                            wait_queue_func_t func);
 
+/* ── Block device helpers ──────────────────────────────────────────── */
+#include <linux/blkdev.h>
+unsigned long long rust_helper_bdev_nr_sectors(void *bdev);
+int rust_helper_sb_min_blocksize(struct super_block *sb, int size);
+int rust_helper_sb_set_blocksize(struct super_block *sb, int size);
+struct address_space *rust_helper_sb_bdev_mapping(struct super_block *sb);
+
 #endif /* _RKO_HELPERS_H */

@@ -367,3 +367,28 @@ void rust_helper_init_waitqueue_func_entry(struct wait_queue_entry *wq_entry,
 {
 init_waitqueue_func_entry(wq_entry, func);
 }
+
+// bdev_nr_sectors — inline in linux/blkdev.h
+unsigned long long rust_helper_bdev_nr_sectors(void *bdev)
+{
+	return bdev_nr_sectors((struct block_device *)bdev);
+}
+
+// sb_min_blocksize — inline in linux/buffer_head.h
+#include <linux/buffer_head.h>
+int rust_helper_sb_min_blocksize(struct super_block *sb, int size)
+{
+	return sb_min_blocksize(sb, size);
+}
+
+// sb_set_blocksize — inline in linux/buffer_head.h
+int rust_helper_sb_set_blocksize(struct super_block *sb, int size)
+{
+	return sb_set_blocksize(sb, size);
+}
+
+// sb_bdev_mapping — get the block device's address_space from superblock
+struct address_space *rust_helper_sb_bdev_mapping(struct super_block *sb)
+{
+	return sb->s_bdev->bd_mapping;
+}
