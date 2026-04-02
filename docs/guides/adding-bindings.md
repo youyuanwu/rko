@@ -24,7 +24,8 @@ The pipeline has three parts:
 | Use a kernel struct's fields | Add its header to traverse list |
 | Use a kernel struct as a pointer only | It's already `*mut c_void` or inject it |
 | Call an inline function or macro | Add a C helper |
-| Use a constant from a `#define` | Add header to traverse, or define in rko-core |
+| Use a constant from a `#define` | Wrap in `enum {}` in helpers.h, or add header to traverse |
+| Use an expression-based `#define` | Wrap in `enum { RKO_NAME = MACRO };` in helpers.h |
 | Use a constant from an anonymous enum | Define in rko-core (bnd-winmd can't extract) |
 
 ## Adding a new partition
@@ -339,7 +340,30 @@ enum { AF_INET = 2, ... };     // may be extracted if not anonymous
 #define PF_INET  AF_INET        // alias macro — invisible
 ```
 
-Define these directly in rko-core Rust code:
+**Preferred approach**: wrap macro constants in a named `enum` in
+`helpers.h`. bnd-winmd extracts enum values as `pub const`:
+
+```c
+// rko-sys/src/helpers.h
+#include <linux/kdev_t.h>
+enum {
+    RKO_MINORMASK = MINORMASK,   // expression-based #define
+    RKO_MINORBITS = MINORBITS,   // simple #define
+};
+```
+
+This generates:
+
+```rust
+// rko-sys/src/rko/helpers/mod.rs  (auto-generated)
+pub const RKO_MINORMASK: u32 = 1048575u32;
+pub const RKO_MINORBITS: u32 = 20u32;
+```
+
+Use the `RKO_` prefix to avoid name collisions with kernel symbols.
+
+**Fallback**: if the enum trick doesn't work (e.g., the constant is a
+non-integer type), define it directly in rko-core Rust code:
 
 ```rust
 // rko-core/src/net/mod.rs

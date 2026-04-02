@@ -196,7 +196,7 @@ unsafe extern "C" fn statfs_trampoline<T: FileSystem>(
         }
         Err(e) => {
             let errno = e.to_errno();
-            if errno == -38 {
+            if errno == crate::error::Error::ENOSYS.to_errno() {
                 // ENOSYS — default: fall back to simple_statfs.
                 unsafe { bindings::simple_statfs(dentry, buf) }
             } else {
@@ -206,7 +206,7 @@ unsafe extern "C" fn statfs_trampoline<T: FileSystem>(
     }
 }
 
-/// `inode_operations::lookup` → `T::lookup`.
+/// `inode_operations::lookup` → `<T as inode::Operations>::lookup`.
 ///
 /// The filesystem calls `Unhashed::splice_alias` to bind the dentry.
 /// This trampoline just returns the result to the VFS.
@@ -218,35 +218,27 @@ unsafe extern "C" fn lookup_trampoline<T: FileSystem>(
     let parent = unsafe { &*(dir as *const super::INode<T>) };
     let unhashed = unsafe { super::Unhashed::<T>::from_raw(dentry) };
 
-    match T::lookup(parent, unhashed, T::TABLES) {
-        Ok(Some(aref)) => {
-            // splice_alias returned an existing alias dentry.
-            crate::types::ARef::into_raw(aref).as_ptr() as *mut dcache_b::dentry
-        }
-        Ok(None) => {
-            // splice_alias returned NULL — the original dentry was
-            // used (bound to inode or left as negative).
-            core::ptr::null_mut()
-        }
-        Err(e) => unsafe { bindings_h::rust_helper_ERR_PTR(e.to_errno() as i64) }.cast(),
-    }
+    crate::error::to_err_ptr(
+        match <T as super::inode::Operations>::lookup(parent, unhashed) {
+            Ok(Some(aref)) => Ok(crate::types::ARef::into_raw(aref).as_ptr().cast()),
+            Ok(None) => Ok(core::ptr::null_mut()),
+            Err(e) => Err(e),
+        },
+    )
 }
 
-/// `file_operations::iterate_shared` → `T::read_dir`.
+/// `file_operations::iterate_shared` → `<T as file::Operations>::read_dir`.
 unsafe extern "C" fn iterate_shared_trampoline<T: FileSystem>(
     file_ptr: *mut bindings::file,
     ctx: *mut bindings::dir_context,
 ) -> i32 {
-    let file = unsafe { super::File::<T>::from_raw(file_ptr) };
-    let inode = unsafe { bindings_h::rust_helper_file_inode(file_ptr) };
-    let inode_ref = unsafe { &*(inode as *const super::INode<T>) };
-
-    let emitter = unsafe { super::DirEmitter::from_raw(ctx) };
-
-    match T::read_dir(file, inode_ref, emitter) {
-        Ok(()) => 0,
-        Err(e) => e.to_errno(),
-    }
+    crate::error::from_result(|| {
+        let file = unsafe { super::File::<T>::from_raw(file_ptr) };
+        let inode = unsafe { bindings_h::rust_helper_file_inode(file_ptr) };
+        let inode_ref = unsafe { &*(inode as *const super::INode<T>) };
+        let emitter = unsafe { super::DirEmitter::from_raw(ctx) };
+        <T as super::file::Operations>::read_dir(file, inode_ref, emitter)
+    })
 }
 
 /// `file_operations::read` → `generic_read_dir` (kernel-provided).
@@ -278,18 +270,20 @@ unsafe extern "C" fn read_folio_trampoline<T: FileSystem>(
     file: *mut bindings::file,
     folio: *mut c_void,
 ) -> i32 {
-    // For readahead (file is null), we can't easily get inode from folio
-    // since folio is opaque. Use file_inode when file is available.
+    // Create a PageCache-typed locked folio — the inode is accessible
+    // via folio.inode() through mapping->host.
+    let mut locked_folio =
+        unsafe { LockedFolio::<super::folio::PageCache<T>>::from_raw(folio.cast()) };
+
+    // Also pass the inode directly for backward compatibility.
     let inode = if !file.is_null() {
         unsafe { bindings_h::rust_helper_file_inode(file) }
     } else {
-        // Fallback: shouldn't happen for a simple ROFS, return error.
-        unsafe { bindings_h::rust_helper_folio_end_read(folio.cast(), false) };
-        return -5; // EIO
+        // Readahead path: get inode from the folio's mapping->host.
+        locked_folio.inode() as *const super::INode<T> as *mut bindings::inode
     };
 
     let inode_ref = unsafe { &*(inode as *const super::INode<T>) };
-    let mut locked_folio = unsafe { LockedFolio::from_raw(folio.cast()) };
 
     let ret = match T::read_folio(inode_ref, &mut locked_folio) {
         Ok(()) => 0,
@@ -391,13 +385,13 @@ unsafe extern "C" fn fill_super_callback<T: FileSystem>(
     sb: *mut bindings::super_block,
     _fc: *mut fc_bindings::fs_context,
 ) -> i32 {
-    let sb_ref = unsafe { SuperBlock::<T>::from_raw(sb) };
+    // fill_super gets a New-state superblock.
+    let sb_new = unsafe { SuperBlock::<T, super::sb::New>::from_raw_new(sb) };
 
     // Set s_op and s_xattr from the tables.
+    // SAFETY: TABLES is a &'static reference, safe to take pointers from.
     unsafe {
         (*sb).s_op = &T::TABLES.super_ops as *const _ as *mut _;
-        // Point the xattr_handlers array at the handler in the same Tables.
-        // This is safe because TABLES is a &'static reference.
         let handlers =
             &T::TABLES.xattr_handlers as *const _ as *mut [*const xattr_b::xattr_handler; 2];
         (*handlers)[0] = &T::TABLES.xattr_handler;
@@ -405,44 +399,49 @@ unsafe extern "C" fn fill_super_callback<T: FileSystem>(
         (*sb).s_xattr = handlers as *mut *mut c_void;
     }
 
-    let data = match T::fill_super(sb_ref, T::TABLES) {
+    let data = match T::fill_super(sb_new, T::TABLES) {
         Ok(d) => d,
         Err(e) => return e.to_errno(),
     };
 
-    // Store per-sb data in s_fs_info.
+    // Store per-sb data in s_fs_info — transitions to Ready state.
     let foreign = <T::Data as crate::types::ForeignOwnable>::into_foreign(data);
     unsafe { (*sb).s_fs_info = foreign as *mut c_void };
 
-    // Create root dentry.
-    let root = match T::init_root(sb_ref, T::TABLES) {
+    // init_root gets a Ready-state superblock.
+    let sb_ready = unsafe { SuperBlock::<T>::from_raw(sb) };
+    let root = match T::init_root(sb_ready, T::TABLES) {
         Ok(r) => r,
         Err(e) => return e.to_errno(),
     };
 
     unsafe { (*sb).s_root = root.as_ptr() };
-
-    // Prevent Root from dropping (kernel owns the dentry now).
+    // Prevent Root from dropping — kernel owns the dentry now.
     core::mem::forget(root);
 
     0
 }
 
-/// `kill_sb` callback — reclaims per-sb Data, then calls the
-/// appropriate kill_*_super based on `SUPER_TYPE`.
+/// `kill_sb` callback — evicts inodes first, then reclaims per-sb Data.
+///
+/// Order matters: `kill_*_super` → `generic_shutdown_super` evicts all
+/// inodes (calling `destroy_inode` for each). INode data may reference
+/// superblock data, so `s_fs_info` must remain valid until all inodes
+/// are destroyed.
 ///
 /// # Safety
 ///
 /// `sb` must be a valid pointer to a kernel `super_block`.
 pub unsafe extern "C" fn kill_sb_callback<T: FileSystem>(sb: *mut bindings::super_block) {
-    // Reclaim per-sb data before kill_*_super frees the sb.
+    // 1. Kill super first — evicts inodes, calls destroy_inode for each.
+    match T::SUPER_TYPE {
+        super::sb::Type::Independent => unsafe { bindings::kill_anon_super(sb) },
+        super::sb::Type::BlockDev => unsafe { bindings::kill_block_super(sb) },
+    }
+    // 2. Now safe to reclaim per-sb data (all inodes are gone).
     let fs_info = unsafe { (*sb).s_fs_info };
     if !fs_info.is_null() {
         unsafe { (*sb).s_fs_info = ptr::null_mut() };
         let _data = unsafe { <T::Data as crate::types::ForeignOwnable>::from_foreign(fs_info) };
-    }
-    match T::SUPER_TYPE {
-        super::sb::Type::Independent => unsafe { bindings::kill_anon_super(sb) },
-        super::sb::Type::BlockDev => unsafe { bindings::kill_block_super(sb) },
     }
 }

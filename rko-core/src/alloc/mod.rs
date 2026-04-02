@@ -56,6 +56,7 @@ bitflags::bitflags! {
         // Compound flags matching linux/gfp_types.h
         const __GFP_RECLAIM = Self::__GFP_DIRECT_RECLAIM.bits() | Self::__GFP_KSWAPD_RECLAIM.bits();
         const GFP_KERNEL    = Self::__GFP_RECLAIM.bits() | Self::__GFP_IO.bits() | Self::__GFP_FS.bits();
+        const GFP_NOFS      = Self::__GFP_RECLAIM.bits() | Self::__GFP_IO.bits();
         const GFP_ATOMIC    = Self::__GFP_HIGH.bits() | Self::__GFP_KSWAPD_RECLAIM.bits();
         const GFP_NOWAIT    = Self::__GFP_KSWAPD_RECLAIM.bits();
     }

@@ -37,7 +37,10 @@ impl fs::FileSystem for RofsTest {
     const NAME: &'static core::ffi::CStr = c"rofs_test";
     const TABLES: &'static fs::vtable::Tables<Self> = &TABLES;
 
-    fn fill_super(sb: &SuperBlock<Self>, _tables: &fs::vtable::Tables<Self>) -> Result<(), Error> {
+    fn fill_super(
+        sb: &SuperBlock<Self, fs::sb::New>,
+        _tables: &fs::vtable::Tables<Self>,
+    ) -> Result<(), Error> {
         sb.init_simple(&SuperParams {
             maxbytes: i64::MAX,
             blocksize_bits: 12,
@@ -74,13 +77,36 @@ impl fs::FileSystem for RofsTest {
         Root::try_new(root)
     }
 
+    fn read_folio(
+        inode: &INode<Self>,
+        folio: &mut LockedFolio<'_, fs::PageCache<Self>>,
+    ) -> Result<(), Error> {
+        let data = unsafe { inode.data() };
+        let content = data.content.unwrap_or(b"");
+
+        let folio_offset = folio.pos() as usize;
+        let folio_size = folio.size();
+
+        folio.zero_out(0, folio_size)?;
+
+        if folio_offset < content.len() {
+            let to_copy = core::cmp::min(content.len() - folio_offset, folio_size);
+            let src = &content[folio_offset..folio_offset + to_copy];
+            folio.write(0, src)?;
+        }
+
+        Ok(())
+    }
+}
+
+impl fs::inode::Operations for RofsTest {
+    type FileSystem = Self;
+
     fn lookup(
         parent: &INode<Self>,
         dentry: Unhashed<'_, Self>,
-        tables: &fs::vtable::Tables<Self>,
     ) -> Result<Option<ARef<DEntry<Self>>>, Error> {
         if parent.ino() != ROOT_INO {
-            // Negative dentry — no children in non-root dirs.
             return dentry.splice_alias(None);
         }
 
@@ -103,17 +129,19 @@ impl fs::FileSystem for RofsTest {
                             content: Some(HELLO_CONTENT),
                         },
                     },
-                    tables,
+                    &TABLES,
                 )?,
                 Err(cached) => cached,
             };
-            // Bind the inode to the dentry.
             dentry.splice_alias(Some(inode))
         } else {
-            // Negative dentry — file not found.
             dentry.splice_alias(None)
         }
     }
+}
+
+impl fs::file::Operations for RofsTest {
+    type FileSystem = Self;
 
     fn read_dir(
         _file: &fs::File<Self>,
@@ -121,10 +149,9 @@ impl fs::FileSystem for RofsTest {
         emitter: &mut DirEmitter,
     ) -> Result<(), Error> {
         if inode.ino() != ROOT_INO {
-            return Err(Error::new(-20)); // ENOTDIR
+            return Err(Error::ENOTDIR);
         }
 
-        // Emit ".", "..", then "hello.txt".
         let entries: &[(&[u8], u64, DirEntryType)] = &[
             (b".", ROOT_INO, DirEntryType::Dir),
             (b"..", ROOT_INO, DirEntryType::Dir),
@@ -140,29 +167,6 @@ impl fs::FileSystem for RofsTest {
                 return Ok(());
             }
         }
-        Ok(())
-    }
-
-    fn read_folio(inode: &INode<Self>, folio: &mut LockedFolio<'_>) -> Result<(), Error> {
-        // Get the file content.
-        let data = unsafe { inode.data() };
-        let content = data.content.unwrap_or(b"");
-
-        // Get folio offset and size.
-        let folio_offset = folio.pos() as usize;
-        let folio_size = folio.size();
-
-        // Zero out the folio first.
-        folio.zero_out(0, folio_size)?;
-
-        // Copy file content into the folio.
-        if folio_offset < content.len() {
-            let to_copy = core::cmp::min(content.len() - folio_offset, folio_size);
-            let src = &content[folio_offset..folio_offset + to_copy];
-            folio.write(0, src)?;
-        }
-
-        // folio_end_read is called by the trampoline — marks uptodate and unlocks.
         Ok(())
     }
 }

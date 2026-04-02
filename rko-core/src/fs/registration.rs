@@ -66,7 +66,7 @@ impl Registration {
                 )
             };
             if cache.is_null() {
-                return Err(Error::new(-12)); // ENOMEM
+                return Err(Error::ENOMEM);
             }
             cache
         } else {

@@ -105,7 +105,14 @@ impl<'a, T: super::FileSystem> Unhashed<'a, T> {
     /// Returns `None` if the result is a negative dentry.
     pub fn splice_alias(self, inode: Option<ARef<INode<T>>>) -> Result<Option<ARef<DEntry<T>>>> {
         let inode_ptr = match inode {
-            Some(aref) => ARef::into_raw(aref).as_ptr().cast(),
+            Some(aref) => {
+                // Safety: inode must belong to the same superblock as the dentry.
+                let dentry_sb = unsafe { (*self.as_ptr()).d_sb };
+                if dentry_sb != aref.super_block().cast() {
+                    return Err(Error::EINVAL);
+                }
+                ARef::into_raw(aref).as_ptr().cast()
+            }
             None => ptr::null_mut(),
         };
 
@@ -148,7 +155,7 @@ impl<T: super::FileSystem> Root<T> {
         let inode_ptr = ARef::into_raw(inode);
         let dentry = unsafe { bindings::d_make_root(inode_ptr.as_ptr().cast()) };
         if dentry.is_null() {
-            return Err(Error::new(-12)); // ENOMEM
+            return Err(Error::ENOMEM);
         }
         // SAFETY: d_make_root returns a dentry with refcount=1.
         let aref = unsafe { ARef::from_raw(ptr::NonNull::new_unchecked(dentry.cast())) };

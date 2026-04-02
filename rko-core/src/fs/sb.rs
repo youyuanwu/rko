@@ -25,33 +25,85 @@ pub enum Type {
     BlockDev,
 }
 
+/// Superblock state: being initialized in `fill_super`.
+///
+/// Only setup methods are available (`set_magic`, `min_blocksize`, etc.).
+/// `data()` and `iget()` are NOT available.
+pub enum New {}
+
+/// Superblock state: fully initialized (data stored).
+///
+/// All methods are available including `data()` and `iget()`.
+pub enum Ready {}
+
 /// Wraps the kernel's `struct super_block`.
 ///
-/// The kernel manages the super_block lifetime; this wrapper provides
-/// typed access and safe helpers.
+/// The type parameter `S` tracks the superblock state:
+/// - `New` — during `fill_super`, before data is stored
+/// - `Ready` — after `fill_super`, data is accessible
 ///
 /// # Invariants
 ///
 /// The inner pointer is valid for the entire duration of filesystem
-/// callbacks (fill_super through kill_sb). `s_fs_info` points to `T`
-/// data owned by the caller.
+/// callbacks (fill_super through kill_sb).
 #[repr(transparent)]
-pub struct SuperBlock<T: super::FileSystem>(Opaque<bindings::super_block>, PhantomData<T>);
+pub struct SuperBlock<T: super::FileSystem, S = Ready>(
+    Opaque<bindings::super_block>,
+    PhantomData<(T, S)>,
+);
 
-impl<T: super::FileSystem> SuperBlock<T> {
-    /// Creates a reference from a raw `*mut super_block`.
-    ///
-    /// # Safety
-    ///
-    /// `ptr` must be valid and the caller must ensure the lifetime of
-    /// the reference does not outlive the super_block.
-    pub unsafe fn from_raw<'a>(ptr: *mut bindings::super_block) -> &'a Self {
-        unsafe { &*ptr.cast() }
-    }
+// --- Methods available in ALL states ---
 
+impl<T: super::FileSystem, S> SuperBlock<T, S> {
     /// Returns the raw `*mut super_block`.
     pub fn as_ptr(&self) -> *mut bindings::super_block {
         self.0.get()
+    }
+
+    /// Sets the filesystem magic number.
+    pub fn set_magic(&self, magic: usize) {
+        unsafe { (*self.0.get()).s_magic = magic as u64 };
+    }
+
+    /// Returns whether the filesystem is mounted read-only.
+    pub fn rdonly(&self) -> bool {
+        unsafe { (*self.0.get()).s_flags & 1 != 0 }
+    }
+
+    /// Returns the raw block device pointer (`s_bdev`).
+    pub fn bdev_raw(&self) -> *mut c_void {
+        unsafe { (*self.0.get()).s_bdev }
+    }
+
+    /// Returns a typed block device reference.
+    ///
+    /// Only valid for block-device-backed filesystems (`SUPER_TYPE = BlockDev`).
+    pub fn bdev(&self) -> &BlockDevice {
+        // SAFETY: s_bdev is valid for block-device-backed filesystems.
+        unsafe { &*(self.bdev_raw() as *const BlockDevice) }
+    }
+
+    /// Returns the total number of sectors on the block device.
+    pub fn sector_count(&self) -> u64 {
+        unsafe { bindings_h::rust_helper_bdev_nr_sectors(self.bdev_raw()) }
+    }
+
+    /// Sets the minimum block size. Returns the actual block size set.
+    pub fn min_blocksize(&self, size: i32) -> i32 {
+        unsafe { bindings_h::rust_helper_sb_min_blocksize(self.0.get(), size) }
+    }
+}
+
+// --- Methods only available in New state (fill_super) ---
+
+impl<T: super::FileSystem> SuperBlock<T, New> {
+    /// Creates a `New` reference from a raw `*mut super_block`.
+    ///
+    /// # Safety
+    ///
+    /// `ptr` must be valid. Used by the vtable before `fill_super`.
+    pub(crate) unsafe fn from_raw_new<'a>(ptr: *mut bindings::super_block) -> &'a Self {
+        unsafe { &*ptr.cast() }
     }
 
     /// Sets basic super_block parameters for a simple filesystem.
@@ -60,7 +112,6 @@ impl<T: super::FileSystem> SuperBlock<T> {
     pub fn init_simple(&self, params: &SuperParams) {
         let sb = self.0.get();
         // SAFETY: We have exclusive access during fill_super.
-        // Note: s_op is set by the vtable before fill_super is called.
         unsafe {
             (*sb).s_maxbytes = params.maxbytes;
             (*sb).s_blocksize = 1u64 << params.blocksize_bits;
@@ -70,35 +121,42 @@ impl<T: super::FileSystem> SuperBlock<T> {
         }
     }
 
-    /// Sets the filesystem magic number.
-    pub fn set_magic(&self, magic: usize) {
-        unsafe { (*self.0.get()).s_magic = magic as u64 };
-    }
-
-    /// Returns the per-superblock data stored in `s_fs_info`.
-    ///
-    /// For `Data = ()`, this is a no-op. For `Data = KBox<T>`, the
-    /// foreign pointer is a `*const T`, so this returns `&T`.
-    ///
-    /// # Safety
-    ///
-    /// Only valid after `fill_super` has completed and before `kill_sb`.
-    pub unsafe fn data<D>(&self) -> &D {
-        let ptr = unsafe { (*self.0.get()).s_fs_info };
-        // SAFETY: s_fs_info was set from ForeignOwnable::into_foreign in
-        // fill_super_callback. For KBox<T>, into_foreign returns a *const T.
-        // The caller specifies the concrete inner type D.
-        unsafe { &*ptr.cast::<D>() }
-    }
-
     /// Stores a pointer to filesystem-private data in `s_fs_info`.
     ///
     /// # Safety
     ///
-    /// The pointed-to data must live at least as long as the super_block
-    /// and must not be aliased mutably.
+    /// The pointed-to data must live at least as long as the super_block.
     pub unsafe fn set_fs_info(&self, ptr: *mut c_void) {
         unsafe { (*self.0.get()).s_fs_info = ptr };
+    }
+}
+
+// --- Methods only available in Ready state ---
+
+impl<T: super::FileSystem> SuperBlock<T, Ready> {
+    /// Creates a `Ready` reference from a raw `*mut super_block`.
+    ///
+    /// # Safety
+    ///
+    /// `ptr` must be valid and `s_fs_info` must be initialized.
+    pub unsafe fn from_raw<'a>(ptr: *mut bindings::super_block) -> &'a Self {
+        unsafe { &*ptr.cast() }
+    }
+
+    /// Returns the per-superblock data stored in `s_fs_info`.
+    ///
+    /// For `Data = KBox<T>`, `into_foreign` returns a `*const T`,
+    /// so this returns `&T`.
+    ///
+    /// # Safety
+    ///
+    /// The caller must specify the correct concrete type `D`.
+    /// Only valid after `fill_super` has completed and before `kill_sb`.
+    pub unsafe fn data<D>(&self) -> &D {
+        let ptr = unsafe { (*self.0.get()).s_fs_info };
+        // SAFETY: s_fs_info was set from ForeignOwnable::into_foreign in
+        // fill_super_callback. The caller specifies the concrete inner type D.
+        unsafe { &*ptr.cast::<D>() }
     }
 
     /// Retrieves the filesystem-private data from `s_fs_info`.
@@ -119,7 +177,7 @@ impl<T: super::FileSystem> SuperBlock<T> {
     pub fn iget(&self, ino: u64) -> Result<core::result::Result<NewINode<T>, ARef<INode<T>>>> {
         let inode = unsafe { bindings::iget_locked(self.0.get(), ino) };
         if inode.is_null() {
-            return Err(Error::new(-12)); // ENOMEM
+            return Err(Error::ENOMEM);
         }
         let state = unsafe { (*inode).i_state.__state };
         if state & I_NEW != 0 {
@@ -128,8 +186,7 @@ impl<T: super::FileSystem> SuperBlock<T> {
             let aref = unsafe { ARef::from_raw(core::ptr::NonNull::new_unchecked(inode.cast())) };
             Ok(Ok(NewINode::new(aref)))
         } else {
-            // Already cached — bump refcount and return.
-            // iget_locked returns with an elevated refcount already.
+            // Already cached — iget_locked returns with elevated refcount.
             let aref = unsafe { ARef::from_raw(core::ptr::NonNull::new_unchecked(inode.cast())) };
             Ok(Err(aref))
         }
@@ -138,45 +195,15 @@ impl<T: super::FileSystem> SuperBlock<T> {
     /// Creates the root dentry for the superblock from a root inode.
     ///
     /// Consumes the inode reference. On success, sets `sb->s_root`.
-    /// On failure, returns ENOMEM.
     pub fn set_root(&self, root_inode: ARef<INode<T>>) -> Result {
         // d_make_root consumes the inode reference (calls iput on failure).
         let inode_ptr = ARef::into_raw(root_inode);
         let dentry = unsafe { dcache_b::d_make_root(inode_ptr.as_ptr().cast::<c_void>()) };
         if dentry.is_null() {
-            return Err(Error::new(-12)); // ENOMEM
+            return Err(Error::ENOMEM);
         }
         unsafe { (*self.0.get()).s_root = dentry };
         Ok(())
-    }
-
-    // --- Block device methods ---
-
-    /// Returns whether the filesystem is mounted read-only.
-    pub fn rdonly(&self) -> bool {
-        // SB_RDONLY = 1 (BIT(0))
-        unsafe { (*self.0.get()).s_flags & 1 != 0 }
-    }
-
-    /// Returns the raw block device pointer (`s_bdev`).
-    ///
-    /// Only valid for block-device-backed filesystems (`SUPER_TYPE = BlockDev`).
-    pub fn bdev_raw(&self) -> *mut c_void {
-        unsafe { (*self.0.get()).s_bdev }
-    }
-
-    /// Returns the total number of sectors on the block device.
-    ///
-    /// Only valid for block-device-backed filesystems.
-    pub fn sector_count(&self) -> u64 {
-        unsafe { bindings_h::rust_helper_bdev_nr_sectors(self.bdev_raw()) }
-    }
-
-    /// Sets the minimum block size. Returns the actual block size set.
-    ///
-    /// Only valid for block-device-backed filesystems.
-    pub fn min_blocksize(&self, size: i32) -> i32 {
-        unsafe { bindings_h::rust_helper_sb_min_blocksize(self.0.get(), size) }
     }
 }
 
@@ -190,4 +217,17 @@ pub struct SuperParams {
     pub magic: u64,
     /// Timestamp granularity in nanoseconds.
     pub time_gran: u32,
+}
+
+/// Typed wrapper for `struct block_device`.
+///
+/// Always used by reference — the kernel owns the device.
+#[repr(transparent)]
+pub struct BlockDevice(crate::types::Opaque<core::ffi::c_void>);
+
+impl BlockDevice {
+    /// Returns the raw `*mut c_void` pointer for FFI.
+    pub fn as_ptr(&self) -> *mut core::ffi::c_void {
+        self.0.get()
+    }
 }

@@ -16,8 +16,8 @@ use rko_core::alloc::{Flags, KBox, KVec};
 use rko_core::error::Error;
 use rko_core::fs::iomap;
 use rko_core::fs::{
-    self, DEntry, DirEmitter, DirEntryType, File, INode, LockedFolio, Mapper, Offset, Root,
-    SuperBlock, Unhashed,
+    self, DEntry, DirEmitter, DirEntryType, File, FileOps, INode, INodeOps, LockedFolio, Mapper,
+    Offset, Root, SuperBlock, Unhashed,
 };
 use rko_core::fs::{INodeParams, INodeType, Time};
 use rko_core::types::{ARef, FromBytes, LE};
@@ -53,13 +53,13 @@ impl Ext2Fs {
     fn iget(sb: &SuperBlock<Self>, ino: u32) -> Result<ARef<INode<Self>>> {
         let s = unsafe { sb.data::<Ext2Fs>() };
         if (ino != EXT2_ROOT_INO && ino < s.first_ino) || ino > s.inode_count {
-            return Err(Error::new(-2)); // ENOENT
+            return Err(Error::ENOENT);
         }
         let group = ((ino - 1) / s.inodes_per_group) as usize;
         let offset = (ino - 1) % s.inodes_per_group;
 
         if group >= s.groups.len() {
-            return Err(Error::new(-2)); // ENOENT
+            return Err(Error::ENOENT);
         }
 
         // Look up or allocate an inode.
@@ -75,11 +75,11 @@ impl Ext2Fs {
             .mapper
             .mapped_folio(inode_block * Offset::from(s.block_size))?;
         let idata = defs::INode::from_bytes(b.data(), off_in_block * s.inode_size as usize)
-            .ok_or(Error::new(-5))?; // EIO
+            .ok_or(Error::EIO)?; // EIO
         let mode = idata.mode.value();
 
         if idata.links_count.value() == 0 && (mode == 0 || idata.dtime.value() != 0) {
-            return Err(Error::new(-116)); // ESTALE
+            return Err(Error::ESTALE);
         }
 
         let s_ifmt = mode & 0xF000;
@@ -91,16 +91,16 @@ impl Ext2Fs {
                     size |= hi;
                 }
                 new_inode
-                    .set_aops(IOMAP_AOPS.as_aops_ptr())
-                    .set_fops(TABLES.reg_file_ops());
+                    .set_aops(IOMAP_AOPS.aops())
+                    .set_fops(FileOps::regular(&TABLES));
                 INodeType::Reg
             }
             0o040000 => {
                 // S_IFDIR
                 new_inode
-                    .set_iops(TABLES.dir_inode_ops())
-                    .set_fops(TABLES.dir_file_ops())
-                    .set_aops(IOMAP_AOPS.as_aops_ptr());
+                    .set_iops(INodeOps::dir(&TABLES))
+                    .set_fops(FileOps::dir(&TABLES))
+                    .set_aops(IOMAP_AOPS.aops());
                 INodeType::Dir
             }
             0o120000 => {
@@ -112,7 +112,7 @@ impl Ext2Fs {
                     let name_len = size as usize;
                     let data = b.data();
                     if start + name_len > data.len() || name_len == 0 {
-                        return Err(Error::new(-5)); // EIO
+                        return Err(Error::EIO);
                     }
                     // SAFETY: The byte slice lives in a page-cache folio
                     // backed by the block device and remains valid for the
@@ -126,7 +126,7 @@ impl Ext2Fs {
                     INodeType::Lnk(Some(target))
                 } else {
                     // Page-based symlink.
-                    new_inode.set_aops(IOMAP_AOPS.as_aops_ptr());
+                    new_inode.set_aops(IOMAP_AOPS.aops());
                     INodeType::Lnk(None)
                 }
             }
@@ -142,7 +142,7 @@ impl Ext2Fs {
                 let (major, minor) = decode_dev(&idata.block);
                 INodeType::Blk(major, minor)
             }
-            _ => return Err(Error::new(-2)), // ENOENT
+            _ => return Err(Error::ENOENT),
         };
 
         let t = Time { secs: 0, nsecs: 0 };
@@ -218,15 +218,13 @@ impl Ext2Fs {
         let idata = unsafe { inode.data() };
 
         let mut indices = [0u32; 4];
-        let boffsets =
-            Self::offsets(s.block_size, block as u64, &mut indices).ok_or(Error::new(-5))?;
+        let boffsets = Self::offsets(s.block_size, block as u64, &mut indices).ok_or(Error::EIO)?;
         let mut boffset = idata.data_blocks[boffsets[0] as usize];
         for i in &boffsets[1..] {
             let b = s
                 .mapper
                 .mapped_folio(boffset as Offset * Offset::from(s.block_size))?;
-            let table =
-                <LE<u32> as FromBytes>::from_bytes_to_slice(b.data()).ok_or(Error::new(-5))?;
+            let table = <LE<u32> as FromBytes>::from_bytes_to_slice(b.data()).ok_or(Error::EIO)?;
             boffset = table[*i as usize].value();
         }
         Ok(boffset.into())
@@ -242,13 +240,13 @@ impl Ext2Fs {
             };
 
             if g.block_bitmap.value() < first || g.block_bitmap.value() > last {
-                return Err(Error::new(-22)); // EINVAL
+                return Err(Error::EINVAL);
             }
             if g.inode_bitmap.value() < first || g.inode_bitmap.value() > last {
-                return Err(Error::new(-22));
+                return Err(Error::EINVAL);
             }
             if g.inode_table.value() < first || g.inode_table.value() > last {
-                return Err(Error::new(-22));
+                return Err(Error::EINVAL);
             }
         }
         Ok(())
@@ -263,11 +261,11 @@ impl fs::FileSystem for Ext2Fs {
     const SUPER_TYPE: fs::sb::Type = fs::sb::Type::BlockDev;
 
     fn fill_super(
-        sb: &SuperBlock<Self>,
+        sb: &SuperBlock<Self, fs::sb::New>,
         _tables: &fs::vtable::Tables<Self>,
     ) -> Result<rko_core::alloc::KBox<Ext2Fs>> {
         if sb.min_blocksize(4096) == 0 {
-            return Err(Error::new(-22)); // EINVAL
+            return Err(Error::EINVAL);
         }
 
         // Create mapper for reading from the block device.
@@ -275,32 +273,32 @@ impl fs::FileSystem for Ext2Fs {
 
         // Read and validate the superblock.
         let mapped = mapper.mapped_folio(SB_OFFSET)?;
-        let s = defs::Super::from_bytes(mapped.data(), 0).ok_or(Error::new(-5))?;
+        let s = defs::Super::from_bytes(mapped.data(), 0).ok_or(Error::EIO)?;
 
         if s.magic.value() != EXT2_SUPER_MAGIC {
-            return Err(Error::new(-22));
+            return Err(Error::EINVAL);
         }
 
         let mut has_file_type = false;
         if s.rev_level.value() >= EXT2_DYNAMIC_REV {
             let features = s.feature_incompat.value();
             if features & !EXT2_FEATURE_INCOMPAT_FILETYPE != 0 {
-                return Err(Error::new(-22));
+                return Err(Error::EINVAL);
             }
             has_file_type = features & EXT2_FEATURE_INCOMPAT_FILETYPE != 0;
 
             if !sb.rdonly() && s.feature_ro_compat.value() != 0 {
-                return Err(Error::new(-22));
+                return Err(Error::EINVAL);
             }
         }
 
         let block_size_bits = s.log_block_size.value();
         if block_size_bits > EXT2_MAX_BLOCK_LOG_SIZE - 10 {
-            return Err(Error::new(-22));
+            return Err(Error::EINVAL);
         }
         let block_size = 1024u32 << block_size_bits;
         if sb.min_blocksize(block_size as i32) != block_size as i32 {
-            return Err(Error::new(-6)); // ENXIO
+            return Err(Error::ENXIO);
         }
 
         let (inode_size, first_ino) = if s.rev_level.value() == EXT2_GOOD_OLD_REV {
@@ -309,7 +307,7 @@ impl fs::FileSystem for Ext2Fs {
             let sz = s.inode_size.value();
             if sz < EXT2_GOOD_OLD_INODE_SIZE || !sz.is_power_of_two() || u32::from(sz) > block_size
             {
-                return Err(Error::new(-22));
+                return Err(Error::EINVAL);
             }
             (sz, s.first_ino.value())
         };
@@ -318,7 +316,7 @@ impl fs::FileSystem for Ext2Fs {
         let inodes_per_group = s.inodes_per_group.value();
         let inodes_per_block = block_size / u32::from(inode_size);
         if inodes_per_group == 0 || inodes_per_block == 0 {
-            return Err(Error::new(-22));
+            return Err(Error::EINVAL);
         }
 
         let blocks_per_group = s.blocks_per_group.value();
@@ -328,15 +326,15 @@ impl fs::FileSystem for Ext2Fs {
 
         // Read group descriptors.
         let mut groups = KVec::new();
-        groups.reserve(group_count as usize, Flags::GFP_KERNEL)?;
+        groups.reserve(group_count as usize, Flags::GFP_NOFS)?;
 
         let mut remain = group_count;
         let mut gd_offset = (SB_OFFSET / Offset::from(block_size) + 1) * Offset::from(block_size);
         while remain > 0 {
             let b = mapper.mapped_folio(gd_offset)?;
-            let slice = Group::from_bytes_to_slice(b.data()).ok_or(Error::new(-5))?;
+            let slice = Group::from_bytes_to_slice(b.data()).ok_or(Error::EIO)?;
             for g in slice {
-                groups.push(*g, Flags::GFP_KERNEL)?;
+                groups.push(*g, Flags::GFP_NOFS)?;
                 remain -= 1;
                 if remain == 0 {
                     break;
@@ -370,10 +368,22 @@ impl fs::FileSystem for Ext2Fs {
         Root::try_new(inode)
     }
 
+    fn read_folio(
+        _inode: &INode<Self>,
+        _folio: &mut LockedFolio<'_, fs::PageCache<Self>>,
+    ) -> Result<()> {
+        // For ext2, read_folio is handled by iomap via the aops.
+        // This should not be called directly — it's a fallback.
+        Err(Error::EIO) // EIO
+    }
+}
+
+impl fs::inode::Operations for Ext2Fs {
+    type FileSystem = Self;
+
     fn lookup(
         parent: &INode<Self>,
         dentry: Unhashed<'_, Self>,
-        _tables: &fs::vtable::Tables<Self>,
     ) -> Result<Option<ARef<DEntry<Self>>>> {
         let sb = unsafe { SuperBlock::<Self>::from_raw(parent.super_block()) };
         let s = unsafe { sb.data::<Ext2Fs>() };
@@ -396,7 +406,7 @@ impl fs::FileSystem for Ext2Fs {
             let mut off = 0usize;
             let limit = data.len().saturating_sub(size_of::<DirEntry>());
             while off < limit {
-                let de = DirEntry::from_bytes(data, off).ok_or(Error::new(-5))?;
+                let de = DirEntry::from_bytes(data, off).ok_or(Error::EIO)?;
                 let rec_len = de.rec_len.value() as usize;
                 if rec_len == 0 || off + rec_len > data.len() {
                     break;
@@ -419,6 +429,10 @@ impl fs::FileSystem for Ext2Fs {
 
         dentry.splice_alias(None)
     }
+}
+
+impl fs::file::Operations for Ext2Fs {
+    type FileSystem = Self;
 
     fn read_dir(_file: &File<Self>, inode: &INode<Self>, emitter: &mut DirEmitter) -> Result<()> {
         let sb = unsafe { SuperBlock::<Self>::from_raw(inode.super_block()) };
@@ -449,7 +463,7 @@ impl fs::FileSystem for Ext2Fs {
 
             let limit = data.len().saturating_sub(size_of::<DirEntry>());
             while off < limit {
-                let de = DirEntry::from_bytes(data, off).ok_or(Error::new(-5))?;
+                let de = DirEntry::from_bytes(data, off).ok_or(Error::EIO)?;
                 let rec_len = de.rec_len.value() as usize;
                 if rec_len == 0 || off + rec_len > data.len() {
                     break;
@@ -486,12 +500,6 @@ impl fs::FileSystem for Ext2Fs {
             pos = block_start + Offset::from(s.block_size);
         }
         Ok(())
-    }
-
-    fn read_folio(_inode: &INode<Self>, _folio: &mut LockedFolio<'_>) -> Result<()> {
-        // For ext2, read_folio is handled by iomap via the aops.
-        // This should not be called directly — it's a fallback.
-        Err(Error::new(-5)) // EIO
     }
 }
 

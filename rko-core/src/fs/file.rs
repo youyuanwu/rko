@@ -92,3 +92,22 @@ pub mod flags {
     /// Don't follow symlinks.
     pub const O_NOFOLLOW: u32 = 0o400000;
 }
+
+/// File operation callbacks for directory files.
+///
+/// Implement this trait on your filesystem type to provide custom
+/// `read_dir` behavior.
+pub trait Operations: Sized + Send + Sync + 'static {
+    /// The filesystem type these operations belong to.
+    type FileSystem: super::FileSystem;
+
+    /// Iterate directory entries.
+    ///
+    /// Use `emitter.pos()` for the current position and `emitter.emit()`
+    /// for each entry. `emit` returns `false` when the buffer is full.
+    fn read_dir(
+        file: &File<Self::FileSystem>,
+        inode: &super::INode<Self::FileSystem>,
+        emitter: &mut super::DirEmitter,
+    ) -> super::Result<()>;
+}

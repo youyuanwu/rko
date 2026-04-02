@@ -2,284 +2,208 @@
 
 ## Goal
 
-Enable writing filesystems as out-of-tree Rust kernel modules, starting
-with read-only support and extending toward full read-write VFS
-coverage. Based on Wedson Almeida Filho's VFS patch series
-(`docs/patches/vfs.patch` — 50 commits) from the upstream
-Rust-for-Linux effort.
+Enable writing filesystems as out-of-tree Rust kernel modules. Read-only
+support is complete; read-write is future work. Based on Wedson Almeida
+Filho's VFS patch (`docs/patches/vfs.patch`, 50 commits).
 
 ## User API
 
-A filesystem author implements `fs::FileSystem` and uses `module_fs!`:
+A filesystem implements three traits and uses `module_fs!`:
 
 ```rust
 #![no_std]
 use rko_core::error::Error;
-use rko_core::fs::{self, DirEmitter, INode, LockedFolio, Root, SuperBlock, SuperParams};
+use rko_core::fs::{self, DirEmitter, INode, LockedFolio, Root, SuperBlock, Unhashed};
 use rko_core::types::ARef;
 
-struct MyRoFs;
-static TABLES: fs::vtable::Tables<MyRoFs> = fs::vtable::Tables::new();
+struct MyFs;
+static TABLES: fs::vtable::Tables<MyFs> = fs::vtable::Tables::new();
 
-impl fs::FileSystem for MyRoFs {
+impl fs::FileSystem for MyFs {
     type Data = ();
     type INodeData = ();
-    const NAME: &'static core::ffi::CStr = c"my_rofs";
+    const NAME: &'static core::ffi::CStr = c"myfs";
     const TABLES: &'static fs::vtable::Tables<Self> = &TABLES;
 
-    fn fill_super(sb: &SuperBlock<Self>, _t: &fs::vtable::Tables<Self>)
+    fn fill_super(sb: &SuperBlock<Self, fs::sb::New>, _t: &fs::vtable::Tables<Self>)
         -> Result<(), Error> { /* set block size, magic */ Ok(()) }
-    fn init_root(sb: &SuperBlock<Self>, t: &fs::vtable::Tables<Self>)
-        -> Result<Root<Self>, Error> { /* create root inode */ }
-    fn lookup(p: &INode<Self>, d: fs::Unhashed<'_, Self>, t: &fs::vtable::Tables<Self>)
-        -> Result<Option<ARef<fs::DEntry<Self>>>, Error> { /* find child */ }
-    fn read_dir(_f: &fs::File<Self>, i: &INode<Self>, e: &mut DirEmitter)
-        -> Result<(), Error> { /* emit entries */ }
-    fn read_folio(i: &INode<Self>, f: &mut LockedFolio<'_>)
-        -> Result<(), Error> { /* fill page */ }
+    fn init_root(sb: &SuperBlock<Self>, _t: &fs::vtable::Tables<Self>)
+        -> Result<Root<Self>, Error> { /* create root inode */ todo!() }
+    fn read_folio(_i: &INode<Self>, _f: &mut LockedFolio<'_, fs::PageCache<Self>>)
+        -> Result<(), Error> { /* fill page */ todo!() }
+}
+
+impl fs::inode::Operations for MyFs {
+    type FileSystem = Self;
+    fn lookup(p: &INode<Self>, d: Unhashed<'_, Self>)
+        -> Result<Option<ARef<fs::DEntry<Self>>>, Error> { /* find child */ todo!() }
+}
+
+impl fs::file::Operations for MyFs {
+    type FileSystem = Self;
+    fn read_dir(_f: &fs::File<Self>, _i: &INode<Self>, _e: &mut DirEmitter)
+        -> Result<(), Error> { /* emit entries */ todo!() }
 }
 
 rko_core::module_fs! {
-    type: MyRoFs, name: "my_rofs", license: "GPL",
-    author: "rko", description: "My read-only filesystem",
+    type: MyFs, name: "myfs", license: "GPL",
+    author: "rko", description: "My filesystem",
 }
 ```
 
-## `fs::FileSystem` Trait
+## Traits
 
 ```rust
-pub trait FileSystem: Sized + Send + Sync + 'static {
-    type Data: ForeignOwnable + Send + Sync;  // per-superblock data
-    type INodeData: Send + Sync;               // per-inode data
+// Core filesystem — superblock lifecycle, read_folio, xattr, statfs
+pub trait FileSystem: inode::Operations<FileSystem = Self>
+                    + file::Operations<FileSystem = Self>
+                    + Sized + Send + Sync + 'static
+{
+    type Data: ForeignOwnable + Send + Sync;
+    type INodeData: Send + Sync;
     const NAME: &'static CStr;
     const TABLES: &'static vtable::Tables<Self>;
-    const SUPER_TYPE: sb::Type = sb::Type::Independent; // or BlockDev
+    const SUPER_TYPE: sb::Type = sb::Type::Independent;
 
-    fn fill_super(sb: &SuperBlock<Self>, tables: &Tables<Self>) -> Result<Self::Data>;
-    fn init_root(sb: &SuperBlock<Self>, tables: &Tables<Self>) -> Result<Root<Self>>;
-    fn lookup(parent: &INode<Self>, dentry: Unhashed<'_, Self>, tables: &Tables<Self>)
-        -> Result<Option<ARef<DEntry<Self>>>>;
-    fn read_dir(file: &File<Self>, inode: &INode<Self>, emitter: &mut DirEmitter)
-        -> Result<()>;
-    fn read_folio(inode: &INode<Self>, folio: &mut LockedFolio<'_>) -> Result<()>;
-    fn read_xattr(d: &DEntry<Self>, i: &INode<Self>, name: &CStr, buf: &mut [u8])
-        -> Result<usize> { Err(EOPNOTSUPP) }
-    fn statfs(dentry: &DEntry<Self>) -> Result<Stat> { Err(ENOSYS) }
+    fn fill_super(sb: &SuperBlock<Self, sb::New>, t: &Tables<Self>) -> Result<Self::Data>;
+    fn init_root(sb: &SuperBlock<Self>, t: &Tables<Self>) -> Result<Root<Self>>;
+    fn read_folio(inode: &INode<Self>, folio: &mut LockedFolio<'_, PageCache<Self>>) -> Result;
+    fn read_xattr(...) -> Result<usize> { Err(Error::EOPNOTSUPP) }
+    fn statfs(...) -> Result<Stat> { Err(Error::ENOSYS) }
+}
+
+// Directory inode operations
+pub trait inode::Operations: Sized + Send + Sync + 'static {
+    type FileSystem: FileSystem;
+    fn lookup(parent: &INode<Self::FileSystem>, dentry: Unhashed<'_, Self::FileSystem>)
+        -> Result<Option<ARef<DEntry<Self::FileSystem>>>>;
+}
+
+// Directory file operations
+pub trait file::Operations: Sized + Send + Sync + 'static {
+    type FileSystem: FileSystem;
+    fn read_dir(file: &File<Self::FileSystem>, inode: &INode<Self::FileSystem>,
+                emitter: &mut DirEmitter) -> Result;
+}
+
+// Block I/O mapping
+pub trait iomap::Operations {
+    type FileSystem: FileSystem;
+    fn begin(inode: &INode<..>, pos, length, flags, map, srcmap) -> Result;
 }
 ```
 
-## Current Implementation
+## Module Inventory
 
-All Tier 1 (read-only path) features are implemented and tested.
+### `rko-core/src/fs/`
 
-### Core Abstractions (`rko-core/src/fs/`)
+| Module | Key Types |
+|--------|-----------|
+| `mod.rs` | `FileSystem` trait, `Stat`, `module_fs!`, `fs::mode` |
+| `sb.rs` | `SuperBlock<T, New/Ready>`, `BlockDevice`, `SuperParams` |
+| `inode.rs` | `INode<T>`, `NewINode<T>`, `INodeOps<T>`, `FileOps<T>`, `AopsOps<T>`, `inode::Operations` |
+| `dentry.rs` | `DEntry<T>`, `Unhashed<'a,T>`, `Root<T>` |
+| `file.rs` | `File<T>`, `file::flags`, `file::Operations` |
+| `dir.rs` | `DirEmitter`, `DirEntryType`, `Whence` (incl. Data/Hole) |
+| `folio.rs` | `Folio<S>`, `LockedFolio<'a, S>`, `PageCache<T>` |
+| `mapper.rs` | `Mapper`, `MappedFolio` |
+| `iomap.rs` | `iomap::Operations`, `Map<'a>`, `RoAops<T>` |
+| `vtable.rs` | `Tables<T>` with public ops accessors |
+| `registration.rs` | `Registration` |
 
-| Module | Types | Purpose |
-|--------|-------|---------|
-| `mod.rs` | `FileSystem` trait, `Stat`, `module_fs!` | Core trait + macro |
-| `sb.rs` | `SuperBlock<T>`, `SuperParams`, `sb::Type` | Superblock wrapper, block device methods |
-| `inode.rs` | `INode<T>`, `NewINode<T>`, `INodeParams`, `ReadSem` | Inode lifecycle, per-inode data, locking |
-| `dentry.rs` | `DEntry<T>`, `Unhashed<'a,T>`, `Root<T>` | Dentry type-states for lookup |
-| `file.rs` | `File<T>`, `file::flags` | Open file wrapper |
-| `dir.rs` | `DirEmitter`, `DirEntryType`, `Whence`, `Ino`, `Offset` | Directory emission |
-| `folio.rs` | `Folio`, `LockedFolio` | Page cache I/O |
-| `mapper.rs` | `Mapper`, `MappedFolio` | Block device page-cache reader |
-| `iomap.rs` | `iomap::Operations`, `Map<'a>`, `Type`, `map_flags` | Block I/O mapping |
-| `vtable.rs` | `Tables<T>`, trampolines | C callback wiring |
-| `registration.rs` | `Registration` | RAII register/unregister |
+### `rko-core/src/types/`
 
-### Foundation Types (`rko-core/src/types/`)
+| Module | Key Types |
+|--------|-----------|
+| `le.rs` | `LE<T>` (read+write), `FromBytes`, `derive_readable_from_bytes!` |
+| `foreign_ownable.rs` | `ForeignOwnable` |
+| `locked.rs` | `Locked<T,L>`, `Lockable` |
+| `aref.rs` | `ARef<T>`, `AlwaysRefCounted` |
 
-| Module | Types | Purpose |
-|--------|-------|---------|
-| `foreign_ownable.rs` | `ForeignOwnable` | Store Rust data in C `void*` fields |
-| `locked.rs` | `Locked<T,L>`, `Lockable` | Generic RAII lock guard |
-| `le.rs` | `LE<T>`, `FromBytes` | Little-endian on-disk type parsing |
-| `aref.rs` | `ARef<T>`, `AlwaysRefCounted` | Kernel ref-counted pointers |
+### `rko-core/src/error.rs`
 
-### Bindings (`rko-sys`)
+20 named error constants, `from_result()`, `from_err_ptr()`, `to_err_ptr()`.
 
-| Partition | Key Symbols |
-|-----------|-------------|
-| `rko.fs` | `super_block`, `inode`, `file`, `file_system_type`, vtable structs |
-| `rko.fs_context` | `fs_context`, `get_tree_nodev`, `get_tree_bdev` |
-| `rko.dcache` | `dentry`, `d_make_root`, `d_splice_alias`, `dget`, `dput` |
-| `rko.pagemap` | `folio`, `read_cache_folio` |
-| `rko.statfs` | `kstatfs` |
-| `rko.xattr` | `xattr_handler` |
-| `rko.iomap` | `iomap`, `iomap_ops`, `iomap_read_folio` |
-| `rko.helpers` | C wrappers for inline kernel functions |
+### `rko-core/src/alloc/`
+
+`KBox`, `KVec`, `Flags` (GFP_KERNEL, GFP_NOFS, GFP_ATOMIC).
 
 ### Samples
 
-| Sample | Description | QEMU Test |
-|--------|-------------|-----------|
-| `rofs_test` | In-memory read-only FS (1 file) | 5/5 pass |
-| `tarfs` | Block-device-backed read-only FS (indexed tar) | 3/3 pass |
+| Sample | Description | Tests |
+|--------|-------------|-------|
+| `rofs_test` | In-memory read-only FS (1 file) | 5/5 |
+| `tarfs` | Block-device tar FS (indexed tar format) | 3/3 |
+| `ext2` | Read-only ext2 (real disk, iomap, symlinks, special inodes) | 3/3 |
 
 ---
 
-## Roadmap — Gap Analysis vs VFS Patch
+## Future Work
 
-Full gap analysis against `docs/patches/vfs.patch` (50 commits). Items grouped
-by architectural impact, not patch order.
+### Safety hardening
 
-### Architecture — Operations Split & vtable Macro
+- **`Locked<&INode<T>, ReadSem>` in callbacks** — `lookup` and `read_dir`
+  receive bare `&INode` today. The VFS holds `i_rwsem` during these calls;
+  wrapping the inode in `Locked` proves this at compile time and gates
+  APIs like `for_each_page()` behind the lock.
+- **Typed `sb.data()`** — current `data<D>()` lets callers specify the
+  wrong type. Replace with `data() -> <T::Data as ForeignOwnable>::Borrowed<'_>`
+  using the generic associated type from `ForeignOwnable`.
+- **iomap `ro_aops` completeness** — wire `readahead`, `bmap`,
+  `invalidate_folio`, `release_folio` into `RoAops`. Missing `readahead`
+  forces synchronous single-page I/O on every fault.
 
-The patch splits callbacks into separate traits with a `#[vtable]` attribute
-macro that auto-generates `HAS_*` consts for conditional vtable population.
-This is the foundational change everything else builds on.
+### Proc macro infrastructure
 
-| Item | Patch | rko-core Status |
-|------|-------|-----------------|
-| `#[vtable]` attribute macro | macros/ | Missing — we hardwire all callbacks |
-| `file::Operations` trait (`seek`, `read`, `read_dir`) | fs/file.rs | On monolithic `FileSystem` |
-| `inode::Operations` trait (`lookup`, `get_link`) | fs/inode.rs | On monolithic `FileSystem` |
-| `address_space::Operations` trait (`read_folio`) | fs/address_space.rs | On monolithic `FileSystem` |
-| `Ops<T>` wrapper types (`file::Ops`, `inode::Ops`, `address_space::Ops`) | fs/*.rs | We use `Tables<T>` fields directly |
-| Conditional vtable population (`HAS_SEEK`, etc.) | patches 32–38 | We always wire all ops |
-| `file::Ops::generic_ro_file()` — returns `&generic_ro_fops` | fs/file.rs | We wire `generic_file_read_iter` manually |
-| Remove `const TABLES` requirement | — | Internalize vtable construction |
+- **`#[vtable]` macro** — auto-generate `HAS_*` consts for each trait
+  method, conditionally populate vtable entries. Requires a separate
+  `rko-macros` proc-macro crate.
+- **pin_init** — `InPlaceModule`, `try_pin_init!`, `#[pin_data(PinnedDrop)]`
+  for safer Registration lifecycle. Also requires proc-macro crate.
 
-### Architecture — SuperBlock Typestate
+### Read-only feature gaps (from VFS patch)
 
-| Item | Patch | rko-core Status |
-|------|-------|-----------------|
-| `SuperBlock<T, S>` with `S = New \| Ready` | fs/sb.rs | No typestate parameter |
-| `sb::New` restricts to `set_magic()`, `min_blocksize()` only | fs/sb.rs | All methods always available |
-| `sb::Ready` + `DataInited` guards `data()` access | fs/sb.rs | `data()` always available (unsafe) |
-| `SuperBlock::rdonly()` | fs/sb.rs | Missing |
+- **`get_link` callback** — custom symlink resolution via
+  `inode::Operations::get_link` returning `Either<CString, &CStr>`,
+  with `set_delayed_call` for deferred cleanup.
+- **`file::Operations::read`** + `user::Writer` — custom read path
+  with `copy_to_user`. Needed for pseudo-files or non-page-cache reads.
+- **Folio mapping** — `Folio::map()`/`map_owned()`, `MapGuard` RAII,
+  `test_uptodate()`, `test_highmem()`, `Lockable` impl.
+- **Range-bounded Mapper** — `split_at()`, `cap_len()`, mapper passed
+  to `fill_super` as `Option<inode::Mapper>`.
 
-### Architecture — Folio Type States
+### Read-write support (Tier 2 — beyond VFS patch scope)
 
-| Item | Patch | rko-core Status |
-|------|-------|-----------------|
-| `Folio<S>` with `S = Unspecified \| PageCache<T>` | folio.rs | No type parameter |
-| `Folio<PageCache<T>>::inode()` — get owning inode | folio.rs | We pass inode separately |
-| `Folio::map()` / `map_owned()` — RAII mapped page access | folio.rs | No read-mapping (only `write`/`zero_out`) |
-| `MapGuard<'a>` / `Mapped<'a, S>` — unmap-on-drop | folio.rs | Missing |
-| `Folio::test_highmem()`, `test_uptodate()` | folio.rs | Missing |
-| `Lockable` impl for `Folio<S>` | folio.rs | LockedFolio unlocks on drop but doesn't use Lockable |
+| Feature | Key operations |
+|---------|---------------|
+| File write | `write_iter`, `fsync` |
+| Inode mutation | `create`, `mkdir`, `unlink`, `rmdir`, `rename`, `symlink`, `link`, `setattr` |
+| Page writeback | `write_folio`, `writepages` |
+| Xattr write | `set_xattr`, `remove_xattr`, `list_xattr` |
+| Superblock sync | `sync_fs`, `write_super` |
 
-### Functional — Symlink Support
+### Nice-to-have
 
-| Item | Patch | rko-core Status |
-|------|-------|-----------------|
-| `inode::Type::Lnk(Option<CString>)` — inline symlink target | fs/inode.rs | `Lnk` has no data |
-| `i_link` population in inode init | fs/inode.rs | Missing |
-| `destroy_inode` frees `i_link` via `CString::from_foreign` | fs/inode.rs | Missing |
-| `inode::Ops::simple_symlink_inode()` | fs/inode.rs | Missing |
-| `inode::Ops::page_symlink_inode()` | fs/inode.rs | We wire `page_get_link` but no builder |
-| `inode_nohighmem()` call for page-based symlinks | fs/inode.rs | Missing |
-| `inode::Operations::get_link` callback | fs/inode.rs | Missing |
-| `set_delayed_call` C helper | helpers.c | Missing |
+- `address_space::Operations` as separate trait
+- `MemCache` safe wrapper (currently inline in `Registration`)
+- Remove `const TABLES` requirement
+- `CString` utilities, `UnspecifiedFS`, `PageOffset`
+- LE signed types (`i16`, `i32`, `i64`)
+- `memalloc_nofs(cb)` scoped allocation context
 
-### Functional — Special Inodes
+### Known limitations
 
-| Item | Patch | rko-core Status |
-|------|-------|-----------------|
-| `init_special_inode()` for Chr/Blk/Fifo/Sock | fs/inode.rs | We set mode bits only — **bug** |
-| `MKDEV()` C helper | helpers.c | Missing |
-
-### Functional — File Read & User I/O
-
-| Item | Patch | rko-core Status |
-|------|-------|-----------------|
-| `file::Operations::read` callback | fs/file.rs | Missing |
-| `user::Writer` — `copy_to_user` wrapper | user.rs | Missing |
-
-### Functional — Mapper Enhancements
-
-| Item | Patch | rko-core Status |
-|------|-------|-----------------|
-| Range-bounded `inode::Mapper` with `split_at()`, `cap_len()` | fs/inode.rs | Our Mapper is simpler |
-| Mapper passed to `fill_super` as `Option<inode::Mapper>` | fs.rs | fill_super doesn't receive mapper |
-| `INode::mapped_folio()` / `for_each_page()` | fs/inode.rs | On Mapper, not INode |
-
-### Infrastructure — pin_init
-
-| Item | Patch | rko-core Status |
-|------|-------|-----------------|
-| `InPlaceModule` trait — pinned module init | lib.rs | `Module::init()` returns `Self` on stack |
-| `Opaque::try_ffi_init` | types.rs | Not used |
-| `#[pin_data(PinnedDrop)]` / `try_pin_init!` macros | macros/ | Manual `Pin::new_unchecked` |
-
-### Infrastructure — Allocation & Types
-
-| Item | Patch | rko-core Status |
-|------|-------|-----------------|
-| `GFP_NOFS` allocation flag | alloc.rs | Hardcoded GFP_KERNEL bits |
-| `memalloc_nofs(cb)` — scoped nofs context | fs.rs | Missing |
-| `Vec::resize` / `resize_with` with alloc flags | vec_ext.rs | Missing |
-| `Box::new_uninit_slice` / `new_slice` with alloc flags | box_ext.rs | Missing |
-| `MemCache` — safe `kmem_cache` wrapper | mem_cache.rs | Inline cache mgmt in Registration |
-| `derive_readable_from_bytes!` macro | types.rs | Manual `unsafe impl FromBytes` |
-| `LE<T>`: `From<T>`, `to_le()`/`to_cpu()`, signed types | types.rs | Read-only, unsigned only |
-| `CString` backed by `Box<[u8]>`, `ForeignOwnable`, `TryFrom` impls | str.rs | No CString in rko-core |
-| `block::Device` typed wrapper with `inode()` | block.rs | Raw `*mut c_void` from `bdev_raw()` |
-| Named error codes (`ESTALE`, `EUCLEAN`, `ENODATA`, `EOPNOTSUPP`) | error.rs | We use `Error::new(-errno)` |
-
-### Infrastructure — Misc
-
-| Item | Patch | rko-core Status |
-|------|-------|-----------------|
-| `kernel::file::File` — general-purpose (non-FS) file with `fget()` | file.rs | Our `fs::File<T>` is FS-specific only |
-| `BadFdError` — niche error for null-pointer optimization | file.rs | Missing |
-| `UnspecifiedFS` — dummy FS type for unparameterized types | fs.rs | Always need concrete type param |
-| `PageOffset` type alias (`pgoff_t`) | fs.rs | Missing |
-| `from_result()` / `from_err_ptr()` error helpers | error.rs | Manual per-trampoline |
-| `Whence::Data`, `Whence::Hole` variants | fs/file.rs | Only Set/Current/End |
-| `file::generic_seek()` free function | fs/file.rs | Wired directly as trampoline |
-| `DirEntryType::TryFrom<u32>` and `From<inode::Type>` | fs/file.rs | Missing |
-| `container_of!` macro (safe `wrapping_sub` version) | lib.rs | Direct `offset_of!` + `sub()` |
-
-### Implementation Priority
-
-1. **`init_special_inode()`** — bug fix, Chr/Blk/Fifo/Sock inodes broken without it
-2. **Symlink support** — enables ext2-ro sample, core read-only functionality
-3. **ext2-ro sample** — validates abstractions against a real on-disk format
-4. **Operations split + `#[vtable]`** — enables per-inode-type callback selection
-5. **SuperBlock typestate** — compile-time safety for `data()` access
-6. **Folio type states** — enables `inode()` on page-cache folios
-7. **File read + user::Writer** — enables custom read implementations
-8. **pin_init infra** — safer Registration lifecycle
-9. **Alloc extensions** — GFP_NOFS, Vec::resize, MemCache
-
-### Next Milestone: ext2-ro
-
-Port the VFS patch's `fs/rust-ext2/` (551 lines ext2.rs + 178 lines defs.rs)
-as `samples/ext2/`. This is the highest-value next target because it:
-
-- Exercises iomap, Mapper, LE<T>/FromBytes against a **real on-disk format**
-  (block groups, inode tables, indirect blocks, directory hash)
-- Forces implementation of **symlink support** (#7.1–7.8) and
-  **`init_special_inode()`** (#8.1) — both are prerequisite gaps
-- Demonstrates rko can mount and read actual ext2 disk images
-
-**Prerequisites** (implement before or during ext2-ro):
-
-| Gap | Items |
-|-----|-------|
-| `init_special_inode()` + `MKDEV()` | #8.1, #8.2 |
-| Symlink: `Lnk(Option<CString>)`, `i_link`, `destroy_inode` cleanup | #7.1–7.3 |
-| Symlink: `page_symlink_inode()`, `inode_nohighmem()` | #7.5–7.6 |
-| `DirEntryType::From<inode::Type>` | #11.8 |
-
-**Deferred** (not needed for ext2-ro but valuable later):
-
-- ramfs, simplefs — require Tier 2 write support (large effort, no patch reference)
-- Operations split + `#[vtable]` — architectural improvement, not blocking ext2-ro
-
-### Sample Filesystems
-
-| Sample | Description | Status |
-|--------|-------------|--------|
-| rofs_test | In-memory read-only FS (5 QEMU tests) | Done |
-| tarfs | Block-device tar FS (3 QEMU tests) | Done |
-| ext2-ro | Read-only ext2 — real on-disk format (ported from VFS patch) | Next |
+- **Symlink targets are `&'static [u8]`** — heap-allocated symlink
+  targets (`CString`) not supported. `destroy_inode` does not free
+  `i_link`. Change `Lnk` to `Lnk(Option<CString>)` and add cleanup
+  if runtime-constructed targets are needed.
+- **No readahead** — iomap `ro_aops` only wires `read_folio`. Files
+  are read one page at a time until `readahead` callback is added.
 
 ## References
 
 - VFS patch: `docs/patches/vfs.patch` (Wedson Almeida Filho, 50 commits)
 - Kernel Rust VFS: `linux/rust/kernel/fs/` (upstream in-tree)
 - rko bindings guide: `docs/guides/adding-bindings.md`
+

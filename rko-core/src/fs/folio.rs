@@ -1,26 +1,40 @@
 // SPDX-License-Identifier: GPL-2.0
 
 //! Folio wrappers — groups of contiguous pages in the page cache.
+//!
+//! `Folio` and `LockedFolio` have an optional state parameter `S`:
+//! - `()` (default) — unspecified, no inode association
+//! - `PageCache<T>` — belongs to filesystem `T`'s page cache,
+//!   provides `inode()` accessor
 
+use core::marker::PhantomData;
 use core::ptr;
 
 use crate::error::Error;
 use crate::types::{AlwaysRefCounted, Opaque, ScopeGuard};
-use rko_sys::rko::{helpers as bindings_h, mm_types as mm_b, pagemap as bindings_pg};
+use rko_sys::rko::{fs as fs_b, helpers as bindings_h, mm_types as mm_b, pagemap as bindings_pg};
 
 type Result<T = ()> = core::result::Result<T, Error>;
 
+/// State marker: folio belongs to a page-cache for filesystem `T`.
+pub struct PageCache<T: super::FileSystem>(PhantomData<T>);
+
 /// Wraps the kernel's `struct folio`.
+///
+/// # Type parameter `S`
+///
+/// - `()` — unspecified folio (default)
+/// - `PageCache<T>` — page-cache folio with `inode()` access
 ///
 /// # Invariants
 ///
 /// Instances are always ref-counted: a call to `folio_get` ensures
 /// the allocation remains valid until the matching `folio_put`.
-#[repr(transparent)]
-pub struct Folio(Opaque<mm_b::folio>);
+#[repr(C)]
+pub struct Folio<S = ()>(Opaque<mm_b::folio>, PhantomData<S>);
 
 // SAFETY: The type invariants guarantee that `Folio` is always ref-counted.
-unsafe impl AlwaysRefCounted for Folio {
+unsafe impl<S> AlwaysRefCounted for Folio<S> {
     fn inc_ref(&self) {
         // SAFETY: The shared reference implies a non-zero refcount.
         unsafe { bindings_h::rust_helper_folio_get(self.0.get()) };
@@ -32,7 +46,7 @@ unsafe impl AlwaysRefCounted for Folio {
     }
 }
 
-impl Folio {
+impl<S> Folio<S> {
     /// Returns the byte position of this folio in its file.
     pub fn pos(&self) -> i64 {
         // SAFETY: Valid folio via shared reference.
@@ -52,10 +66,26 @@ impl Folio {
     }
 }
 
-/// A locked [`Folio`]. Automatically unlocked on drop.
-pub struct LockedFolio<'a>(&'a Folio);
+impl<T: super::FileSystem> Folio<PageCache<T>> {
+    /// Returns the inode that owns this page-cache folio.
+    pub fn inode(&self) -> &super::inode::INode<T> {
+        // SAFETY: For a page-cache folio, mapping->host is the owning inode.
+        // The mapping field is at folio.folio__anon_0.folio__anon_0__anon_0.mapping.
+        let folio_ptr = self.0.get();
+        let mapping = unsafe {
+            (*folio_ptr).folio__anon_0.folio__anon_0__anon_0.mapping as *mut fs_b::address_space
+        };
+        let host = unsafe { (*mapping).host };
+        unsafe { &*(host as *const super::inode::INode<T>) }
+    }
+}
 
-impl LockedFolio<'_> {
+/// A locked [`Folio`]. Automatically unlocked on drop.
+///
+/// State parameter `S` matches the underlying `Folio<S>`.
+pub struct LockedFolio<'a, S = ()>(&'a Folio<S>);
+
+impl<S> LockedFolio<'_, S> {
     /// Creates a new locked folio from a raw pointer.
     ///
     /// # Safety
@@ -83,9 +113,9 @@ impl LockedFolio<'_> {
         let mut remaining = len;
         let mut next_offset = offset;
 
-        let end = offset.checked_add(len).ok_or(Error::new(-34))?; // EDOM
+        let end = offset.checked_add(len).ok_or(Error::ERANGE)?;
         if end > self.size() {
-            return Err(Error::new(-22)); // EINVAL
+            return Err(Error::EINVAL);
         }
 
         while remaining > 0 {
@@ -127,14 +157,21 @@ impl LockedFolio<'_> {
     }
 }
 
-impl core::ops::Deref for LockedFolio<'_> {
-    type Target = Folio;
+impl<'a, T: super::FileSystem> LockedFolio<'a, PageCache<T>> {
+    /// Returns the inode that owns this page-cache folio.
+    pub fn inode(&self) -> &super::inode::INode<T> {
+        self.0.inode()
+    }
+}
+
+impl<S> core::ops::Deref for LockedFolio<'_, S> {
+    type Target = Folio<S>;
     fn deref(&self) -> &Self::Target {
         self.0
     }
 }
 
-impl Drop for LockedFolio<'_> {
+impl<S> Drop for LockedFolio<'_, S> {
     fn drop(&mut self) {
         // SAFETY: Valid folio; we hold the lock and release it here.
         unsafe { bindings_pg::folio_unlock(self.0.0.get()) }

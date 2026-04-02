@@ -7,7 +7,7 @@ pub mod dentry;
 pub mod dir;
 pub mod file;
 mod folio;
-mod inode;
+pub mod inode;
 pub mod iomap;
 pub mod mapper;
 mod registration;
@@ -17,19 +17,37 @@ pub mod vtable;
 pub use dentry::{DEntry, Root, Unhashed};
 pub use dir::{DirEmitter, DirEntryType, Ino, Offset, Whence};
 pub use file::File;
-pub use folio::{Folio, LockedFolio};
-pub use inode::{INode, INodeParams, INodeType, NewINode, ReadSem, Time};
+pub use folio::{Folio, LockedFolio, PageCache};
+pub use inode::{
+    AopsOps, FileOps, INode, INodeOps, INodeParams, INodeType, NewINode, ReadSem, Time,
+};
 pub use inode::{S_IFBLK, S_IFCHR, S_IFDIR, S_IFIFO, S_IFLNK, S_IFREG, S_IFSOCK};
 pub use mapper::{MappedFolio, Mapper};
 pub use registration::Registration;
-pub use sb::{SuperBlock, SuperParams};
+pub use sb::{BlockDevice, SuperBlock, SuperParams};
+
+/// File mode type constants from `<linux/stat.h>`.
+pub mod mode {
+    pub use super::inode::{S_IFBLK, S_IFCHR, S_IFDIR, S_IFIFO, S_IFLNK, S_IFREG, S_IFSOCK};
+
+    /// Mask for the file type bits.
+    pub const S_IFMT: u16 = 0o170000;
+}
 
 type Result<T = ()> = core::result::Result<T, Error>;
 
 /// Filesystem trait — implemented by each filesystem.
 ///
+/// Also implement [`inode::Operations`] for directory lookup and
+/// [`file::Operations`] for directory listing on the same type, with
+/// `type FileSystem = Self`.
+///
 /// See `docs/design/features/fs.md` for the full design.
-pub trait FileSystem: Sized + Send + Sync + 'static {
+pub trait FileSystem: Sized + Send + Sync + 'static
+where
+    Self: inode::Operations<FileSystem = Self>,
+    Self: file::Operations<FileSystem = Self>,
+{
     /// Per-superblock data. Stored in `s_fs_info` and automatically
     /// dropped when the superblock is destroyed.
     type Data: ForeignOwnable + Send + Sync;
@@ -49,10 +67,13 @@ pub trait FileSystem: Sized + Send + Sync + 'static {
 
     /// Initialize the superblock.
     ///
-    /// Called from `get_tree_nodev` → `fill_super`. Must set up the
-    /// superblock parameters (block size, magic, etc.) and return the
-    /// per-superblock data.
-    fn fill_super(sb: &SuperBlock<Self>, tables: &vtable::Tables<Self>) -> Result<Self::Data>;
+    /// Called from `get_tree_nodev` → `fill_super`. The superblock is
+    /// in `New` state — only setup methods are available. Return the
+    /// per-superblock data which will be stored in `s_fs_info`.
+    fn fill_super(
+        sb: &SuperBlock<Self, sb::New>,
+        tables: &vtable::Tables<Self>,
+    ) -> Result<Self::Data>;
 
     /// Create and return the root dentry.
     ///
@@ -60,36 +81,14 @@ pub trait FileSystem: Sized + Send + Sync + 'static {
     /// wrap it in `dentry::Root`, and return it.
     fn init_root(sb: &SuperBlock<Self>, tables: &vtable::Tables<Self>) -> Result<Root<Self>>;
 
-    /// Look up a child inode by name in a directory.
-    ///
-    /// `dentry` is the unhashed dentry being looked up. Use
-    /// `dentry.name()` to get the name. Bind the result by calling
-    /// `dentry.splice_alias(Some(inode))` or `dentry.splice_alias(None)`
-    /// for a negative dentry.
-    fn lookup(
-        parent: &INode<Self>,
-        dentry: Unhashed<'_, Self>,
-        tables: &vtable::Tables<Self>,
-    ) -> Result<Option<crate::types::ARef<DEntry<Self>>>>;
-
-    /// Iterate directory entries.
-    ///
-    /// `file` is the open directory file handle. Use `emitter.pos()`
-    /// for the current position and `emitter.emit()` for each entry.
-    /// `emit` returns `false` when the buffer is full — stop iterating.
-    fn read_dir(file: &File<Self>, inode: &INode<Self>, emitter: &mut DirEmitter) -> Result<()>;
-
     /// Read a folio (page) for a regular file.
     ///
     /// Fill the folio with file content at the folio's file offset.
-    fn read_folio(inode: &INode<Self>, folio: &mut LockedFolio<'_>) -> Result<()>;
+    /// The folio is a `PageCache` folio — use `folio.inode()` to get
+    /// the owning inode.
+    fn read_folio(inode: &INode<Self>, folio: &mut LockedFolio<'_, PageCache<Self>>) -> Result<()>;
 
     /// Read an extended attribute.
-    ///
-    /// Returns the number of bytes written to `outbuf`. If `outbuf`
-    /// is too small, returns the required size. The kernel passes both
-    /// the dentry and inode because they may differ during permission
-    /// checks.
     ///
     /// Default: returns `EOPNOTSUPP`.
     fn read_xattr(
@@ -98,7 +97,7 @@ pub trait FileSystem: Sized + Send + Sync + 'static {
         _name: &core::ffi::CStr,
         _outbuf: &mut [u8],
     ) -> Result<usize> {
-        Err(Error::new(-95)) // EOPNOTSUPP
+        Err(Error::EOPNOTSUPP)
     }
 
     /// Get filesystem statistics.
@@ -108,7 +107,7 @@ pub trait FileSystem: Sized + Send + Sync + 'static {
     ///
     /// Default: delegates to `simple_statfs`.
     fn statfs(_dentry: &DEntry<Self>) -> Result<Stat> {
-        Err(Error::new(-38)) // ENOSYS — triggers fallback to simple_statfs
+        Err(Error::ENOSYS) // triggers fallback to simple_statfs
     }
 }
 
@@ -170,7 +169,7 @@ macro_rules! module_fs {
                     $crate::fs::Registration::new_for::<$type>()?,
                     $crate::alloc::Flags::GFP_KERNEL,
                 )
-                .map_err(|_| $crate::error::Error::new(-12))?;
+                .map_err(|_| $crate::error::Error::ENOMEM)?;
                 // SAFETY: KBox is heap-allocated and stable.
                 unsafe { ::core::pin::Pin::new_unchecked(&mut *reg).register()? };
                 let pinned = $crate::alloc::KBox::into_pin(reg);

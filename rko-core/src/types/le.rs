@@ -14,9 +14,20 @@
 pub struct LE<T: LeInt>(T);
 
 impl<T: LeInt> LE<T> {
+    /// Create a little-endian value from a native value.
+    pub fn new(val: T) -> Self {
+        LE(T::to_le(val))
+    }
+
     /// Convert to native byte order.
     pub fn value(self) -> T {
         T::from_le(self.0)
+    }
+}
+
+impl<T: LeInt> From<T> for LE<T> {
+    fn from(val: T) -> Self {
+        Self::new(val)
     }
 }
 
@@ -24,10 +35,15 @@ impl<T: LeInt> LE<T> {
 pub trait LeInt: Copy {
     /// Convert from little-endian to native byte order.
     fn from_le(val: Self) -> Self;
+    /// Convert from native to little-endian byte order.
+    fn to_le(val: Self) -> Self;
 }
 
 impl LeInt for u8 {
     fn from_le(val: Self) -> Self {
+        val
+    }
+    fn to_le(val: Self) -> Self {
         val
     }
 }
@@ -36,17 +52,26 @@ impl LeInt for u16 {
     fn from_le(val: Self) -> Self {
         u16::from_le(val)
     }
+    fn to_le(val: Self) -> Self {
+        u16::to_le(val)
+    }
 }
 
 impl LeInt for u32 {
     fn from_le(val: Self) -> Self {
         u32::from_le(val)
     }
+    fn to_le(val: Self) -> Self {
+        u32::to_le(val)
+    }
 }
 
 impl LeInt for u64 {
     fn from_le(val: Self) -> Self {
         u64::from_le(val)
+    }
+    fn to_le(val: Self) -> Self {
+        u64::to_le(val)
     }
 }
 
@@ -99,3 +124,48 @@ pub unsafe trait FromBytes: Sized {
 // SAFETY: LE<T> is repr(transparent) over T which is a plain integer,
 // valid for any bit pattern.
 unsafe impl<T: LeInt> FromBytes for LE<T> {}
+
+/// Declares `#[repr(C)]` structs and auto-implements `FromBytes` for each.
+///
+/// All fields must be types that are valid for any bit pattern (integers,
+/// `LE<T>`, `[u8; N]`, etc.). The macro adds `#[repr(C)]` automatically.
+///
+/// # Example
+///
+/// ```ignore
+/// rko_core::derive_readable_from_bytes! {
+///     pub struct Header {
+///         pub magic: LE<u32>,
+///         pub size: LE<u64>,
+///     }
+///
+///     pub struct Entry {
+///         pub name_len: u8,
+///         pub flags: LE<u16>,
+///     }
+/// }
+/// ```
+#[macro_export]
+macro_rules! derive_readable_from_bytes {
+    (
+        $(
+            $(#[$meta:meta])*
+            $vis:vis struct $name:ident {
+                $($(#[$fmeta:meta])* $fvis:vis $fname:ident : $fty:ty),* $(,)?
+            }
+        )*
+    ) => {
+        $(
+            $(#[$meta])*
+            #[repr(C)]
+            $vis struct $name {
+                $($(#[$fmeta])* $fvis $fname : $fty),*
+            }
+
+            // SAFETY: All fields are assumed to be valid for any bit pattern.
+            // The caller is responsible for ensuring this (same contract as
+            // manual `unsafe impl FromBytes`).
+            unsafe impl $crate::types::FromBytes for $name {}
+        )*
+    };
+}

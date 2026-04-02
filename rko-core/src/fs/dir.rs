@@ -69,16 +69,28 @@ impl From<&super::inode::INodeType> for DirEntryType {
     }
 }
 
+impl TryFrom<u32> for DirEntryType {
+    type Error = crate::error::Error;
+
+    fn try_from(v: u32) -> Result<Self, Self::Error> {
+        Self::from_u32(v).ok_or(crate::error::Error::EDOM)
+    }
+}
+
 /// Seek origin.
 #[repr(i32)]
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum Whence {
     /// Seek from beginning of file.
-    Start = 0, // SEEK_SET
+    Start = 0,
     /// Seek from current position.
-    Current = 1, // SEEK_CUR
+    Current = 1,
     /// Seek from end of file.
-    End = 2, // SEEK_END
+    End = 2,
+    /// Seek to next data region (sparse files).
+    Data = 3,
+    /// Seek to next hole (sparse files).
+    Hole = 4,
 }
 
 impl Whence {
@@ -88,6 +100,8 @@ impl Whence {
             0 => Some(Self::Start),
             1 => Some(Self::Current),
             2 => Some(Self::End),
+            3 => Some(Self::Data),
+            4 => Some(Self::Hole),
             _ => None,
         }
     }

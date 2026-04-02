@@ -63,7 +63,7 @@ impl TarFs {
 
         // Validate inode number.
         if ino == 0 || ino > data.inode_count {
-            return Err(Error::new(-2)); // ENOENT
+            return Err(Error::ENOENT);
         }
 
         // Check cache first.
@@ -75,7 +75,7 @@ impl TarFs {
                 let mapped = data.mapper.mapped_folio(offset as i64)?;
                 let idata = match Inode::from_bytes(mapped.data(), 0) {
                     Some(i) => i,
-                    None => return Err(Error::new(-5)), // EIO
+                    None => return Err(Error::EIO),
                 };
 
                 let mode = idata.mode.value();
@@ -92,7 +92,7 @@ impl TarFs {
                     fs::S_IFIFO => INodeType::Fifo,
                     fs::S_IFCHR => INodeType::Chr((doffset >> 32) as u32, doffset as u32),
                     fs::S_IFBLK => INodeType::Blk((doffset >> 32) as u32, doffset as u32),
-                    _ => return Err(Error::new(-2)), // ENOENT
+                    _ => return Err(Error::ENOENT),
                 };
 
                 new_inode.init(
@@ -144,16 +144,16 @@ impl fs::FileSystem for TarFs {
     const SUPER_TYPE: fs::sb::Type = fs::sb::Type::BlockDev;
 
     fn fill_super(
-        sb: &SuperBlock<Self>,
+        sb: &SuperBlock<Self, fs::sb::New>,
         _tables: &fs::vtable::Tables<Self>,
     ) -> Result<KBox<TarFsData>, Error> {
         let scount = sb.sector_count();
         if scount < (TARFS_BSIZE / SECTOR_SIZE) {
-            return Err(Error::new(-6)); // ENXIO
+            return Err(Error::ENXIO);
         }
 
         if sb.min_blocksize(SECTOR_SIZE as i32) != SECTOR_SIZE as i32 {
-            return Err(Error::new(-5)); // EIO
+            return Err(Error::EIO);
         }
 
         // Create the mapper for reading from the block device.
@@ -164,7 +164,7 @@ impl fs::FileSystem for TarFs {
         let mapped = mapper.mapped_folio(header_offset as i64)?;
         let hdr = match Header::from_bytes(mapped.data(), 0) {
             Some(h) => h,
-            None => return Err(Error::new(-5)), // EIO
+            None => return Err(Error::EIO),
         };
 
         let inode_table_offset = hdr.inode_table_offset.value();
@@ -183,19 +183,19 @@ impl fs::FileSystem for TarFs {
             },
             Flags::GFP_KERNEL,
         )
-        .map_err(|_| Error::new(-12))?;
+        .map_err(|_| Error::ENOMEM)?;
 
         // Validate inode table bounds.
         if inode_table_offset >= data_size {
-            return Err(Error::new(-7)); // E2BIG
+            return Err(Error::E2BIG);
         }
 
         let table_end = inode_count
             .checked_mul(size_of::<Inode>() as u64)
             .and_then(|s| s.checked_add(inode_table_offset))
-            .ok_or(Error::new(-34))?; // ERANGE
+            .ok_or(Error::ERANGE)?; // ERANGE
         if table_end > data_size {
-            return Err(Error::new(-7)); // E2BIG
+            return Err(Error::E2BIG);
         }
 
         sb.set_magic(TARFS_MAGIC as usize);
@@ -212,124 +212,10 @@ impl fs::FileSystem for TarFs {
         Root::try_new(inode)
     }
 
-    fn lookup(
-        parent: &INode<Self>,
-        dentry: Unhashed<'_, Self>,
-        _tables: &fs::vtable::Tables<Self>,
-    ) -> Result<Option<ARef<DEntry<Self>>>, Error> {
-        let sb = unsafe { SuperBlock::from_raw(parent.super_block()) };
-        let data: &TarFsData = unsafe { sb.data() };
-        let name = dentry.name();
-        let parent_data = unsafe { parent.data() };
-
-        // Iterate directory entries to find the name.
-        let found = data.mapper.for_each_page(
-            parent_data.offset as i64,
-            parent.size(),
-            |page_data: &[u8]| {
-                let entries = match DirEntry::from_bytes_to_slice(page_data) {
-                    Some(e) => e,
-                    None => return Err(Error::new(-5)), // EIO
-                };
-                for e in entries {
-                    if Self::name_eq(data, name, e.name_offset.value())? {
-                        let inode = Self::iget(sb, e.ino.value())?;
-                        return Ok(Some(inode));
-                    }
-                }
-                Ok(None)
-            },
-        )?;
-
-        dentry.splice_alias(found)
-    }
-
-    fn read_dir(
-        _file: &fs::File<Self>,
+    fn read_folio(
         inode: &INode<Self>,
-        emitter: &mut DirEmitter,
+        folio: &mut LockedFolio<'_, fs::PageCache<Self>>,
     ) -> Result<(), Error> {
-        let sb: &SuperBlock<Self> = unsafe { SuperBlock::from_raw(inode.super_block()) };
-        let data: &TarFsData = unsafe { sb.data() };
-        let inode_data = unsafe { inode.data() };
-        let pos = emitter.pos();
-
-        if pos < 0 || pos % size_of::<DirEntry>() as i64 != 0 {
-            return Err(Error::new(-2)); // ENOENT
-        }
-
-        if pos >= inode.size() {
-            return Ok(());
-        }
-
-        // Validate data bounds.
-        let size_u = inode.size() as u64;
-        if inode_data
-            .offset
-            .checked_add(size_u)
-            .is_none_or(|end| end > data.data_size)
-        {
-            return Err(Error::new(-5)); // EIO
-        }
-
-        data.mapper.for_each_page(
-            inode_data.offset as i64 + pos,
-            inode.size() - pos,
-            |page_data: &[u8]| {
-                let entries = match DirEntry::from_bytes_to_slice(page_data) {
-                    Some(e) => e,
-                    None => return Err(Error::new(-5)),
-                };
-                for e in entries {
-                    let name_len = e.name_len.value() as usize;
-
-                    // Read the name. For simplicity, use a fixed buffer.
-                    let mut name_buf = [0u8; 256];
-                    if name_len > name_buf.len() {
-                        return Err(Error::new(-36)); // ENAMETOOLONG
-                    }
-                    // Read name from disk.
-                    let mut name_off = 0usize;
-                    data.mapper.for_each_page(
-                        e.name_offset.value() as i64,
-                        name_len as i64,
-                        |name_data: &[u8]| {
-                            let copy_len = core::cmp::min(name_data.len(), name_len - name_off);
-                            name_buf[name_off..name_off + copy_len]
-                                .copy_from_slice(&name_data[..copy_len]);
-                            name_off += copy_len;
-                            Ok(None::<()>)
-                        },
-                    )?;
-
-                    let dt = match e.etype {
-                        4 => DirEntryType::Dir,
-                        8 => DirEntryType::Reg,
-                        10 => DirEntryType::Lnk,
-                        2 => DirEntryType::Chr,
-                        6 => DirEntryType::Blk,
-                        1 => DirEntryType::Fifo,
-                        12 => DirEntryType::Sock,
-                        _ => DirEntryType::Unknown,
-                    };
-
-                    if !emitter.emit(
-                        size_of::<DirEntry>() as i64,
-                        &name_buf[..name_len],
-                        e.ino.value(),
-                        dt,
-                    ) {
-                        return Ok(Some(()));
-                    }
-                }
-                Ok(None)
-            },
-        )?;
-
-        Ok(())
-    }
-
-    fn read_folio(inode: &INode<Self>, folio: &mut LockedFolio<'_>) -> Result<(), Error> {
         // Read file content from the block device.
         let sb: &SuperBlock<Self> = unsafe { SuperBlock::from_raw(inode.super_block()) };
         let data: &TarFsData = unsafe { sb.data() };
@@ -373,10 +259,10 @@ impl fs::FileSystem for TarFs {
 
         // Only support the overlay opaque xattr.
         if inode_data.flags & inode_flags::OPAQUE == 0 {
-            return Err(Error::new(-61)); // ENODATA
+            return Err(Error::ENODATA);
         }
         if name.to_bytes() != b"trusted.overlay.opaque" {
-            return Err(Error::new(-61)); // ENODATA
+            return Err(Error::ENODATA);
         }
 
         if !outbuf.is_empty() {
@@ -395,6 +281,130 @@ impl fs::FileSystem for TarFs {
             blocks: data.inode_table_offset / TARFS_BSIZE,
             files: data.inode_count,
         })
+    }
+}
+
+impl fs::inode::Operations for TarFs {
+    type FileSystem = Self;
+
+    fn lookup(
+        parent: &INode<Self>,
+        dentry: Unhashed<'_, Self>,
+    ) -> Result<Option<ARef<DEntry<Self>>>, Error> {
+        let sb = unsafe { SuperBlock::from_raw(parent.super_block()) };
+        let data: &TarFsData = unsafe { sb.data() };
+        let name = dentry.name();
+        let parent_data = unsafe { parent.data() };
+
+        // Iterate directory entries to find the name.
+        let found = data.mapper.for_each_page(
+            parent_data.offset as i64,
+            parent.size(),
+            |page_data: &[u8]| {
+                let entries = match DirEntry::from_bytes_to_slice(page_data) {
+                    Some(e) => e,
+                    None => return Err(Error::EIO),
+                };
+                for e in entries {
+                    if Self::name_eq(data, name, e.name_offset.value())? {
+                        let inode = Self::iget(sb, e.ino.value())?;
+                        return Ok(Some(inode));
+                    }
+                }
+                Ok(None)
+            },
+        )?;
+
+        dentry.splice_alias(found)
+    }
+}
+
+impl fs::file::Operations for TarFs {
+    type FileSystem = Self;
+
+    fn read_dir(
+        _file: &fs::File<Self>,
+        inode: &INode<Self>,
+        emitter: &mut DirEmitter,
+    ) -> Result<(), Error> {
+        let sb: &SuperBlock<Self> = unsafe { SuperBlock::from_raw(inode.super_block()) };
+        let data: &TarFsData = unsafe { sb.data() };
+        let inode_data = unsafe { inode.data() };
+        let pos = emitter.pos();
+
+        if pos < 0 || pos % size_of::<DirEntry>() as i64 != 0 {
+            return Err(Error::ENOENT);
+        }
+
+        if pos >= inode.size() {
+            return Ok(());
+        }
+
+        // Validate data bounds.
+        let size_u = inode.size() as u64;
+        if inode_data
+            .offset
+            .checked_add(size_u)
+            .is_none_or(|end| end > data.data_size)
+        {
+            return Err(Error::EIO);
+        }
+
+        data.mapper.for_each_page(
+            inode_data.offset as i64 + pos,
+            inode.size() - pos,
+            |page_data: &[u8]| {
+                let entries = match DirEntry::from_bytes_to_slice(page_data) {
+                    Some(e) => e,
+                    None => return Err(Error::EIO),
+                };
+                for e in entries {
+                    let name_len = e.name_len.value() as usize;
+
+                    // Read the name. For simplicity, use a fixed buffer.
+                    let mut name_buf = [0u8; 256];
+                    if name_len > name_buf.len() {
+                        return Err(Error::ENAMETOOLONG);
+                    }
+                    // Read name from disk.
+                    let mut name_off = 0usize;
+                    data.mapper.for_each_page(
+                        e.name_offset.value() as i64,
+                        name_len as i64,
+                        |name_data: &[u8]| {
+                            let copy_len = core::cmp::min(name_data.len(), name_len - name_off);
+                            name_buf[name_off..name_off + copy_len]
+                                .copy_from_slice(&name_data[..copy_len]);
+                            name_off += copy_len;
+                            Ok(None::<()>)
+                        },
+                    )?;
+
+                    let dt = match e.etype {
+                        4 => DirEntryType::Dir,
+                        8 => DirEntryType::Reg,
+                        10 => DirEntryType::Lnk,
+                        2 => DirEntryType::Chr,
+                        6 => DirEntryType::Blk,
+                        1 => DirEntryType::Fifo,
+                        12 => DirEntryType::Sock,
+                        _ => DirEntryType::Unknown,
+                    };
+
+                    if !emitter.emit(
+                        size_of::<DirEntry>() as i64,
+                        &name_buf[..name_len],
+                        e.ino.value(),
+                        dt,
+                    ) {
+                        return Ok(Some(()));
+                    }
+                }
+                Ok(None)
+            },
+        )?;
+
+        Ok(())
     }
 }
 

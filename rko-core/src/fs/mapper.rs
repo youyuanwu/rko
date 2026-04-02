@@ -58,8 +58,8 @@ unsafe impl Send for Mapper {}
 unsafe impl Sync for Mapper {}
 
 impl Mapper {
-    /// Create a Mapper from a typed SuperBlock reference.
-    pub fn new<T: super::FileSystem>(sb: &super::sb::SuperBlock<T>) -> Self {
+    /// Create a Mapper from a typed SuperBlock reference (any state).
+    pub fn new<T: super::FileSystem, S>(sb: &super::sb::SuperBlock<T, S>) -> Self {
         let mapping = unsafe { bindings_h::rust_helper_sb_bdev_mapping(sb.as_ptr()) };
         Self { mapping }
     }
@@ -83,7 +83,7 @@ impl Mapper {
     /// within the page and extends to the end of the page.
     pub fn mapped_folio(&self, offset: Offset) -> Result<MappedFolio> {
         if offset < 0 {
-            return Err(Error::new(-22)); // EINVAL
+            return Err(Error::EINVAL);
         }
         let offset_u = offset as u64;
         let page_index = offset_u / PAGE_SIZE as u64;
@@ -108,7 +108,7 @@ impl Mapper {
         }
 
         if folio.is_null() {
-            return Err(Error::new(-5)); // EIO
+            return Err(Error::EIO);
         }
 
         let data = unsafe { bindings_h::rust_helper_kmap_local_folio(folio, 0) };

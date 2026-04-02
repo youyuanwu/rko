@@ -88,8 +88,17 @@ impl<'a> Map<'a> {
     }
 
     /// Set the block device from a `SuperBlock`.
-    pub fn set_bdev<T: super::FileSystem>(&mut self, sb: &super::sb::SuperBlock<T>) -> &mut Self {
+    pub fn set_bdev<T: super::FileSystem, S>(
+        &mut self,
+        sb: &super::sb::SuperBlock<T, S>,
+    ) -> &mut Self {
         self.0.bdev = sb.bdev_raw().cast();
+        self
+    }
+
+    /// Set the block device from a `BlockDevice` reference.
+    pub fn set_block_device(&mut self, dev: &super::sb::BlockDevice) -> &mut Self {
+        self.0.bdev = dev.as_ptr().cast();
         self
     }
 }
@@ -138,14 +147,12 @@ unsafe extern "C" fn iomap_begin_trampoline<T: Operations>(
     map: *mut bindings::iomap,
     srcmap: *mut bindings::iomap,
 ) -> i32 {
-    let inode_ref = unsafe { &*(inode as *const INode<T::FileSystem>) };
-    let map_ref = unsafe { &mut *(map as *mut Map<'_>) };
-    let srcmap_ref = unsafe { &mut *(srcmap as *mut Map<'_>) };
-
-    match T::begin(inode_ref, pos, length, flags, map_ref, srcmap_ref) {
-        Ok(()) => 0,
-        Err(e) => e.to_errno(),
-    }
+    crate::error::from_result(|| {
+        let inode_ref = unsafe { &*(inode as *const INode<T::FileSystem>) };
+        let map_ref = unsafe { &mut *(map as *mut Map<'_>) };
+        let srcmap_ref = unsafe { &mut *(srcmap as *mut Map<'_>) };
+        T::begin(inode_ref, pos, length, flags, map_ref, srcmap_ref)
+    })
 }
 
 /// C trampoline for `iomap_ops.iomap_end`.
@@ -157,13 +164,11 @@ unsafe extern "C" fn iomap_end_trampoline<T: Operations>(
     flags: u32,
     map: *mut bindings::iomap,
 ) -> i32 {
-    let inode_ref = unsafe { &*(inode as *const INode<T::FileSystem>) };
-    let map_ref = unsafe { &*(map as *const Map<'_>) };
-
-    match T::end(inode_ref, pos, length, written, flags, map_ref) {
-        Ok(()) => 0,
-        Err(e) => e.to_errno(),
-    }
+    crate::error::from_result(|| {
+        let inode_ref = unsafe { &*(inode as *const INode<T::FileSystem>) };
+        let map_ref = unsafe { &*(map as *const Map<'_>) };
+        T::end(inode_ref, pos, length, written, flags, map_ref)
+    })
 }
 
 /// C trampoline for iomap-backed `address_space_operations::read_folio`.
@@ -233,6 +238,12 @@ impl<T: Operations> RoAops<T> {
     /// with `NewINode::set_aops()`.
     pub fn as_aops_ptr(&self) -> *const fs_b::address_space_operations {
         &self.aops
+    }
+
+    /// Returns typed address space ops for use with `NewINode::set_aops()`.
+    pub fn aops(&self) -> super::inode::AopsOps<T::FileSystem> {
+        // SAFETY: The aops field is valid for 'static (lives in a static).
+        unsafe { super::inode::AopsOps::from_raw(&self.aops) }
     }
 }
 

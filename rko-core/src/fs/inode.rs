@@ -109,7 +109,74 @@ pub(crate) struct INodeWithData<T> {
 /// `inode_ptr` must point to the `inode` field of a valid `INodeWithData<T>`.
 unsafe fn container_of<T>(inode_ptr: *const u8) -> *const INodeWithData<T> {
     let offset = core::mem::offset_of!(INodeWithData<T>, inode);
-    unsafe { inode_ptr.sub(offset).cast() }
+    inode_ptr.wrapping_sub(offset).cast()
+}
+
+/// Type-safe wrapper for `*const inode_operations` bound to filesystem type `T`.
+pub struct INodeOps<T: super::FileSystem>(*const bindings::inode_operations, PhantomData<T>);
+
+impl<T: super::FileSystem> INodeOps<T> {
+    /// Directory inode operations from the filesystem's Tables.
+    pub fn dir(tables: &super::vtable::Tables<T>) -> Self {
+        Self(tables.dir_inode_ops(), PhantomData)
+    }
+
+    /// Returns inode operations for inline symlinks (`i_link`).
+    pub fn simple_symlink_inode() -> Self {
+        Self(
+            unsafe { bindings_h::rust_helper_simple_symlink_inode_operations() },
+            PhantomData,
+        )
+    }
+
+    /// Returns inode operations for page-cache symlinks.
+    pub fn page_symlink_inode() -> Self {
+        Self(
+            unsafe { bindings_h::rust_helper_page_symlink_inode_operations() },
+            PhantomData,
+        )
+    }
+
+    pub(crate) fn as_ptr(&self) -> *const bindings::inode_operations {
+        self.0
+    }
+}
+
+/// Type-safe wrapper for `*const file_operations` bound to filesystem type `T`.
+pub struct FileOps<T: super::FileSystem>(*const bindings::file_operations, PhantomData<T>);
+
+impl<T: super::FileSystem> FileOps<T> {
+    /// Directory file operations from the filesystem's Tables.
+    pub fn dir(tables: &super::vtable::Tables<T>) -> Self {
+        Self(tables.dir_file_ops(), PhantomData)
+    }
+
+    /// Regular file operations from the filesystem's Tables.
+    pub fn regular(tables: &super::vtable::Tables<T>) -> Self {
+        Self(tables.reg_file_ops(), PhantomData)
+    }
+
+    pub(crate) fn as_ptr(&self) -> *const bindings::file_operations {
+        self.0
+    }
+}
+
+/// Type-safe wrapper for `*const address_space_operations` bound to filesystem type `T`.
+pub struct AopsOps<T: super::FileSystem>(*const bindings::address_space_operations, PhantomData<T>);
+
+impl<T: super::FileSystem> AopsOps<T> {
+    /// Creates from a raw pointer (e.g. from `RoAops::as_aops_ptr()`).
+    ///
+    /// # Safety
+    ///
+    /// The pointer must be valid for the `'static` lifetime.
+    pub unsafe fn from_raw(ptr: *const bindings::address_space_operations) -> Self {
+        Self(ptr, PhantomData)
+    }
+
+    pub(crate) fn as_ptr(&self) -> *const bindings::address_space_operations {
+        self.0
+    }
 }
 
 /// A locked, uninitialized inode returned by `SuperBlock::get_or_create_inode`.
@@ -135,20 +202,20 @@ impl<T: super::FileSystem> NewINode<T> {
     }
 
     /// Override inode operations for this inode.
-    pub fn set_iops(&mut self, ops: *const bindings::inode_operations) -> &mut Self {
-        self.custom_iops = Some(ops);
+    pub fn set_iops(&mut self, ops: INodeOps<T>) -> &mut Self {
+        self.custom_iops = Some(ops.as_ptr());
         self
     }
 
     /// Override file operations for this inode.
-    pub fn set_fops(&mut self, ops: *const bindings::file_operations) -> &mut Self {
-        self.custom_fops = Some(ops);
+    pub fn set_fops(&mut self, ops: FileOps<T>) -> &mut Self {
+        self.custom_fops = Some(ops.as_ptr());
         self
     }
 
     /// Override address space operations for this inode.
-    pub fn set_aops(&mut self, ops: *const bindings::address_space_operations) -> &mut Self {
-        self.custom_aops = Some(ops);
+    pub fn set_aops(&mut self, ops: AopsOps<T>) -> &mut Self {
+        self.custom_aops = Some(ops.as_ptr());
         self
     }
 
@@ -275,7 +342,7 @@ impl<T: super::FileSystem> Drop for NewINode<T> {
 /// Mutable version of container_of.
 pub(crate) unsafe fn container_of_mut<T>(inode_ptr: *mut u8) -> *mut INodeWithData<T> {
     let offset = core::mem::offset_of!(INodeWithData<T>, inode);
-    unsafe { inode_ptr.sub(offset).cast() }
+    inode_ptr.wrapping_sub(offset).cast()
 }
 
 /// The type of an inode.
@@ -332,4 +399,23 @@ pub struct INodeParams<T> {
     pub atime: Time,
     /// Per-inode user data.
     pub value: T,
+}
+
+/// Inode operation callbacks for directories.
+///
+/// Implement this trait on your filesystem type to provide custom
+/// `lookup` behavior.
+pub trait Operations: Sized + Send + Sync + 'static {
+    /// The filesystem type these operations belong to.
+    type FileSystem: super::FileSystem;
+
+    /// Look up a child inode by name in a directory.
+    ///
+    /// Use `dentry.name()` to get the name being looked up.
+    /// Call `dentry.splice_alias(Some(inode))` to bind a found inode,
+    /// or `dentry.splice_alias(None)` for a negative dentry.
+    fn lookup(
+        parent: &INode<Self::FileSystem>,
+        dentry: super::Unhashed<'_, Self::FileSystem>,
+    ) -> super::Result<Option<crate::types::ARef<super::DEntry<Self::FileSystem>>>>;
 }
