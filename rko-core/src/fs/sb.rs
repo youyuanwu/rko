@@ -152,6 +152,12 @@ impl<T: super::FileSystem> SuperBlock<T> {
 
     // --- Block device methods ---
 
+    /// Returns whether the filesystem is mounted read-only.
+    pub fn rdonly(&self) -> bool {
+        // SB_RDONLY = 1 (BIT(0))
+        unsafe { (*self.0.get()).s_flags & 1 != 0 }
+    }
+
     /// Returns the raw block device pointer (`s_bdev`).
     ///
     /// Only valid for block-device-backed filesystems (`SUPER_TYPE = BlockDev`).

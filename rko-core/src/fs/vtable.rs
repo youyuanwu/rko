@@ -33,7 +33,6 @@ pub struct Tables<T: FileSystem> {
     pub(crate) reg_inode_ops: bindings::inode_operations,
     pub(crate) reg_file_ops: bindings::file_operations,
     pub(crate) reg_aops: bindings::address_space_operations,
-    pub(crate) symlink_inode_ops: bindings::inode_operations,
     pub(crate) xattr_handler: xattr_b::xattr_handler,
     /// NULL-terminated array of xattr handler pointers. Set on s_xattr.
     pub(crate) xattr_handlers: [*const xattr_b::xattr_handler; 2],
@@ -89,10 +88,6 @@ impl<T: FileSystem> Tables<T> {
                 read_folio: read_folio_trampoline::<T> as *mut isize,
                 ..const_default_address_space_operations()
             },
-            symlink_inode_ops: bindings::inode_operations {
-                get_link: page_get_link_trampoline as *mut isize,
-                ..const_default_inode_operations()
-            },
             xattr_handler: xattr_b::xattr_handler {
                 name: core::ptr::null_mut(),
                 prefix: c"".as_ptr().cast_mut(),
@@ -106,6 +101,21 @@ impl<T: FileSystem> Tables<T> {
             xattr_handlers: [core::ptr::null(), core::ptr::null()],
             _marker: core::marker::PhantomData,
         }
+    }
+
+    /// Returns a pointer to the directory inode operations.
+    pub fn dir_inode_ops(&self) -> *const bindings::inode_operations {
+        &self.dir_inode_ops
+    }
+
+    /// Returns a pointer to the directory file operations.
+    pub fn dir_file_ops(&self) -> *const bindings::file_operations {
+        &self.dir_file_ops
+    }
+
+    /// Returns a pointer to the regular file operations.
+    pub fn reg_file_ops(&self) -> *const bindings::file_operations {
+        &self.reg_file_ops
     }
 }
 
@@ -292,15 +302,6 @@ unsafe extern "C" fn read_folio_trampoline<T: FileSystem>(
     unsafe { bindings_h::rust_helper_folio_end_read(folio.cast(), ret == 0) };
 
     ret
-}
-
-/// `inode_operations::get_link` → `page_get_link` (kernel-provided).
-unsafe extern "C" fn page_get_link_trampoline(
-    dentry: *mut dcache_b::dentry,
-    inode: *mut bindings::inode,
-    done: *mut bindings::delayed_call,
-) -> *mut i8 {
-    unsafe { bindings::page_get_link(dentry, inode, done) }
 }
 
 /// `xattr_handler::get` → `T::read_xattr`.

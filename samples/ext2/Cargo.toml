@@ -1,0 +1,15 @@
+[package]
+name = "ext2"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[lib]
+name = "ext2"
+path = "ext2.rs"
+crate-type = ["staticlib"]
+test = false
+bench = false
+
+[dependencies]
+rko-core.workspace = true

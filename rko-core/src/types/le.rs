@@ -95,3 +95,7 @@ pub unsafe trait FromBytes: Sized {
         Some(unsafe { core::slice::from_raw_parts(ptr.cast(), count) })
     }
 }
+
+// SAFETY: LE<T> is repr(transparent) over T which is a plain integer,
+// valid for any bit pattern.
+unsafe impl<T: LeInt> FromBytes for LE<T> {}

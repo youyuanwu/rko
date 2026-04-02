@@ -172,7 +172,7 @@ impl<T: super::FileSystem> NewINode<T> {
         let type_bits = match params.typ {
             INodeType::Dir => S_IFDIR,
             INodeType::Reg => S_IFREG,
-            INodeType::Lnk => S_IFLNK,
+            INodeType::Lnk(_) => S_IFLNK,
             INodeType::Chr(_, _) => S_IFCHR,
             INodeType::Blk(_, _) => S_IFBLK,
             INodeType::Fifo => S_IFIFO,
@@ -221,19 +221,38 @@ impl<T: super::FileSystem> NewINode<T> {
                         inode.i_data
                     ));
                 }
-                INodeType::Lnk => {
-                    let iops = self
-                        .custom_iops
-                        .unwrap_or(&tables.symlink_inode_ops as *const _);
+                INodeType::Lnk(target) => {
+                    let iops = self.custom_iops.unwrap_or_else(|| {
+                        if target.is_some() {
+                            bindings_h::rust_helper_simple_symlink_inode_operations()
+                        } else {
+                            bindings_h::rust_helper_page_symlink_inode_operations()
+                        }
+                    });
                     inode.i_op = iops as *mut _;
+                    // For page-based symlinks, prevent highmem usage.
+                    if target.is_none() {
+                        bindings::inode_nohighmem(inode);
+                    }
+                    if let Some(s) = target {
+                        inode.inode__anon_4.i_link = s.as_ptr() as *mut i8;
+                    }
                 }
-                _ => {
-                    if let Some(iops) = self.custom_iops {
-                        inode.i_op = iops as *mut _;
-                    }
-                    if let Some(fops) = self.custom_fops {
-                        bindings_h::rust_helper_inode_set_fop(inode, fops);
-                    }
+                INodeType::Chr(major, minor) => {
+                    let dev =
+                        bindings_h::rust_helper_MKDEV(major, minor & bindings_h::RKO_MINORMASK);
+                    bindings::init_special_inode(inode, S_IFCHR, dev);
+                }
+                INodeType::Blk(major, minor) => {
+                    let dev =
+                        bindings_h::rust_helper_MKDEV(major, minor & bindings_h::RKO_MINORMASK);
+                    bindings::init_special_inode(inode, S_IFBLK, dev);
+                }
+                INodeType::Fifo => {
+                    bindings::init_special_inode(inode, S_IFIFO, 0);
+                }
+                INodeType::Sock => {
+                    bindings::init_special_inode(inode, S_IFSOCK, 0);
                 }
             }
 
@@ -266,7 +285,10 @@ pub enum INodeType {
     /// Regular file.
     Reg,
     /// Symbolic link.
-    Lnk,
+    ///
+    /// `None` — page-based symlink (target stored in page cache).
+    /// `Some(target)` — inline symlink (target stored in `i_link`).
+    Lnk(Option<&'static [u8]>),
     /// Character device (major, minor).
     Chr(u32, u32),
     /// Block device (major, minor).

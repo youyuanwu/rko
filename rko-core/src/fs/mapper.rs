@@ -58,6 +58,12 @@ unsafe impl Send for Mapper {}
 unsafe impl Sync for Mapper {}
 
 impl Mapper {
+    /// Create a Mapper from a typed SuperBlock reference.
+    pub fn new<T: super::FileSystem>(sb: &super::sb::SuperBlock<T>) -> Self {
+        let mapping = unsafe { bindings_h::rust_helper_sb_bdev_mapping(sb.as_ptr()) };
+        Self { mapping }
+    }
+
     /// Create a Mapper from a superblock's block device.
     ///
     /// # Safety

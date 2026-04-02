@@ -121,6 +121,16 @@ unsigned int rust_helper_MKDEV(unsigned int major, unsigned int minor)
 	return MKDEV(major, minor);
 }
 
+const struct inode_operations *rust_helper_page_symlink_inode_operations(void)
+{
+	return &page_symlink_inode_operations;
+}
+
+const struct inode_operations *rust_helper_simple_symlink_inode_operations(void)
+{
+	return &simple_symlink_inode_operations;
+}
+
 // kmem_cache helper
 
 struct kmem_cache *rust_helper_kmem_cache_create(const char *name,
@@ -391,4 +401,19 @@ int rust_helper_sb_set_blocksize(struct super_block *sb, int size)
 struct address_space *rust_helper_sb_bdev_mapping(struct super_block *sb)
 {
 	return sb->s_bdev->bd_mapping;
+}
+
+// iomap helpers — inline wrappers in iomap.h
+#include <linux/iomap.h>
+
+void rust_helper_iomap_bio_read_folio(struct folio *folio,
+				      const struct iomap_ops *ops)
+{
+	iomap_bio_read_folio(folio, ops);
+}
+
+void rust_helper_iomap_bio_readahead(struct readahead_control *rac,
+				     const struct iomap_ops *ops)
+{
+	iomap_bio_readahead(rac, ops);
 }

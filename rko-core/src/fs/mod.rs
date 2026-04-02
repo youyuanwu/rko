@@ -20,7 +20,7 @@ pub use file::File;
 pub use folio::{Folio, LockedFolio};
 pub use inode::{INode, INodeParams, INodeType, NewINode, ReadSem, Time};
 pub use inode::{S_IFBLK, S_IFCHR, S_IFDIR, S_IFIFO, S_IFLNK, S_IFREG, S_IFSOCK};
-pub use mapper::Mapper;
+pub use mapper::{MappedFolio, Mapper};
 pub use registration::Registration;
 pub use sb::{SuperBlock, SuperParams};
 

@@ -37,6 +37,38 @@ pub enum DirEntryType {
     Wht = 14,
 }
 
+impl DirEntryType {
+    /// Convert from a raw `u32` directory type value (DT_* constant).
+    pub fn from_u32(v: u32) -> Option<Self> {
+        match v {
+            0 => Some(Self::Unknown),
+            1 => Some(Self::Fifo),
+            2 => Some(Self::Chr),
+            4 => Some(Self::Dir),
+            6 => Some(Self::Blk),
+            8 => Some(Self::Reg),
+            10 => Some(Self::Lnk),
+            12 => Some(Self::Sock),
+            14 => Some(Self::Wht),
+            _ => None,
+        }
+    }
+}
+
+impl From<&super::inode::INodeType> for DirEntryType {
+    fn from(value: &super::inode::INodeType) -> Self {
+        match value {
+            super::inode::INodeType::Dir => DirEntryType::Dir,
+            super::inode::INodeType::Reg => DirEntryType::Reg,
+            super::inode::INodeType::Lnk(_) => DirEntryType::Lnk,
+            super::inode::INodeType::Chr(_, _) => DirEntryType::Chr,
+            super::inode::INodeType::Blk(_, _) => DirEntryType::Blk,
+            super::inode::INodeType::Fifo => DirEntryType::Fifo,
+            super::inode::INodeType::Sock => DirEntryType::Sock,
+        }
+    }
+}
+
 /// Seek origin.
 #[repr(i32)]
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]

@@ -71,8 +71,7 @@ impl TarFs {
             Err(cached) => Ok(cached),
             Ok(new_inode) => {
                 // Load inode details from storage.
-                let offset =
-                    data.inode_table_offset + (ino - 1) * size_of::<Inode>() as u64;
+                let offset = data.inode_table_offset + (ino - 1) * size_of::<Inode>() as u64;
                 let mapped = data.mapper.mapped_folio(offset as i64)?;
                 let idata = match Inode::from_bytes(mapped.data(), 0) {
                     Some(i) => i,
@@ -82,17 +81,13 @@ impl TarFs {
                 let mode = idata.mode.value();
                 let size = idata.size.value();
                 let doffset = idata.offset.value();
-                let secs = u64::from(idata.lmtime.value())
-                    | (u64::from(idata.hmtime & 0xf) << 32);
-                let ts = Time {
-                    secs,
-                    nsecs: 0,
-                };
+                let secs = u64::from(idata.lmtime.value()) | (u64::from(idata.hmtime & 0xf) << 32);
+                let ts = Time { secs, nsecs: 0 };
 
                 let typ = match mode & S_IFMT {
                     fs::S_IFREG => INodeType::Reg,
                     fs::S_IFDIR => INodeType::Dir,
-                    fs::S_IFLNK => INodeType::Lnk,
+                    fs::S_IFLNK => INodeType::Lnk(None),
                     fs::S_IFSOCK => INodeType::Sock,
                     fs::S_IFIFO => INodeType::Fifo,
                     fs::S_IFCHR => INodeType::Chr((doffset >> 32) as u32, doffset as u32),
@@ -126,18 +121,16 @@ impl TarFs {
     /// Compare a name on disk with a given byte slice.
     fn name_eq(data: &TarFsData, name: &[u8], offset: u64) -> Result<bool, Error> {
         let mut remaining = name;
-        let ret = data.mapper.for_each_page(
-            offset as i64,
-            name.len() as i64,
-            |page_data: &[u8]| {
-                let len = core::cmp::min(page_data.len(), remaining.len());
-                if page_data[..len] != remaining[..len] {
-                    return Ok(Some(false));
-                }
-                remaining = &remaining[len..];
-                Ok(None)
-            },
-        )?;
+        let ret =
+            data.mapper
+                .for_each_page(offset as i64, name.len() as i64, |page_data: &[u8]| {
+                    let len = core::cmp::min(page_data.len(), remaining.len());
+                    if page_data[..len] != remaining[..len] {
+                        return Ok(Some(false));
+                    }
+                    remaining = &remaining[len..];
+                    Ok(None)
+                })?;
         Ok(ret.unwrap_or(true))
     }
 }
@@ -359,16 +352,13 @@ impl fs::FileSystem for TarFs {
         let disk_offset = inode_data.offset + folio_offset;
 
         let mut written = 0usize;
-        data.mapper.for_each_page(
-            disk_offset as i64,
-            to_read as i64,
-            |page_data: &[u8]| {
+        data.mapper
+            .for_each_page(disk_offset as i64, to_read as i64, |page_data: &[u8]| {
                 let copy_len = core::cmp::min(page_data.len(), to_read - written);
                 folio.write(written, &page_data[..copy_len])?;
                 written += copy_len;
                 Ok(None::<()>)
-            },
-        )?;
+            })?;
 
         Ok(())
     }

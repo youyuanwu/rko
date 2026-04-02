@@ -160,6 +160,27 @@ windows_link::link!("kernel" "C" fn rust_helper_inode_set_flags(inode : *mut sup
 ))]
 windows_link::link!("kernel" "C" fn rust_helper_inode_set_fop(inode : *mut super::fs:: inode, fop : *const super::fs:: file_operations));
 #[cfg(all(
+    feature = "ds",
+    feature = "iomap",
+    feature = "mm_types",
+    feature = "types"
+))]
+windows_link::link!("kernel" "C" fn rust_helper_iomap_bio_read_folio(folio : *mut super::mm_types:: folio, ops : *const super::iomap:: iomap_ops));
+#[cfg(all(
+    feature = "cred",
+    feature = "dcache",
+    feature = "ds",
+    feature = "fs",
+    feature = "iomap",
+    feature = "mm_types",
+    feature = "pagemap",
+    feature = "sync",
+    feature = "types",
+    feature = "wait",
+    feature = "workqueue"
+))]
+windows_link::link!("kernel" "C" fn rust_helper_iomap_bio_readahead(rac : *mut super::pagemap:: readahead_control, ops : *const super::iomap:: iomap_ops));
+#[cfg(all(
     feature = "cred",
     feature = "dcache",
     feature = "ds",
@@ -200,6 +221,8 @@ windows_link::link!("kernel" "C" fn rust_helper_mutex_lock(lock : *mut super::sy
 windows_link::link!("kernel" "C" fn rust_helper_mutex_trylock(lock : *mut super::sync:: mutex) -> i32);
 #[cfg(all(feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn rust_helper_mutex_unlock(lock : *mut super::sync:: mutex));
+#[cfg(feature = "fs")]
+windows_link::link!("kernel" "C" fn rust_helper_page_symlink_inode_operations() -> *mut super::fs:: inode_operations);
 windows_link::link!("kernel" "C" fn rust_helper_put_net(net : *mut core::ffi::c_void));
 #[cfg(feature = "fs")]
 windows_link::link!("kernel" "C" fn rust_helper_put_task_struct(t : *mut super::fs:: task_struct));
@@ -256,6 +279,8 @@ windows_link::link!("kernel" "C" fn rust_helper_schedule());
 windows_link::link!("kernel" "C" fn rust_helper_set_nlink(inode : *mut super::fs:: inode, nlink : u32));
 #[cfg(all(feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn rust_helper_set_wq_entry_private(wq : *mut super::wait:: wait_queue_entry, p : *mut core::ffi::c_void));
+#[cfg(feature = "fs")]
+windows_link::link!("kernel" "C" fn rust_helper_simple_symlink_inode_operations() -> *mut super::fs:: inode_operations);
 #[cfg(all(feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn rust_helper_spin_is_locked(lock : *mut super::sync:: spinlock_t) -> i32);
 #[cfg(all(feature = "sync", feature = "types"))]
@@ -264,3 +289,4 @@ windows_link::link!("kernel" "C" fn rust_helper_spin_lock(lock : *mut super::syn
 windows_link::link!("kernel" "C" fn rust_helper_spin_trylock(lock : *mut super::sync:: spinlock_t) -> i32);
 #[cfg(all(feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn rust_helper_spin_unlock(lock : *mut super::sync:: spinlock_t));
+pub const RKO_MINORMASK: u32 = 1048575u32;

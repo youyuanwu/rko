@@ -13,6 +13,12 @@
 #include <linux/highmem.h>
 #include <linux/slab.h>
 
+/* Constants exposed to Rust (bnd extracts enum values) */
+#include <linux/kdev_t.h>
+enum {
+    RKO_MINORMASK = MINORMASK,
+};
+
 /* folio helpers */
 void rust_helper_folio_get(struct folio *folio);
 void rust_helper_folio_put(struct folio *folio);
@@ -41,6 +47,10 @@ _Bool rust_helper_dir_emit(struct dir_context *ctx, const char *name,
 
 /* device number helper */
 unsigned int rust_helper_MKDEV(unsigned int major, unsigned int minor);
+
+/* symlink inode operations — extern statics not visible to bnd */
+const struct inode_operations *rust_helper_page_symlink_inode_operations(void);
+const struct inode_operations *rust_helper_simple_symlink_inode_operations(void);
 
 /* kmem_cache helper — wraps inline on some configs */
 struct kmem_cache *rust_helper_kmem_cache_create(const char *name,
@@ -146,5 +156,12 @@ unsigned long long rust_helper_bdev_nr_sectors(void *bdev);
 int rust_helper_sb_min_blocksize(struct super_block *sb, int size);
 int rust_helper_sb_set_blocksize(struct super_block *sb, int size);
 struct address_space *rust_helper_sb_bdev_mapping(struct super_block *sb);
+
+/* ── iomap helpers ─────────────────────────────────────────────────── */
+#include <linux/iomap.h>
+void rust_helper_iomap_bio_read_folio(struct folio *folio,
+                                      const struct iomap_ops *ops);
+void rust_helper_iomap_bio_readahead(struct readahead_control *rac,
+                                     const struct iomap_ops *ops);
 
 #endif /* _RKO_HELPERS_H */

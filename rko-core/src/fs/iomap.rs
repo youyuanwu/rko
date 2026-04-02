@@ -9,7 +9,7 @@
 use core::ffi::c_void;
 use core::marker::PhantomData;
 
-use rko_sys::rko::{fs as fs_b, iomap as bindings};
+use rko_sys::rko::{fs as fs_b, helpers as bindings_h, iomap as bindings};
 
 use super::Offset;
 use super::inode::INode;
@@ -86,6 +86,12 @@ impl<'a> Map<'a> {
         self.0.bdev = bdev.cast();
         self
     }
+
+    /// Set the block device from a `SuperBlock`.
+    pub fn set_bdev<T: super::FileSystem>(&mut self, sb: &super::sb::SuperBlock<T>) -> &mut Self {
+        self.0.bdev = sb.bdev_raw().cast();
+        self
+    }
 }
 
 /// Trait for filesystems that provide iomap block mapping.
@@ -160,6 +166,23 @@ unsafe extern "C" fn iomap_end_trampoline<T: Operations>(
     }
 }
 
+/// C trampoline for iomap-backed `address_space_operations::read_folio`.
+///
+/// Calls `iomap_bio_read_folio(folio, &IOMAP_OPS)` where `IOMAP_OPS`
+/// is the static iomap_ops for the concrete type `T`.
+unsafe extern "C" fn iomap_aops_read_folio<T: Operations>(
+    _file: *mut fs_b::file,
+    folio: *mut core::ffi::c_void,
+) -> i32 {
+    // Reconstruct the iomap_ops pointer from the static RoAops.
+    // SAFETY: The user must store RoAops<T> in a static and pass its
+    // aops via set_aops(). This function is only wired when that static exists.
+    // We generate a fresh iomap_ops on the stack (same function pointers).
+    let ops = iomap_ops::<T>();
+    unsafe { bindings_h::rust_helper_iomap_bio_read_folio(folio.cast(), &ops) };
+    0
+}
+
 /// Returns a static `iomap_ops` vtable for type `T`.
 pub const fn iomap_ops<T: Operations>() -> bindings::iomap_ops {
     bindings::iomap_ops {
@@ -170,21 +193,32 @@ pub const fn iomap_ops<T: Operations>() -> bindings::iomap_ops {
 
 /// Create read-only `address_space_operations` backed by iomap.
 ///
-/// The returned ops use `iomap_read_folio` and `iomap_readahead`
-/// with the given `iomap_ops` for block mapping.
+/// The returned ops use `iomap_bio_read_folio` with the given `iomap_ops`
+/// for block mapping.
 ///
-/// Store the returned ops in a `static` and pass to `NewINode::set_aops()`.
+/// Store the returned ops in a `static` and pass `as_aops_ptr()` to
+/// `NewINode::set_aops()`.
 pub const fn ro_aops<T: Operations>() -> RoAops<T> {
     RoAops {
         ops: iomap_ops::<T>(),
+        aops: fs_b::address_space_operations {
+            read_folio: iomap_aops_read_folio::<T> as *mut isize,
+            ..const_default_aops()
+        },
         _marker: PhantomData,
     }
+}
+
+const fn const_default_aops() -> fs_b::address_space_operations {
+    // SAFETY: All-zero is valid (null function pointers).
+    unsafe { core::mem::zeroed() }
 }
 
 /// Holds the iomap_ops and provides access to the
 /// address_space_operations read_folio callback.
 pub struct RoAops<T: Operations> {
     ops: bindings::iomap_ops,
+    aops: fs_b::address_space_operations,
     _marker: PhantomData<T>,
 }
 
@@ -193,6 +227,12 @@ impl<T: Operations> RoAops<T> {
     /// read_folio callbacks.
     pub fn iomap_ops_ptr(&self) -> *const bindings::iomap_ops {
         &self.ops
+    }
+
+    /// Returns a pointer to the `address_space_operations` for use
+    /// with `NewINode::set_aops()`.
+    pub fn as_aops_ptr(&self) -> *const fs_b::address_space_operations {
+        &self.aops
     }
 }
 
