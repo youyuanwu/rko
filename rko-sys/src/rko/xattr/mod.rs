@@ -9,157 +9,179 @@
 )]
 
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn __vfs_getxattr(param0 : *mut super::dcache:: dentry, param1 : *mut super::fs:: inode, param2 : *const i8, param3 : *mut core::ffi::c_void, param4 : super::types:: size_t) -> super::types:: ssize_t);
 #[cfg(all(
     feature = "dcache",
-    feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "wait"
 ))]
 windows_link::link!("kernel" "C" fn __vfs_removexattr(param0 : *mut core::ffi::c_void, param1 : *mut super::dcache:: dentry, param2 : *const i8) -> i32);
 #[cfg(all(
     feature = "dcache",
-    feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "wait"
 ))]
 windows_link::link!("kernel" "C" fn __vfs_removexattr_locked(param0 : *mut core::ffi::c_void, param1 : *mut super::dcache:: dentry, param2 : *const i8, param3 : *mut core::ffi::c_void) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn __vfs_setxattr(param0 : *mut core::ffi::c_void, param1 : *mut super::dcache:: dentry, param2 : *mut super::fs:: inode, param3 : *const i8, param4 : *const core::ffi::c_void, param5 : super::types:: size_t, param6 : i32) -> i32);
 #[cfg(all(
     feature = "dcache",
-    feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "wait"
 ))]
 windows_link::link!("kernel" "C" fn __vfs_setxattr_locked(param0 : *mut core::ffi::c_void, param1 : *mut super::dcache:: dentry, param2 : *const i8, param3 : *const core::ffi::c_void, param4 : super::types:: size_t, param5 : i32, param6 : *mut core::ffi::c_void) -> i32);
 #[cfg(all(
     feature = "dcache",
-    feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "wait"
 ))]
 windows_link::link!("kernel" "C" fn __vfs_setxattr_noperm(param0 : *mut core::ffi::c_void, param1 : *mut super::dcache:: dentry, param2 : *const i8, param3 : *const core::ffi::c_void, param4 : super::types:: size_t, param5 : i32) -> i32);
 #[cfg(all(
     feature = "dcache",
-    feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "wait"
 ))]
 windows_link::link!("kernel" "C" fn generic_listxattr(dentry : *mut super::dcache:: dentry, buffer : *mut i8, buffer_size : super::types:: size_t) -> super::types:: ssize_t);
 windows_link::link!("kernel" "C" fn is_posix_acl_xattr(name : *const i8) -> bool);
-#[cfg(all(feature = "fs", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "fs", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn simple_xattr_add(xattrs : *mut simple_xattrs, new_xattr : *mut simple_xattr));
-#[cfg(all(feature = "fs", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "types"))]
 windows_link::link!("kernel" "C" fn simple_xattr_alloc(value : *const core::ffi::c_void, size : super::types:: size_t) -> *mut simple_xattr);
-#[cfg(all(feature = "fs", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "types"))]
 windows_link::link!("kernel" "C" fn simple_xattr_free(xattr : *mut simple_xattr));
-#[cfg(all(feature = "fs", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "fs", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn simple_xattr_get(xattrs : *mut simple_xattrs, name : *const i8, buffer : *mut core::ffi::c_void, size : super::types:: size_t) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn simple_xattr_list(inode : *mut super::fs:: inode, xattrs : *mut simple_xattrs, buffer : *mut i8, size : super::types:: size_t) -> super::types:: ssize_t);
-#[cfg(all(feature = "fs", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "fs", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn simple_xattr_set(xattrs : *mut simple_xattrs, name : *const i8, value : *const core::ffi::c_void, size : super::types:: size_t, flags : i32) -> *mut simple_xattr);
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn simple_xattr_space(name : *const i8, size : super::types:: size_t) -> super::types:: size_t);
-#[cfg(all(feature = "fs", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "fs", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn simple_xattrs_free(xattrs : *mut simple_xattrs, freed_space : *mut super::types:: size_t));
-#[cfg(feature = "fs")]
+#[cfg(all(feature = "ds", feature = "fs", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn simple_xattrs_init(xattrs : *mut simple_xattrs));
 #[cfg(all(
     feature = "dcache",
-    feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "wait"
 ))]
 windows_link::link!("kernel" "C" fn vfs_getxattr(param0 : *mut core::ffi::c_void, param1 : *mut super::dcache:: dentry, param2 : *const i8, param3 : *mut core::ffi::c_void, param4 : super::types:: size_t) -> super::types:: ssize_t);
 #[cfg(all(
     feature = "dcache",
-    feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "wait"
 ))]
 windows_link::link!("kernel" "C" fn vfs_getxattr_alloc(idmap : *mut core::ffi::c_void, dentry : *mut super::dcache:: dentry, name : *const i8, xattr_value : *mut *mut i8, size : super::types:: size_t, flags : super::types:: gfp_t) -> i32);
 #[cfg(all(
     feature = "dcache",
-    feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "wait"
 ))]
 windows_link::link!("kernel" "C" fn vfs_listxattr(d : *mut super::dcache:: dentry, list : *mut i8, size : super::types:: size_t) -> super::types:: ssize_t);
 #[cfg(all(
     feature = "dcache",
-    feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "wait"
 ))]
 windows_link::link!("kernel" "C" fn vfs_removexattr(param0 : *mut core::ffi::c_void, param1 : *mut super::dcache:: dentry, param2 : *const i8) -> i32);
 #[cfg(all(
     feature = "dcache",
-    feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "wait"
 ))]
 windows_link::link!("kernel" "C" fn vfs_setxattr(param0 : *mut core::ffi::c_void, param1 : *mut super::dcache:: dentry, param2 : *const i8, param3 : *const core::ffi::c_void, param4 : super::types:: size_t, param5 : i32) -> i32);
 windows_link::link!("kernel" "C" fn xattr_full_name(param0 : *const xattr_handler, param1 : *const i8) -> *mut i8);
 #[cfg(all(
     feature = "dcache",
-    feature = "fs",
     feature = "sync",
-    feature = "types"
+    feature = "types",
+    feature = "wait"
 ))]
 windows_link::link!("kernel" "C" fn xattr_handler_can_list(handler : *const xattr_handler, dentry : *mut super::dcache:: dentry) -> bool);
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn xattr_list_one(buffer : *mut *mut i8, remaining_size : *mut super::types:: ssize_t, name : *const i8) -> i32);
 windows_link::link!("kernel" "C" fn xattr_prefix(handler : *const xattr_handler) -> *mut i8);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn xattr_supports_user_prefix(inode : *mut super::fs:: inode) -> i32);
 pub const XATTR_ARGS_SIZE_VER0: i32 = 16i32;
 #[repr(C, packed(8))]
-#[cfg(all(feature = "fs", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "types"))]
 #[derive(Clone, Copy)]
 pub struct simple_xattr {
-    pub rb_node: super::fs::rb_node,
+    pub rb_node: super::ds::rb_node,
     pub name: *mut i8,
     pub size: super::types::size_t,
     pub value: *mut i8,
 }
-#[cfg(all(feature = "fs", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "types"))]
 impl Default for simple_xattr {
     fn default() -> Self {
         unsafe { core::mem::zeroed() }
     }
 }
 #[repr(C, packed(8))]
-#[cfg(feature = "fs")]
-#[derive(Clone, Copy, Default)]
+#[cfg(all(feature = "ds", feature = "fs", feature = "sync", feature = "types"))]
+#[derive(Clone, Copy)]
 pub struct simple_xattrs {
-    pub rb_root: super::fs::rb_root,
+    pub rb_root: super::ds::rb_root,
     pub lock: super::fs::rwlock_t,
+}
+#[cfg(all(feature = "ds", feature = "fs", feature = "sync", feature = "types"))]
+impl Default for simple_xattrs {
+    fn default() -> Self {
+        unsafe { core::mem::zeroed() }
+    }
 }
 #[repr(C, packed(8))]
 #[cfg(feature = "types")]

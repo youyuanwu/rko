@@ -100,10 +100,80 @@ traverse = [
   "linux/osq_lock.h",
 ]
 
-# ── Partition 6: VFS core ──────────────────────────────────────────
+# ── Partition 6a: wait queues & completion ─────────────────────────
+# wait_queue_head, wait_queue_entry, completion, swait
+[[partition]]
+namespace = "rko.wait"
+library = "kernel"
+headers = ["linux/wait.h", "linux/wait_bit.h", "linux/completion.h", "linux/swait.h"]
+traverse = [
+  "linux/wait.h",
+  "linux/wait_bit.h",
+  "linux/swait.h",
+  "linux/completion.h",
+]
+
+# ── Partition 6b: mm_types — folio, page, vm_area_struct, mm_struct ─
+# Core memory management types. Placed before rko.fs so these types
+# are owned here, not by the VFS partition.
+[[partition]]
+namespace = "rko.mm_types"
+library = "kernel"
+headers = ["linux/mm_types.h"]
+traverse = [
+  "linux/mm_types.h",
+  "linux/mm_types_task.h",
+  "linux/auxvec.h",
+  "linux/kref.h",
+  "linux/page-flags-layout.h",
+  "linux/rseq_types.h",
+  "uapi/linux/auxvec.h",
+  "linux/uprobes.h",
+  "asm/tlbbatch.h",
+  "asm/ptrace.h",
+  "uapi/asm/ptrace.h",
+  "uapi/asm/ldt.h",
+  "asm/pgtable_types.h",
+  "asm/pgtable_64_types.h",
+  "asm/mmu.h",
+]
+
+# ── Partition 6c: credentials & capabilities ──────────────────────
+[[partition]]
+namespace = "rko.cred"
+library = "kernel"
+headers = ["linux/cred.h"]
+traverse = [
+  "linux/cred.h",
+  "linux/capability.h",
+  "linux/uidgid_types.h",
+  "linux/key.h",
+  "linux/sched/user.h",
+  "linux/ratelimit_types.h",
+]
+
+# ── Partition 6d: data structures ─────────────────────────────────
+# rbtree, maple_tree, xarray, list_lru, rhashtable — used by VFS
+# structs but not directly by rko-core.
+[[partition]]
+namespace = "rko.ds"
+library = "kernel"
+headers = ["linux/maple_tree.h", "linux/xarray.h", "linux/list_lru.h", "linux/rhashtable-types.h"]
+traverse = [
+  "linux/rbtree_types.h",
+  "linux/maple_tree.h",
+  "linux/xarray.h",
+  "linux/list_lru.h",
+  "linux/llist.h",
+  "linux/list_bl.h",
+  "linux/rhashtable-types.h",
+]
+
+# ── Partition 7: VFS core ──────────────────────────────────────────
 # file_system_type, super_block, inode, file, dir_context,
 # inode_operations, file_operations, address_space_operations,
 # register/unregister_filesystem, etc.
+# Types from wait, mm_types, cred, ds are resolved cross-partition.
 [[partition]]
 namespace = "rko.fs"
 library = "kernel"
@@ -111,37 +181,31 @@ headers = ["linux/fs.h"]
 traverse = [
   "linux/fs.h",
   "linux/fs/super_types.h",
+  "linux/stat.h",
+  "linux/mount.h",
+  "linux/path.h",
+  "linux/delayed_call.h",
   "linux/pid_types.h",
+  "linux/pid.h",
   "linux/migrate_mode.h",
   "linux/rw_hint.h",
-  "linux/delayed_call.h",
-  "linux/path.h",
-  "linux/rbtree_types.h",
-  "linux/llist.h",
-  "linux/list_bl.h",
-  "linux/workqueue_types.h",
-  "linux/lockdep_types.h",
   "linux/time64.h",
   "linux/timer_types.h",
-  "linux/wait.h",
-  "linux/wait_bit.h",
-  "linux/stat.h",
+  "linux/workqueue_types.h",
+  "linux/lockdep_types.h",
+  "linux/uuid.h",
+  "linux/rwlock_types.h",
+  "asm-generic/qrwlock_types.h",
+  "linux/file_ref.h",
+  "linux/mnt_idmapping.h",
+  "uapi/linux/fs.h",
+  # These remain in rko.fs because removing them breaks super_block parsing:
   "linux/shrinker.h",
   "linux/quota.h",
-  "linux/pid.h",
-  "linux/mount.h",
+  "linux/projid.h",
   "linux/percpu-rwsem.h",
-  "linux/maple_tree.h",
-  "linux/list_lru.h",
-  "linux/xarray.h",
-  "linux/completion.h",
   "linux/rcu_sync.h",
   "linux/percpu_counter.h",
-  "linux/swait.h",
-  "linux/projid.h",
-  "linux/cred.h",
-  "linux/capability.h",
-  "linux/rhashtable-types.h",
 ]
 
 # ── Partition 6: filesystem mount context ──────────────────────────
@@ -156,7 +220,7 @@ traverse = ["linux/fs_context.h", "linux/user_namespace.h", "linux/ns/ns_common_
 namespace = "rko.dcache"
 library = "kernel"
 headers = ["linux/dcache.h"]
-traverse = ["linux/dcache.h", "linux/list_bl.h"]
+traverse = ["linux/dcache.h", "linux/list_bl.h", "linux/seqlock_types.h"]
 
 # ── Partition 8: page/folio cache ──────────────────────────────────
 [[partition]]
@@ -199,6 +263,8 @@ traverse = [
   "linux/blk_types.h",
   "linux/bio.h",
   "linux/pagevec.h",
+  "linux/bvec.h",
+  "linux/mempool.h",
 ]
 
 # ── Partition 10: C helpers ────────────────────────────────────────
@@ -228,6 +294,8 @@ traverse = [
   "uapi/linux/in6.h",
   "linux/uio.h",
   "uapi/linux/uio.h",
+  "vdso/time32.h",
+  "uapi/linux/time_types.h",
 ]
 
 # ── Partition 12: workqueue ────────────────────────────────────────
@@ -240,6 +308,7 @@ headers = ["linux/workqueue.h"]
 traverse = [
   "linux/workqueue.h",
   "linux/workqueue_types.h",
+  "linux/cpumask_types.h",
 ]
 
 # ── Partition 13: poll constants ───────────────────────────────────
@@ -259,56 +328,6 @@ traverse = ["uapi/asm-generic/poll.h"]
 # Defined in linux/uuid.h — u8[16] typedef, not a regular struct
 [[inject_type]]
 namespace = "rko.fs"
-name = "uuid_t"
-kind = "struct"
-size = 16
-align = 1
-
-# -- Opaque structs (pointer-only — size for completeness) --
-
-# Defined in linux/mm_types.h — cascades into arch types (pgd_t, mm_context_t)
-[[inject_type]]
-namespace = "rko.fs"
-name = "folio"
-kind = "struct"
-size = 256
-align = 8
-
-# Defined in linux/key.h — pointer-only dep of cred
-[[inject_type]]
-namespace = "rko.fs"
-name = "key"
-kind = "struct"
-size = 8
-align = 8
-
-# Defined in linux/sched/user.h — pointer-only dep of cred
-[[inject_type]]
-namespace = "rko.fs"
-name = "user_struct"
-kind = "struct"
-size = 8
-align = 8
-
-# Defined in linux/mm_types.h — cascades into arch types
-[[inject_type]]
-namespace = "rko.fs"
-name = "vm_area_struct"
-kind = "struct"
-size = 192
-align = 8
-
-# Defined in linux/mm_types.h — cascades into arch types
-[[inject_type]]
-namespace = "rko.fs"
-name = "vm_area_desc"
-kind = "struct"
-size = 192
-align = 8
-
-# Defined in linux/sched.h — 42 includes, cascades into most of the kernel
-[[inject_type]]
-namespace = "rko.fs"
 name = "task_struct"
 kind = "struct"
 size = 3136
@@ -324,120 +343,6 @@ align = 8
 
 # Defined in linux/sysctl.h — anonymous enum blocks extraction
 [[inject_type]]
-namespace = "rko.fs_context"
-name = "ctl_table_set"
-kind = "struct"
-size = 8
-align = 8
-
-# Defined in linux/sysctl.h — anonymous enum blocks extraction
-[[inject_type]]
-namespace = "rko.fs_context"
-name = "ctl_table_header"
-kind = "struct"
-size = 8
-align = 8
-
-# Defined in linux/mm_types.h — cascades into arch types
-[[inject_type]]
-namespace = "rko.pagemap"
-name = "page"
-kind = "struct"
-size = 64
-align = 8
-
-# Defined in linux/mm_types.h (via linux/mm.h) — linux/mm.h is 4000+ lines
-[[inject_type]]
-namespace = "rko.pagemap"
-name = "vm_fault"
-kind = "struct"
-size = 112
-align = 8
-
-# Defined in uapi/linux/fs.h — UAPI header, not kernel-internal
-[[inject_type]]
-namespace = "rko.fs"
-name = "file_dedupe_range"
-kind = "struct"
-size = 24
-align = 8
-
-# -- Types surfaced by windows-bindgen (not caught by unresolved check) --
-
-# Defined in linux/uidgid_types.h — typedef struct wrapper
-[[inject_type]]
-namespace = "rko.fs"
-name = "kuid_t"
-kind = "struct"
-size = 4
-align = 4
-
-# Defined in linux/rwlock_types.h — macro-generated type
-[[inject_type]]
-namespace = "rko.fs"
-name = "rwlock_t"
-kind = "struct"
-size = 8
-align = 4
-
-# Defined in linux/seqlock_types.h — macro-generated (SEQCOUNT_LOCKNAME)
-[[inject_type]]
-namespace = "rko.dcache"
-name = "seqcount_spinlock"
-kind = "struct"
-size = 4
-align = 4
-
-# Defined in linux/uidgid_types.h — typedef struct wrapper
-[[inject_type]]
-namespace = "rko.fs"
-name = "kgid_t"
-kind = "struct"
-size = 4
-align = 4
-
-# Defined in linux/file_ref.h — typedef atomic_long_t
-[[inject_type]]
-namespace = "rko.fs"
-name = "file_ref_t"
-kind = "struct"
-size = 8
-align = 8
-
-# Defined in linux/wait.h — duplicate with pagemap partition
-[[inject_type]]
-namespace = "rko.pagemap"
-name = "wait_queue_entry"
-kind = "struct"
-size = 40
-align = 8
-
-# Defined in linux/mm_types.h — cascades into arch types
-[[inject_type]]
-namespace = "rko.fs"
-name = "freeptr_t"
-kind = "struct"
-size = 8
-align = 8
-
-# Defined in linux/mnt_idmapping.h — typedef struct wrapper
-[[inject_type]]
-namespace = "rko.fs"
-name = "vfsuid_t"
-kind = "struct"
-size = 4
-align = 4
-
-# Defined in linux/mnt_idmapping.h — typedef struct wrapper
-[[inject_type]]
-namespace = "rko.fs"
-name = "vfsgid_t"
-kind = "struct"
-size = 4
-align = 4
-
-# Defined in linux/mnt_idmapping.h — forward-declared only, definition in fs/
-[[inject_type]]
 namespace = "rko.fs"
 name = "mnt_idmap"
 kind = "struct"
@@ -451,33 +356,30 @@ align = 8
 
 # Defined in vdso/time32.h — param of __sys_recvmmsg
 [[inject_type]]
-namespace = "rko.net"
-name = "old_timespec32"
+namespace = "rko.pagemap"
+name = "vm_fault"
 kind = "struct"
-size = 8
-align = 4
-
-# Defined in uapi/linux/time_types.h — param of __sys_recvmmsg
-[[inject_type]]
-namespace = "rko.net"
-name = "__kernel_timespec"
-kind = "struct"
-size = 16
+size = 112
 align = 8
 
-# ── Workqueue inject_types ─────────────────────────────────────────
-
-# Defined in linux/cpumask_types.h — embedded by value in workqueue_attrs
+# ctl_table_header: has anonymous enum field, bnd-winmd can't extract
 [[inject_type]]
-namespace = "rko.workqueue"
-name = "cpumask"
+namespace = "rko.fs_context"
+name = "ctl_table_header"
 kind = "struct"
 size = 8
 align = 8
 
-# ── iomap inject_types ─────────────────────────────────────────────
+# ctl_table_set: referenced by ctl_table_header (also in sysctl.h)
+[[inject_type]]
+namespace = "rko.fs_context"
+name = "ctl_table_set"
+kind = "struct"
+size = 8
+align = 8
 
-# Pointer-only deps of block_device (linux/blk_types.h)
+# device.h + blkdev.h cascade: pointer-only or embedded types
+# iomap: pointer-only deps of block_device and iomap structs
 [[inject_type]]
 namespace = "rko.iomap"
 name = "gendisk"
@@ -501,13 +403,6 @@ align = 8
 
 [[inject_type]]
 namespace = "rko.iomap"
-name = "kobject"
-kind = "struct"
-size = 64
-align = 8
-
-[[inject_type]]
-namespace = "rko.iomap"
 name = "partition_meta_info"
 kind = "struct"
 size = 8
@@ -520,29 +415,6 @@ kind = "struct"
 size = 8
 align = 8
 
-# Embedded by value in bio (linux/blk_types.h)
-[[inject_type]]
-namespace = "rko.iomap"
-name = "bio_vec"
-kind = "struct"
-size = 16
-align = 8
-
-[[inject_type]]
-namespace = "rko.iomap"
-name = "bvec_iter"
-kind = "struct"
-size = 16
-align = 4
-
-# Param-only
-[[inject_type]]
-namespace = "rko.iomap"
-name = "bvec_iter_all"
-kind = "struct"
-size = 24
-align = 8
-
 [[inject_type]]
 namespace = "rko.iomap"
 name = "queue_limits"
@@ -550,9 +422,12 @@ kind = "struct"
 size = 8
 align = 8
 
+# Core mm types — mm_types.h cascades into arch pgtable types
 [[inject_type]]
 namespace = "rko.iomap"
-name = "mempool"
+name = "kobject"
 kind = "struct"
-size = 8
+size = 64
 align = 8
+
+# Types owned by other partitions but needed by rko.fs struct fields

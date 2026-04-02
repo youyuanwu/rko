@@ -8,8 +8,12 @@
     clippy::all
 )]
 
+#[cfg(feature = "cred")]
+pub mod cred;
 #[cfg(feature = "dcache")]
 pub mod dcache;
+#[cfg(feature = "ds")]
+pub mod ds;
 #[cfg(feature = "err")]
 pub mod err;
 #[cfg(feature = "fs")]
@@ -24,6 +28,8 @@ pub mod helpers;
 pub mod highmem;
 #[cfg(feature = "iomap")]
 pub mod iomap;
+#[cfg(feature = "mm_types")]
+pub mod mm_types;
 #[cfg(feature = "net")]
 pub mod net;
 #[cfg(feature = "pagemap")]
@@ -38,6 +44,8 @@ pub mod statfs;
 pub mod sync;
 #[cfg(feature = "types")]
 pub mod types;
+#[cfg(feature = "wait")]
+pub mod wait;
 #[cfg(feature = "workqueue")]
 pub mod workqueue;
 #[cfg(feature = "xattr")]

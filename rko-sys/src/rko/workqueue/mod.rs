@@ -168,9 +168,24 @@ pub const __WQ_ORDERED: u32 = 131072u32;
 #[repr(C, packed(8))]
 #[derive(Clone, Copy)]
 pub struct cpumask {
-    pub _reserved: [u64; 1],
+    pub bits: [u64; 1],
 }
 impl Default for cpumask {
+    fn default() -> Self {
+        unsafe { core::mem::zeroed() }
+    }
+}
+#[repr(C)]
+#[derive(Clone, Copy, Default)]
+pub struct cpumask_t {
+    pub Value: cpumask,
+}
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct cpumask_var_t {
+    pub Value: [cpumask; 1],
+}
+impl Default for cpumask_var_t {
     fn default() -> Self {
         unsafe { core::mem::zeroed() }
     }
@@ -221,19 +236,14 @@ pub struct work_struct {
     pub func: super::fs::work_func_t,
 }
 #[repr(C, packed(8))]
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Default)]
 pub struct workqueue_attrs {
     pub nice: i32,
-    pub cpumask: [cpumask; 1],
-    pub __pod_cpumask: [cpumask; 1],
+    pub cpumask: cpumask_var_t,
+    pub __pod_cpumask: cpumask_var_t,
     pub affn_strict: bool,
     pub affn_scope: wq_affn_scope,
     pub ordered: bool,
-}
-impl Default for workqueue_attrs {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
 }
 pub type wq_affn_scope = u32;
 pub type wq_consts = u32;

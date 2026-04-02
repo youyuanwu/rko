@@ -20,7 +20,7 @@ const TASK_NORMAL: u32 = 3;
 /// released while sleeping and re-acquired before returning.
 // UPSTREAM_REF: linux/rust/kernel/sync/condvar.rs CondVar
 pub struct CondVar {
-    wait_queue_head: Opaque<rko_sys::rko::fs::wait_queue_head>,
+    wait_queue_head: Opaque<rko_sys::rko::wait::wait_queue_head>,
     _pin: PhantomPinned,
 }
 
@@ -48,7 +48,7 @@ impl CondVar {
                     core::ptr::addr_of_mut!((*slot)._pin).write(PhantomPinned);
                     // SAFETY: Initialize the wait_queue_head in place via
                     // the kernel's __init_waitqueue_head.
-                    rko_sys::rko::fs::__init_waitqueue_head(
+                    rko_sys::rko::wait::__init_waitqueue_head(
                         Opaque::raw_get(core::ptr::addr_of_mut!((*slot).wait_queue_head)),
                         name.as_ptr(),
                         key.as_ptr(),
@@ -68,14 +68,13 @@ impl CondVar {
         let lock = guard.lock_ref();
 
         // Allocate a stack wait_queue_entry for sleeping.
-        let mut wq_entry =
-            core::mem::MaybeUninit::<rko_sys::rko::pagemap::wait_queue_entry>::zeroed();
+        let mut wq_entry = core::mem::MaybeUninit::<rko_sys::rko::wait::wait_queue_entry>::zeroed();
 
         // SAFETY: prepare_to_wait_exclusive registers the entry on the
         // wait queue and sets the task state to TASK_INTERRUPTIBLE.
         // The wq_entry is stack-allocated and valid for this scope.
         unsafe {
-            rko_sys::rko::fs::prepare_to_wait_exclusive(
+            rko_sys::rko::wait::prepare_to_wait_exclusive(
                 self.wait_queue_head.get(),
                 wq_entry.as_mut_ptr(),
                 1, // TASK_INTERRUPTIBLE
@@ -95,7 +94,7 @@ impl CondVar {
 
         // SAFETY: Deregister from the wait queue and restore task state.
         unsafe {
-            rko_sys::rko::fs::finish_wait(self.wait_queue_head.get(), wq_entry.as_mut_ptr());
+            rko_sys::rko::wait::finish_wait(self.wait_queue_head.get(), wq_entry.as_mut_ptr());
         }
     }
 
@@ -105,7 +104,7 @@ impl CondVar {
         // TASK_NORMAL wakes both interruptible and uninterruptible tasks.
         // nr_exclusive=1 wakes at most one exclusive waiter.
         unsafe {
-            rko_sys::rko::fs::__wake_up(
+            rko_sys::rko::wait::__wake_up(
                 self.wait_queue_head.get(),
                 TASK_NORMAL,
                 1,
@@ -119,7 +118,7 @@ impl CondVar {
         // SAFETY: The wait_queue_head was initialized during CondVar construction.
         // nr_exclusive=0 wakes all waiters.
         unsafe {
-            rko_sys::rko::fs::__wake_up(
+            rko_sys::rko::wait::__wake_up(
                 self.wait_queue_head.get(),
                 TASK_NORMAL,
                 0,

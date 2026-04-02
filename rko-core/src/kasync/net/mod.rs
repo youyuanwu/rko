@@ -72,7 +72,7 @@ struct SocketFuture<'a, Out, F: FnMut() -> Result<Out, Error> + Send + 'a> {
     /// Whether we have registered on the socket's wait queue.
     is_queued: bool,
     /// Opaque kernel wait_queue_entry — pinned in place.
-    wq_entry: Opaque<rko_sys::rko::pagemap::wait_queue_entry>,
+    wq_entry: Opaque<rko_sys::rko::wait::wait_queue_entry>,
     /// Pointer to the heap-allocated callback state.
     /// Owned by this SocketFuture; freed on drop.
     cb_state: Option<NonNull<CallbackState>>,
@@ -175,9 +175,9 @@ impl<'a, Out, F: FnMut() -> Result<Out, Error> + Send + 'a> Future for SocketFut
                 // Register on the socket's wait queue.
                 // SAFETY: sock is a valid socket; wq.wait is its wait queue head.
                 // The bnd fork correctly pads socket_wq for cacheline alignment.
-                rko_sys::rko::fs::add_wait_queue(
+                rko_sys::rko::wait::add_wait_queue(
                     core::ptr::addr_of_mut!((*this.sock).wq.wait)
-                        .cast::<rko_sys::rko::fs::wait_queue_head>(),
+                        .cast::<rko_sys::rko::wait::wait_queue_head>(),
                     wq_entry_ptr,
                 );
             }
@@ -209,9 +209,9 @@ impl<'a, Out, F: FnMut() -> Result<Out, Error> + Send + 'a> Drop for SocketFutur
             // queue during poll. The socket and wq_entry are still valid.
             // Cast through raw pointer for cross-namespace type compat.
             unsafe {
-                rko_sys::rko::fs::remove_wait_queue(
+                rko_sys::rko::wait::remove_wait_queue(
                     core::ptr::addr_of_mut!((*self.sock).wq.wait)
-                        .cast::<rko_sys::rko::fs::wait_queue_head>(),
+                        .cast::<rko_sys::rko::wait::wait_queue_head>(),
                     Opaque::raw_get(&mut self.wq_entry as *mut _ as *mut _),
                 );
             }
@@ -241,7 +241,7 @@ impl<'a, Out, F: FnMut() -> Result<Out, Error> + Send + 'a> Drop for SocketFutur
 ///   `NoWaitLock::try_lock` ensures lock-free access.
 #[allow(dead_code)]
 unsafe extern "C" fn wake_callback(
-    wq_entry: *mut rko_sys::rko::pagemap::wait_queue_entry,
+    wq_entry: *mut rko_sys::rko::wait::wait_queue_entry,
     _mode: core::ffi::c_uint,
     _flags: core::ffi::c_int,
     key: *mut core::ffi::c_void,

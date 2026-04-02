@@ -8,7 +8,7 @@
 use core::cmp;
 
 use crate::error::Error;
-use rko_sys::rko::{fs as bindings, helpers as bindings_h, pagemap as pagemap_b};
+use rko_sys::rko::{fs as bindings, helpers as bindings_h, mm_types as mm_b, pagemap as pagemap_b};
 
 use super::{Offset, PAGE_SIZE};
 
@@ -19,7 +19,7 @@ type Result<T = ()> = core::result::Result<T, Error>;
 /// Holds a folio reference and provides access to its data. The folio
 /// is released (put) on drop.
 pub struct MappedFolio {
-    folio: *mut bindings::folio,
+    folio: *mut mm_b::folio,
     data: *const u8,
     offset_in_folio: usize,
     len: usize,

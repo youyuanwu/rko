@@ -8,63 +8,87 @@
     clippy::all
 )]
 
-#[cfg(feature = "pagemap")]
-windows_link::link!("kernel" "C" fn clear_highpage(page : *mut super::pagemap:: page));
-#[cfg(feature = "pagemap")]
-windows_link::link!("kernel" "C" fn clear_highpage_kasan_tagged(page : *mut super::pagemap:: page));
-#[cfg(feature = "pagemap")]
-windows_link::link!("kernel" "C" fn clear_user_highpage(page : *mut super::pagemap:: page, vaddr : u64));
-#[cfg(feature = "pagemap")]
-windows_link::link!("kernel" "C" fn clear_user_highpages(page : *mut super::pagemap:: page, vaddr : u64, npages : u32));
-#[cfg(feature = "pagemap")]
-windows_link::link!("kernel" "C" fn clear_user_page(addr : *mut core::ffi::c_void, vaddr : u64, page : *mut super::pagemap:: page));
-#[cfg(feature = "pagemap")]
-windows_link::link!("kernel" "C" fn clear_user_pages(addr : *mut core::ffi::c_void, vaddr : u64, page : *mut super::pagemap:: page, npages : u32));
-#[cfg(feature = "pagemap")]
-windows_link::link!("kernel" "C" fn copy_highpage(to : *mut super::pagemap:: page, from : *mut super::pagemap:: page));
-#[cfg(feature = "pagemap")]
-windows_link::link!("kernel" "C" fn copy_mc_highpage(to : *mut super::pagemap:: page, from : *mut super::pagemap:: page) -> i32);
-#[cfg(all(feature = "fs", feature = "pagemap"))]
-windows_link::link!("kernel" "C" fn copy_mc_user_highpage(to : *mut super::pagemap:: page, from : *mut super::pagemap:: page, vaddr : u64, vma : *mut super::fs:: vm_area_struct) -> i32);
-#[cfg(all(feature = "fs", feature = "pagemap"))]
-windows_link::link!("kernel" "C" fn copy_user_highpage(to : *mut super::pagemap:: page, from : *mut super::pagemap:: page, vaddr : u64, vma : *mut super::fs:: vm_area_struct));
-#[cfg(all(feature = "fs", feature = "pagemap"))]
-windows_link::link!("kernel" "C" fn flush_anon_page(vma : *mut super::fs:: vm_area_struct, page : *mut super::pagemap:: page, vmaddr : u64));
+#[cfg(all(feature = "ds", feature = "mm_types", feature = "types"))]
+windows_link::link!("kernel" "C" fn clear_highpage(page : *mut super::mm_types:: page));
+#[cfg(all(feature = "ds", feature = "mm_types", feature = "types"))]
+windows_link::link!("kernel" "C" fn clear_highpage_kasan_tagged(page : *mut super::mm_types:: page));
+#[cfg(all(feature = "ds", feature = "mm_types", feature = "types"))]
+windows_link::link!("kernel" "C" fn clear_user_highpage(page : *mut super::mm_types:: page, vaddr : u64));
+#[cfg(all(feature = "ds", feature = "mm_types", feature = "types"))]
+windows_link::link!("kernel" "C" fn clear_user_highpages(page : *mut super::mm_types:: page, vaddr : u64, npages : u32));
+#[cfg(all(feature = "ds", feature = "mm_types", feature = "types"))]
+windows_link::link!("kernel" "C" fn clear_user_page(addr : *mut core::ffi::c_void, vaddr : u64, page : *mut super::mm_types:: page));
+#[cfg(all(feature = "ds", feature = "mm_types", feature = "types"))]
+windows_link::link!("kernel" "C" fn clear_user_pages(addr : *mut core::ffi::c_void, vaddr : u64, page : *mut super::mm_types:: page, npages : u32));
+#[cfg(all(feature = "ds", feature = "mm_types", feature = "types"))]
+windows_link::link!("kernel" "C" fn copy_highpage(to : *mut super::mm_types:: page, from : *mut super::mm_types:: page));
+#[cfg(all(feature = "ds", feature = "mm_types", feature = "types"))]
+windows_link::link!("kernel" "C" fn copy_mc_highpage(to : *mut super::mm_types:: page, from : *mut super::mm_types:: page) -> i32);
+#[cfg(all(
+    feature = "dcache",
+    feature = "ds",
+    feature = "fs",
+    feature = "mm_types",
+    feature = "sync",
+    feature = "types",
+    feature = "workqueue"
+))]
+windows_link::link!("kernel" "C" fn copy_mc_user_highpage(to : *mut super::mm_types:: page, from : *mut super::mm_types:: page, vaddr : u64, vma : *mut super::mm_types:: vm_area_struct) -> i32);
+#[cfg(all(
+    feature = "dcache",
+    feature = "ds",
+    feature = "fs",
+    feature = "mm_types",
+    feature = "sync",
+    feature = "types",
+    feature = "workqueue"
+))]
+windows_link::link!("kernel" "C" fn copy_user_highpage(to : *mut super::mm_types:: page, from : *mut super::mm_types:: page, vaddr : u64, vma : *mut super::mm_types:: vm_area_struct));
+#[cfg(all(
+    feature = "dcache",
+    feature = "ds",
+    feature = "fs",
+    feature = "mm_types",
+    feature = "sync",
+    feature = "types",
+    feature = "workqueue"
+))]
+windows_link::link!("kernel" "C" fn flush_anon_page(vma : *mut super::mm_types:: vm_area_struct, page : *mut super::mm_types:: page, vmaddr : u64));
 windows_link::link!("kernel" "C" fn flush_kernel_vmap_range(vaddr : *mut core::ffi::c_void, size : i32));
-#[cfg(all(feature = "fs", feature = "types"))]
-windows_link::link!("kernel" "C" fn folio_fill_tail(folio : *mut super::fs:: folio, offset : super::types:: size_t, from : *const i8, len : super::types:: size_t));
-#[cfg(feature = "fs")]
-windows_link::link!("kernel" "C" fn folio_release_kmap(folio : *mut super::fs:: folio, addr : *mut core::ffi::c_void));
-#[cfg(all(feature = "fs", feature = "types"))]
-windows_link::link!("kernel" "C" fn folio_zero_range(folio : *mut super::fs:: folio, start : super::types:: size_t, length : super::types:: size_t));
-#[cfg(all(feature = "fs", feature = "types"))]
-windows_link::link!("kernel" "C" fn folio_zero_segment(folio : *mut super::fs:: folio, start : super::types:: size_t, xend : super::types:: size_t));
-#[cfg(all(feature = "fs", feature = "types"))]
-windows_link::link!("kernel" "C" fn folio_zero_segments(folio : *mut super::fs:: folio, start1 : super::types:: size_t, xend1 : super::types:: size_t, start2 : super::types:: size_t, xend2 : super::types:: size_t));
-#[cfg(all(feature = "fs", feature = "types"))]
-windows_link::link!("kernel" "C" fn folio_zero_tail(folio : *mut super::fs:: folio, offset : super::types:: size_t, kaddr : *mut core::ffi::c_void) -> *mut core::ffi::c_void);
+#[cfg(all(feature = "ds", feature = "mm_types", feature = "types"))]
+windows_link::link!("kernel" "C" fn folio_fill_tail(folio : *mut super::mm_types:: folio, offset : super::types:: size_t, from : *const i8, len : super::types:: size_t));
+#[cfg(all(feature = "ds", feature = "mm_types", feature = "types"))]
+windows_link::link!("kernel" "C" fn folio_release_kmap(folio : *mut super::mm_types:: folio, addr : *mut core::ffi::c_void));
+#[cfg(all(feature = "ds", feature = "mm_types", feature = "types"))]
+windows_link::link!("kernel" "C" fn folio_zero_range(folio : *mut super::mm_types:: folio, start : super::types:: size_t, length : super::types:: size_t));
+#[cfg(all(feature = "ds", feature = "mm_types", feature = "types"))]
+windows_link::link!("kernel" "C" fn folio_zero_segment(folio : *mut super::mm_types:: folio, start : super::types:: size_t, xend : super::types:: size_t));
+#[cfg(all(feature = "ds", feature = "mm_types", feature = "types"))]
+windows_link::link!("kernel" "C" fn folio_zero_segments(folio : *mut super::mm_types:: folio, start1 : super::types:: size_t, xend1 : super::types:: size_t, start2 : super::types:: size_t, xend2 : super::types:: size_t));
+#[cfg(all(feature = "ds", feature = "mm_types", feature = "types"))]
+windows_link::link!("kernel" "C" fn folio_zero_tail(folio : *mut super::mm_types:: folio, offset : super::types:: size_t, kaddr : *mut core::ffi::c_void) -> *mut core::ffi::c_void);
 windows_link::link!("kernel" "C" fn invalidate_kernel_vmap_range(vaddr : *mut core::ffi::c_void, size : i32));
-#[cfg(all(feature = "fs", feature = "types"))]
-windows_link::link!("kernel" "C" fn memcpy_folio(dst_folio : *mut super::fs:: folio, dst_off : super::types:: size_t, src_folio : *mut super::fs:: folio, src_off : super::types:: size_t, len : super::types:: size_t));
-#[cfg(all(feature = "fs", feature = "types"))]
-windows_link::link!("kernel" "C" fn memcpy_from_file_folio(to : *mut i8, folio : *mut super::fs:: folio, pos : super::types:: loff_t, len : super::types:: size_t) -> super::types:: size_t);
-#[cfg(all(feature = "fs", feature = "types"))]
-windows_link::link!("kernel" "C" fn memcpy_from_folio(to : *mut i8, folio : *mut super::fs:: folio, offset : super::types:: size_t, len : super::types:: size_t));
-#[cfg(all(feature = "pagemap", feature = "types"))]
-windows_link::link!("kernel" "C" fn memcpy_from_page(to : *mut i8, page : *mut super::pagemap:: page, offset : super::types:: size_t, len : super::types:: size_t));
-#[cfg(all(feature = "pagemap", feature = "types"))]
-windows_link::link!("kernel" "C" fn memcpy_page(dst_page : *mut super::pagemap:: page, dst_off : super::types:: size_t, src_page : *mut super::pagemap:: page, src_off : super::types:: size_t, len : super::types:: size_t));
-#[cfg(all(feature = "fs", feature = "types"))]
-windows_link::link!("kernel" "C" fn memcpy_to_folio(folio : *mut super::fs:: folio, offset : super::types:: size_t, from : *const i8, len : super::types:: size_t));
-#[cfg(all(feature = "pagemap", feature = "types"))]
-windows_link::link!("kernel" "C" fn memcpy_to_page(page : *mut super::pagemap:: page, offset : super::types:: size_t, from : *const i8, len : super::types:: size_t));
-#[cfg(all(feature = "pagemap", feature = "types"))]
-windows_link::link!("kernel" "C" fn memset_page(page : *mut super::pagemap:: page, offset : super::types:: size_t, val : i32, len : super::types:: size_t));
-#[cfg(all(feature = "pagemap", feature = "types"))]
-windows_link::link!("kernel" "C" fn memzero_page(page : *mut super::pagemap:: page, offset : super::types:: size_t, len : super::types:: size_t));
-#[cfg(feature = "pagemap")]
-windows_link::link!("kernel" "C" fn tag_clear_highpages(page : *mut super::pagemap:: page, numpages : i32) -> bool);
-#[cfg(feature = "pagemap")]
-windows_link::link!("kernel" "C" fn zero_user_segment(page : *mut super::pagemap:: page, start : u32, end : u32));
-#[cfg(feature = "pagemap")]
-windows_link::link!("kernel" "C" fn zero_user_segments(page : *mut super::pagemap:: page, start1 : u32, end1 : u32, start2 : u32, end2 : u32));
+#[cfg(all(feature = "ds", feature = "mm_types", feature = "types"))]
+windows_link::link!("kernel" "C" fn memcpy_folio(dst_folio : *mut super::mm_types:: folio, dst_off : super::types:: size_t, src_folio : *mut super::mm_types:: folio, src_off : super::types:: size_t, len : super::types:: size_t));
+#[cfg(all(feature = "ds", feature = "mm_types", feature = "types"))]
+windows_link::link!("kernel" "C" fn memcpy_from_file_folio(to : *mut i8, folio : *mut super::mm_types:: folio, pos : super::types:: loff_t, len : super::types:: size_t) -> super::types:: size_t);
+#[cfg(all(feature = "ds", feature = "mm_types", feature = "types"))]
+windows_link::link!("kernel" "C" fn memcpy_from_folio(to : *mut i8, folio : *mut super::mm_types:: folio, offset : super::types:: size_t, len : super::types:: size_t));
+#[cfg(all(feature = "ds", feature = "mm_types", feature = "types"))]
+windows_link::link!("kernel" "C" fn memcpy_from_page(to : *mut i8, page : *mut super::mm_types:: page, offset : super::types:: size_t, len : super::types:: size_t));
+#[cfg(all(feature = "ds", feature = "mm_types", feature = "types"))]
+windows_link::link!("kernel" "C" fn memcpy_page(dst_page : *mut super::mm_types:: page, dst_off : super::types:: size_t, src_page : *mut super::mm_types:: page, src_off : super::types:: size_t, len : super::types:: size_t));
+#[cfg(all(feature = "ds", feature = "mm_types", feature = "types"))]
+windows_link::link!("kernel" "C" fn memcpy_to_folio(folio : *mut super::mm_types:: folio, offset : super::types:: size_t, from : *const i8, len : super::types:: size_t));
+#[cfg(all(feature = "ds", feature = "mm_types", feature = "types"))]
+windows_link::link!("kernel" "C" fn memcpy_to_page(page : *mut super::mm_types:: page, offset : super::types:: size_t, from : *const i8, len : super::types:: size_t));
+#[cfg(all(feature = "ds", feature = "mm_types", feature = "types"))]
+windows_link::link!("kernel" "C" fn memset_page(page : *mut super::mm_types:: page, offset : super::types:: size_t, val : i32, len : super::types:: size_t));
+#[cfg(all(feature = "ds", feature = "mm_types", feature = "types"))]
+windows_link::link!("kernel" "C" fn memzero_page(page : *mut super::mm_types:: page, offset : super::types:: size_t, len : super::types:: size_t));
+#[cfg(all(feature = "ds", feature = "mm_types", feature = "types"))]
+windows_link::link!("kernel" "C" fn tag_clear_highpages(page : *mut super::mm_types:: page, numpages : i32) -> bool);
+#[cfg(all(feature = "ds", feature = "mm_types", feature = "types"))]
+windows_link::link!("kernel" "C" fn zero_user_segment(page : *mut super::mm_types:: page, start : u32, end : u32));
+#[cfg(all(feature = "ds", feature = "mm_types", feature = "types"))]
+windows_link::link!("kernel" "C" fn zero_user_segments(page : *mut super::mm_types:: page, start1 : u32, end1 : u32, start2 : u32, end2 : u32));

@@ -9,165 +9,211 @@
 )]
 
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn HAS_UNMAPPED_ID(idmap : *mut core::ffi::c_void, inode : *mut inode) -> bool);
-#[cfg(feature = "dcache")]
-windows_link::link!("kernel" "C" fn INIT_HLIST_BL_NODE(h : *mut super::dcache:: hlist_bl_node));
-#[cfg(all(feature = "pagemap", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn __add_wait_queue(wq_head : *mut wait_queue_head, wq_entry : *mut super::pagemap:: wait_queue_entry));
-#[cfg(all(feature = "pagemap", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn __add_wait_queue_entry_tail(wq_head : *mut wait_queue_head, wq_entry : *mut super::pagemap:: wait_queue_entry));
-#[cfg(all(feature = "pagemap", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn __add_wait_queue_entry_tail_exclusive(wq_head : *mut wait_queue_head, wq_entry : *mut super::pagemap:: wait_queue_entry));
-#[cfg(all(feature = "pagemap", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn __add_wait_queue_exclusive(wq_head : *mut wait_queue_head, wq_entry : *mut super::pagemap:: wait_queue_entry));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn __blockdev_direct_IO(iocb : *mut kiocb, inode : *mut inode, bdev : *mut core::ffi::c_void, iter : *mut core::ffi::c_void, get_block : get_block_t, end_io : dio_iodone_t, flags : i32) -> super::types:: ssize_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn __check_sticky(idmap : *mut core::ffi::c_void, dir : *mut inode, inode : *mut inode) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
-windows_link::link!("kernel" "C" fn __compat_vma_mmap(f_op : *const file_operations, file : *mut file, vma : *mut vm_area_struct) -> i32);
+windows_link::link!("kernel" "C" fn __compat_vma_mmap(f_op : *const file_operations, file : *mut file, vma : *mut super::mm_types:: vm_area_struct) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn __destroy_inode(param0 : *mut inode));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn __f_setown(filp : *mut file, param1 : *mut pid, param2 : pid_type, force : i32));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn __finish_swait(q : *mut swait_queue_head, wait : *mut swait_queue));
-windows_link::link!("kernel" "C" fn __free_put_cred(p : *mut core::ffi::c_void));
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn __file_ref_put(r#ref : *mut file_ref_t, cnt : u64) -> bool);
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn __file_ref_read_raw(r#ref : *mut file_ref_t) -> u64);
 windows_link::link!("kernel" "C" fn __free_putname(p : *mut core::ffi::c_void));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn __generic_file_fsync(param0 : *mut file, param1 : super::types:: loff_t, param2 : super::types:: loff_t, param3 : i32) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn __generic_file_write_iter(param0 : *mut kiocb, param1 : *mut core::ffi::c_void) -> super::types:: ssize_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn __generic_remap_file_range_prep(file_in : *mut file, pos_in : super::types:: loff_t, file_out : *mut file, pos_out : super::types:: loff_t, len : *mut super::types:: loff_t, remap_flags : u32, dax_read_ops : *const core::ffi::c_void) -> i32);
 windows_link::link!("kernel" "C" fn __getname_maybe_null(param0 : *const i8) -> *mut filename);
-#[cfg(feature = "dcache")]
-windows_link::link!("kernel" "C" fn __hlist_bl_del(n : *mut super::dcache:: hlist_bl_node));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn __iget(inode : *mut inode));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn __init_swait_queue_head(q : *mut swait_queue_head, name : *const i8, key : *mut lock_class_key));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn __init_waitqueue_head(wq_head : *mut wait_queue_head, name : *const i8, param2 : *mut lock_class_key));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn __inode_add_bytes(inode : *mut inode, bytes : super::types:: loff_t));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn __inode_get_bytes(inode : *mut inode) -> super::types:: loff_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn __inode_sub_bytes(inode : *mut inode, bytes : super::types:: loff_t));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn __insert_inode_hash(param0 : *mut inode, hashval : u64));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn __kernel_read(file : *mut file, buf : *mut core::ffi::c_void, count : super::types:: size_t, pos : *mut super::types:: loff_t) -> super::types:: ssize_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn __kernel_write(param0 : *mut file, param1 : *const core::ffi::c_void, param2 : super::types:: size_t, param3 : *mut super::types:: loff_t) -> super::types:: ssize_t);
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn __kprojid_val(projid : kprojid_t) -> projid_t);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn __list_lru_init(lru : *mut list_lru, memcg_aware : bool, shrinker : *mut shrinker) -> i32);
-windows_link::link!("kernel" "C" fn __llist_add(new : *mut llist_node, head : *mut llist_head) -> bool);
-windows_link::link!("kernel" "C" fn __llist_add_batch(new_first : *mut llist_node, new_last : *mut llist_node, head : *mut llist_head) -> bool);
-windows_link::link!("kernel" "C" fn __llist_del_all(head : *mut llist_head) -> *mut llist_node);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn __mark_inode_dirty(param0 : *mut inode, param1 : i32));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn __mas_set_range(mas : *mut ma_state, start : u64, last : u64));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn __mnt_is_readonly(mnt : *const vfsmount) -> bool);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn __mt_destroy(mt : *mut maple_tree));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn __mt_dup(mt : *mut maple_tree, new : *mut maple_tree, gfp : super::types:: gfp_t) -> i32);
 #[cfg(all(feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn __percpu_counter_compare(fbc : *mut percpu_counter, rhs : i64, batch : i32) -> i32);
 #[cfg(all(feature = "sync", feature = "types"))]
@@ -176,213 +222,198 @@ windows_link::link!("kernel" "C" fn __percpu_counter_init_many(fbc : *mut percpu
 windows_link::link!("kernel" "C" fn __percpu_counter_limited_add(fbc : *mut percpu_counter, limit : i64, amount : i64, batch : i32) -> bool);
 #[cfg(all(feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn __percpu_counter_sum(fbc : *mut percpu_counter) -> i64);
-#[cfg(all(feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn __percpu_down_read(param0 : *mut percpu_rw_semaphore, param1 : bool, param2 : bool) -> bool);
-#[cfg(all(feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn __percpu_init_rwsem(param0 : *mut percpu_rw_semaphore, param1 : *const i8, param2 : *mut lock_class_key) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn __put_cred(param0 : *mut cred));
 windows_link::link!("kernel" "C" fn __register_chrdev(major : u32, baseminor : u32, count : u32, name : *const i8, fops : *const file_operations) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn __remove_inode_hash(param0 : *mut inode));
-#[cfg(all(feature = "pagemap", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn __remove_wait_queue(wq_head : *mut wait_queue_head, wq_entry : *mut super::pagemap:: wait_queue_entry));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn __simple_rmdir(param0 : *mut inode, param1 : *mut super::dcache:: dentry));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn __simple_unlink(param0 : *mut inode, param1 : *mut super::dcache:: dentry));
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn __task_pid_nr_ns(task : *mut task_struct, r#type : pid_type, ns : *mut core::ffi::c_void) -> super::types:: pid_t);
 windows_link::link!("kernel" "C" fn __unregister_chrdev(major : u32, baseminor : u32, count : u32, name : *const i8));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn __var_waitqueue(p : *mut core::ffi::c_void) -> *mut wait_queue_head_t);
-#[cfg(all(feature = "pagemap", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn __wait_on_bit(wq_head : *mut wait_queue_head, wbq_entry : *mut wait_bit_queue_entry, action : *mut wait_bit_action_f, mode : u32) -> i32);
-#[cfg(all(feature = "pagemap", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn __wait_on_bit_lock(wq_head : *mut wait_queue_head, wbq_entry : *mut wait_bit_queue_entry, action : *mut wait_bit_action_f, mode : u32) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn __wake_up(wq_head : *mut wait_queue_head, mode : u32, nr : i32, key : *mut core::ffi::c_void) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn __wake_up_bit(wq_head : *mut wait_queue_head, word : *mut u64, bit : i32));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn __wake_up_locked(wq_head : *mut wait_queue_head, mode : u32, nr : i32));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn __wake_up_locked_key(wq_head : *mut wait_queue_head, mode : u32, key : *mut core::ffi::c_void));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn __wake_up_locked_sync_key(wq_head : *mut wait_queue_head, mode : u32, key : *mut core::ffi::c_void));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn __wake_up_on_current_cpu(wq_head : *mut wait_queue_head, mode : u32, key : *mut core::ffi::c_void));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn __wake_up_pollfree(wq_head : *mut wait_queue_head));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn __wake_up_sync(wq_head : *mut wait_queue_head, mode : u32));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn __wake_up_sync_key(wq_head : *mut wait_queue_head, mode : u32, key : *mut core::ffi::c_void));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn __xa_alloc(param0 : *mut xarray, id : *mut u32, entry : *mut core::ffi::c_void, param3 : xa_limit, param4 : super::types:: gfp_t) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn __xa_alloc_cyclic(param0 : *mut xarray, id : *mut u32, entry : *mut core::ffi::c_void, param3 : xa_limit, next : *mut u32, param5 : super::types:: gfp_t) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn __xa_clear_mark(param0 : *mut xarray, index : u64, param2 : xa_mark_t));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn __xa_cmpxchg(param0 : *mut xarray, index : u64, old : *mut core::ffi::c_void, entry : *mut core::ffi::c_void, param4 : super::types:: gfp_t) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn __xa_erase(param0 : *mut xarray, index : u64) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn __xa_insert(param0 : *mut xarray, index : u64, entry : *mut core::ffi::c_void, param3 : super::types:: gfp_t) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn __xa_set_mark(param0 : *mut xarray, index : u64, param2 : xa_mark_t));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn __xa_store(param0 : *mut xarray, index : u64, entry : *mut core::ffi::c_void, param3 : super::types:: gfp_t) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn __xas_next(param0 : *mut xa_state) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn __xas_prev(param0 : *mut xa_state) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn abort_creds(param0 : *mut cred));
-#[cfg(all(feature = "pagemap", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn add_wait_queue(wq_head : *mut wait_queue_head, wq_entry : *mut super::pagemap:: wait_queue_entry));
-#[cfg(all(feature = "pagemap", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn add_wait_queue_exclusive(wq_head : *mut wait_queue_head, wq_entry : *mut super::pagemap:: wait_queue_entry));
-#[cfg(all(feature = "pagemap", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn add_wait_queue_priority(wq_head : *mut wait_queue_head, wq_entry : *mut super::pagemap:: wait_queue_entry));
-#[cfg(all(feature = "pagemap", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn add_wait_queue_priority_exclusive(wq_head : *mut wait_queue_head, wq_entry : *mut super::pagemap:: wait_queue_entry) -> i32);
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn __vfsgid_val(gid : vfsgid_t) -> super::types:: gid_t);
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn __vfsuid_val(uid : vfsuid_t) -> super::types:: uid_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn address_space_init_once(mapping : *mut address_space));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn alloc_anon_inode(param0 : *mut super_block) -> *mut inode);
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn alloc_chrdev_region(param0 : *mut super::types:: dev_t, param1 : u32, param2 : u32, param3 : *const i8) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn alloc_inode(sb : *mut super_block) -> *mut inode);
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn alloc_pid(ns : *mut core::ffi::c_void, set_tid : *mut super::types:: pid_t, set_tid_size : super::types:: size_t) -> *mut pid);
 #[cfg(all(
     feature = "dcache",
+    feature = "ds",
     feature = "sync",
     feature = "types",
+    feature = "wait"
+))]
+windows_link::link!("kernel" "C" fn alloc_pid(ns : *mut core::ffi::c_void, set_tid : *mut super::types:: pid_t, set_tid_size : super::types:: size_t) -> *mut pid);
+#[cfg(all(
+    feature = "cred",
+    feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
+    feature = "sync",
+    feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn allow_write_access(file : *mut file));
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn always_delete_dentry(param0 : *const super::dcache:: dentry) -> i32);
 #[cfg(all(
     feature = "dcache",
     feature = "sync",
     feature = "types",
+    feature = "wait"
+))]
+windows_link::link!("kernel" "C" fn always_delete_dentry(param0 : *const super::dcache:: dentry) -> i32);
+#[cfg(all(
+    feature = "cred",
+    feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
+    feature = "sync",
+    feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn anon_inode_make_secure_inode(sb : *mut super_block, name : *const i8, context_inode : *const inode) -> *mut inode);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn atime_needs_update(param0 : *const path, param1 : *mut inode) -> bool);
-#[cfg(feature = "types")]
-windows_link::link!("kernel" "C" fn atomic_dec_and_wake_up(var : *mut super::types:: atomic_t) -> bool);
 windows_link::link!("kernel" "C" fn attach_pid(task : *mut task_struct, param1 : pid_type));
-#[cfg(feature = "pagemap")]
-windows_link::link!("kernel" "C" fn autoremove_wake_function(wq_entry : *mut super::pagemap:: wait_queue_entry, mode : u32, sync : i32, key : *mut core::ffi::c_void) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn backing_file_user_path(f : *const file) -> *mut path);
-windows_link::link!("kernel" "C" fn bit_wait(key : *mut wait_bit_key, mode : i32) -> i32);
-windows_link::link!("kernel" "C" fn bit_wait_io(key : *mut wait_bit_key, mode : i32) -> i32);
-windows_link::link!("kernel" "C" fn bit_wait_timeout(key : *mut wait_bit_key, mode : i32) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn bit_waitqueue(word : *mut u64, bit : i32) -> *mut wait_queue_head);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn blockdev_direct_IO(iocb : *mut kiocb, inode : *mut inode, iter : *mut core::ffi::c_void, get_block : get_block_t) -> super::types:: ssize_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn bmap(inode : *mut inode, block : *mut super::types:: sector_t) -> i32);
-windows_link::link!("kernel" "C" fn bpf_capable() -> bool);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn can_mmap_file(file : *mut file) -> bool);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn cap_ambient_invariant_ok(cred : *const cred) -> bool);
-windows_link::link!("kernel" "C" fn cap_combine(a : kernel_cap_t, b : kernel_cap_t) -> kernel_cap_t);
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn cap_convert_nscap(idmap : *mut core::ffi::c_void, dentry : *mut super::dcache:: dentry, ivalue : *mut *mut core::ffi::c_void, size : super::types:: size_t) -> i32);
-windows_link::link!("kernel" "C" fn cap_drop(a : kernel_cap_t, drop : kernel_cap_t) -> kernel_cap_t);
-windows_link::link!("kernel" "C" fn cap_drop_fs_set(a : kernel_cap_t) -> kernel_cap_t);
-windows_link::link!("kernel" "C" fn cap_drop_nfsd_set(a : kernel_cap_t) -> kernel_cap_t);
-windows_link::link!("kernel" "C" fn cap_intersect(a : kernel_cap_t, b : kernel_cap_t) -> kernel_cap_t);
-windows_link::link!("kernel" "C" fn cap_isclear(a : kernel_cap_t) -> bool);
-windows_link::link!("kernel" "C" fn cap_isidentical(a : kernel_cap_t, b : kernel_cap_t) -> bool);
-windows_link::link!("kernel" "C" fn cap_issubset(a : kernel_cap_t, set : kernel_cap_t) -> bool);
-windows_link::link!("kernel" "C" fn cap_raise_fs_set(a : kernel_cap_t, permitted : kernel_cap_t) -> kernel_cap_t);
-windows_link::link!("kernel" "C" fn cap_raise_nfsd_set(a : kernel_cap_t, permitted : kernel_cap_t) -> kernel_cap_t);
-windows_link::link!("kernel" "C" fn capable(cap : i32) -> bool);
 #[cfg(all(
     feature = "dcache",
+    feature = "ds",
     feature = "sync",
     feature = "types",
-    feature = "workqueue"
+    feature = "wait"
 ))]
-windows_link::link!("kernel" "C" fn capable_wrt_inode_uidgid(idmap : *mut core::ffi::c_void, inode : *const inode, cap : i32) -> bool);
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn change_pid(pids : *mut *mut pid, task : *mut task_struct, param2 : pid_type, pid : *mut pid));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn check_sticky(idmap : *mut core::ffi::c_void, dir : *mut inode, inode : *mut inode) -> i32);
-windows_link::link!("kernel" "C" fn checkpoint_restore_ns_capable(ns : *mut core::ffi::c_void) -> bool);
-windows_link::link!("kernel" "C" fn checkpoint_restore_ns_capable_noaudit(ns : *mut core::ffi::c_void) -> bool);
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn chrdev_show(param0 : *mut core::ffi::c_void, param1 : super::types:: off_t));
 windows_link::link!("kernel" "C" fn cifs_root_data(dev : *mut *mut i8, opts : *mut *mut i8) -> i32);
@@ -398,254 +429,337 @@ windows_link::link!("kernel" "C" fn class_filename_maybe_null_constructor(p : *c
 windows_link::link!("kernel" "C" fn class_filename_maybe_null_destructor(p : *mut class_filename_t));
 windows_link::link!("kernel" "C" fn class_filename_uflags_constructor(p : *const i8, f : u32) -> class_filename_t);
 windows_link::link!("kernel" "C" fn class_filename_uflags_destructor(p : *mut class_filename_t));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn class_override_creds_constructor(override_cred : *const cred) -> *mut cred);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn class_override_creds_destructor(p : *mut *mut cred));
-#[cfg(all(feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn class_percpu_read_constructor(_t : *mut percpu_rw_semaphore) -> *mut percpu_rw_semaphore);
-#[cfg(all(feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn class_percpu_read_destructor(p : *mut *mut percpu_rw_semaphore));
-#[cfg(all(feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn class_percpu_read_lock_err(_t : *mut class_percpu_read_t) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn class_percpu_read_lock_ptr(_t : *mut class_percpu_read_t) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn class_percpu_read_try_constructor(_t : class_percpu_read_t) -> class_percpu_read_t);
-#[cfg(all(feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn class_percpu_read_try_destructor(p : *mut class_percpu_read_t));
-#[cfg(all(feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn class_percpu_read_try_lock_err(_t : *mut class_percpu_read_t) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn class_percpu_read_try_lock_ptr(_t : *mut class_percpu_read_t) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn class_percpu_write_constructor(_t : *mut percpu_rw_semaphore) -> *mut percpu_rw_semaphore);
-#[cfg(all(feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn class_percpu_write_destructor(p : *mut *mut percpu_rw_semaphore));
-#[cfg(all(feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn class_percpu_write_lock_err(_t : *mut class_percpu_write_t) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn class_percpu_write_lock_ptr(_t : *mut class_percpu_write_t) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn class_prepare_creds_constructor() -> *mut cred);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn class_prepare_creds_destructor(p : *mut *mut cred));
-windows_link::link!("kernel" "C" fn clear_and_wake_up_bit(bit : i32, word : *mut u64));
 windows_link::link!("kernel" "C" fn clear_delayed_call(call : *mut delayed_call));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn clear_inode(param0 : *mut inode));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn clear_nlink(inode : *mut inode));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn clone_private_mount(path : *const path) -> *mut vfsmount);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn collect_paths(param0 : *const path, param1 : *mut path, param2 : u32) -> *mut path);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn commit_creds(param0 : *mut cred) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
-windows_link::link!("kernel" "C" fn compat_vma_mmap(file : *mut file, vma : *mut vm_area_struct) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn complete(param0 : *mut completion));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn complete_acquire(x : *mut completion));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn complete_all(param0 : *mut completion));
+windows_link::link!("kernel" "C" fn compat_vma_mmap(file : *mut file, vma : *mut super::mm_types:: vm_area_struct) -> i32);
 windows_link::link!("kernel" "C" fn complete_getname(param0 : *mut delayed_filename) -> *mut filename);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn complete_on_current_cpu(x : *mut completion));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn complete_release(x : *mut completion));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn completion_done(x : *mut completion) -> bool);
-windows_link::link!("kernel" "C" fn copy_creds(param0 : *mut task_struct, param1 : u64) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn copy_splice_read(r#in : *mut file, ppos : *mut super::types:: loff_t, pipe : *mut core::ffi::c_void, len : super::types:: size_t, flags : u32) -> super::types:: ssize_t);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn cred_alloc_blank() -> *mut cred);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn cred_fscmp(param0 : *const cred, param1 : *const cred) -> i32);
-windows_link::link!("kernel" "C" fn cred_init());
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn current_time(inode : *mut inode) -> timespec64);
-windows_link::link!("kernel" "C" fn current_user_ns() -> *mut core::ffi::c_void);
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn d_alloc_name(param0 : *mut super::dcache:: dentry, param1 : *const i8) -> *mut super::dcache:: dentry);
 #[cfg(all(
     feature = "dcache",
     feature = "sync",
     feature = "types",
+    feature = "wait"
+))]
+windows_link::link!("kernel" "C" fn d_alloc_name(param0 : *mut super::dcache:: dentry, param1 : *const i8) -> *mut super::dcache:: dentry);
+#[cfg(all(
+    feature = "cred",
+    feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
+    feature = "sync",
+    feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn d_mark_dontcache(inode : *mut inode));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn dcache_dir_close(param0 : *mut inode, param1 : *mut file) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn dcache_dir_lseek(param0 : *mut file, param1 : super::types:: loff_t, param2 : i32) -> super::types:: loff_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn dcache_dir_open(param0 : *mut inode, param1 : *mut file) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn dcache_readdir(param0 : *mut file, param1 : *mut dir_context) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn deactivate_locked_super(sb : *mut super_block));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn deactivate_super(sb : *mut super_block));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn default_llseek(file : *mut file, offset : super::types:: loff_t, whence : i32) -> super::types:: loff_t);
-#[cfg(feature = "pagemap")]
-windows_link::link!("kernel" "C" fn default_wake_function(wq_entry : *mut super::pagemap:: wait_queue_entry, mode : u32, flags : i32, key : *mut core::ffi::c_void) -> i32);
 windows_link::link!("kernel" "C" fn delayed_getname(param0 : *mut delayed_filename, param1 : *const i8) -> i32);
 windows_link::link!("kernel" "C" fn delayed_getname_uflags(v : *mut delayed_filename, param1 : *const i8, param2 : i32) -> i32);
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn delayed_work_timer_fn(t : *mut timer_list));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
-windows_link::link!("kernel" "C" fn dentry_create(path : *mut path, flags : i32, mode : super::types:: umode_t, cred : *const cred) -> *mut file);
+windows_link::link!("kernel" "C" fn dentry_create(path : *mut path, flags : i32, mode : super::types:: umode_t, cred : *const super::cred:: cred) -> *mut file);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
-windows_link::link!("kernel" "C" fn dentry_open(path : *const path, flags : i32, creds : *const cred) -> *mut file);
+windows_link::link!("kernel" "C" fn dentry_open(path : *const path, flags : i32, creds : *const super::cred:: cred) -> *mut file);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
-windows_link::link!("kernel" "C" fn dentry_open_nonotify(path : *const path, flags : i32, cred : *const cred) -> *mut file);
+windows_link::link!("kernel" "C" fn dentry_open_nonotify(path : *const path, flags : i32, cred : *const super::cred:: cred) -> *mut file);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn deny_write_access(file : *mut file) -> i32);
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "ds",
+    feature = "sync",
+    feature = "types",
+    feature = "wait"
+))]
 windows_link::link!("kernel" "C" fn detach_pid(pids : *mut *mut pid, task : *mut task_struct, param2 : pid_type));
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn dir_emit(ctx : *mut dir_context, name : *const i8, namelen : i32, ino : u64, r#type : u32) -> bool);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn dir_emit_dot(file : *mut file, ctx : *mut dir_context) -> bool);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn dir_emit_dotdot(file : *mut file, ctx : *mut dir_context) -> bool);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn dir_emit_dots(file : *mut file, ctx : *mut dir_context) -> bool);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn dir_relax(inode : *mut inode) -> bool);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn dir_relax_shared(inode : *mut inode) -> bool);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn direct_write_fallback(iocb : *mut kiocb, iter : *mut core::ffi::c_void, direct_written : super::types:: ssize_t, buffered_written : super::types:: ssize_t) -> super::types:: ssize_t);
 windows_link::link!("kernel" "C" fn disable_pid_allocation(ns : *mut core::ffi::c_void));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn discard_new_inode(param0 : *mut inode));
@@ -657,441 +771,686 @@ windows_link::link!("kernel" "C" fn do_pipe_flags(param0 : *mut i32, param1 : i3
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn do_sys_open(dfd : i32, filename : *const i8, flags : i32, mode : super::types:: umode_t) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn do_truncate(param0 : *mut core::ffi::c_void, param1 : *mut super::dcache:: dentry, start : super::types:: loff_t, time_attrs : u32, filp : *mut file) -> i32);
-#[cfg(all(feature = "pagemap", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn do_wait_intr(param0 : *mut wait_queue_head_t, param1 : *mut wait_queue_entry_t) -> i32);
-#[cfg(all(feature = "pagemap", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn do_wait_intr_irq(param0 : *mut wait_queue_head_t, param1 : *mut wait_queue_entry_t) -> i32);
 windows_link::link!("kernel" "C" fn dqstats_dec(r#type : u32));
 windows_link::link!("kernel" "C" fn dqstats_inc(r#type : u32));
 windows_link::link!("kernel" "C" fn dquot_generic_flag(flags : u32, r#type : i32) -> u32);
 windows_link::link!("kernel" "C" fn dquot_state_flag(flags : u32, r#type : i32) -> u32);
 windows_link::link!("kernel" "C" fn dquot_state_types(flags : u32, flag : u32) -> u32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn drop_collected_paths(param0 : *const path, param1 : *const path));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn drop_nlink(inode : *mut inode));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn drop_super(sb : *mut super_block));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn drop_super_exclusive(sb : *mut super_block));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn dump_mapping(param0 : *const address_space));
 windows_link::link!("kernel" "C" fn emergency_remount());
 windows_link::link!("kernel" "C" fn emergency_sync());
 windows_link::link!("kernel" "C" fn emergency_thaw_all());
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn end_dirop(de : *mut super::dcache:: dentry));
 #[cfg(all(
     feature = "dcache",
     feature = "sync",
     feature = "types",
+    feature = "wait"
+))]
+windows_link::link!("kernel" "C" fn end_dirop(de : *mut super::dcache:: dentry));
+#[cfg(all(
+    feature = "cred",
+    feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
+    feature = "sync",
+    feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn evict_inodes(sb : *mut super_block));
 windows_link::link!("kernel" "C" fn exchange_tids(task : *mut task_struct, old : *mut task_struct));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn exe_file_allow_write_access(exe_file : *mut file));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn exe_file_deny_write_access(exe_file : *mut file) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn execute_ok(inode : *mut inode) -> bool);
-windows_link::link!("kernel" "C" fn exit_creds(param0 : *mut task_struct));
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn export_guid(dst : *mut super::types:: __u8, src : *const guid_t));
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn export_uuid(dst : *mut super::types:: __u8, src : *const uuid_t));
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn extensible_ioctl_valid(cmd_a : u32, cmd_b : u32, min_size : super::types:: size_t) -> bool);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn f_delown(filp : *mut file));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn f_getown(filp : *mut file) -> super::types:: pid_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn f_setown(filp : *mut file, who : i32, force : i32) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn fasync_alloc() -> *mut fasync_struct);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn fasync_free(param0 : *mut fasync_struct));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn fasync_helper(param0 : i32, param1 : *mut file, param2 : i32, param3 : *mut *mut fasync_struct) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn fasync_insert_entry(param0 : i32, param1 : *mut file, param2 : *mut *mut fasync_struct, param3 : *mut fasync_struct) -> *mut fasync_struct);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn fasync_remove_entry(param0 : *mut file, param1 : *mut *mut fasync_struct) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn fc_mount(fc : *mut core::ffi::c_void) -> *mut vfsmount);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn fc_mount_longterm(fc : *mut core::ffi::c_void) -> *mut vfsmount);
 windows_link::link!("kernel" "C" fn fd_statfs(param0 : i32, param1 : *mut core::ffi::c_void) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn file_accessed(file : *mut file));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn file_check_and_advance_wb_err(file : *mut file) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn file_clone_open(file : *mut file) -> *mut file);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn file_dentry(file : *const file) -> *mut super::dcache:: dentry);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn file_end_write(file : *mut file));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn file_f_owner(file : *const file) -> *mut fown_struct);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn file_f_owner_allocate(file : *mut file) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn file_fdatawait_range(file : *mut file, lstart : super::types:: loff_t, lend : super::types:: loff_t) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn file_inode(f : *const file) -> *mut inode);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn file_is_dax(file : *const file) -> bool);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn file_mnt_idmap(file : *const file) -> *mut core::ffi::c_void);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn file_modified(file : *mut file) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
-    feature = "workqueue"
-))]
-windows_link::link!("kernel" "C" fn file_ns_capable(file : *const file, ns : *mut core::ffi::c_void, cap : i32) -> bool);
-#[cfg(all(
-    feature = "dcache",
-    feature = "sync",
-    feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn file_open_name(param0 : *mut filename, param1 : i32, param2 : super::types:: umode_t) -> *mut file);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn file_open_root(param0 : *const path, param1 : *const i8, param2 : i32, param3 : super::types:: umode_t) -> *mut file);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn file_open_root_mnt(mnt : *mut vfsmount, name : *const i8, flags : i32, mode : super::types:: umode_t) -> *mut file);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn file_path(param0 : *mut file, param1 : *mut i8, param2 : i32) -> *mut i8);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn file_permission(file : *mut file, mask : i32) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn file_ra_state_init(ra : *mut file_ra_state, mapping : *mut address_space));
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn file_ref_get(r#ref : *mut file_ref_t) -> bool);
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn file_ref_inc(r#ref : *mut file_ref_t));
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn file_ref_init(r#ref : *mut file_ref_t, cnt : u64));
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn file_ref_put(r#ref : *mut file_ref_t) -> bool);
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn file_ref_put_close(r#ref : *mut file_ref_t) -> bool);
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn file_ref_read(r#ref : *mut file_ref_t) -> u64);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn file_remove_privs(param0 : *mut file) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn file_set_fsnotify_mode(file : *mut file, mode : super::types:: fmode_t));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn file_start_write(file : *mut file));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn file_start_write_trylock(file : *mut file) -> bool);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn file_update_time(file : *mut file) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn file_user_inode(f : *const file) -> *mut inode);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn file_user_path(f : *const file) -> *mut path);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn file_write_and_wait(file : *mut file) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn file_write_and_wait_range(file : *mut file, start : super::types:: loff_t, end : super::types:: loff_t) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn file_write_not_started(file : *const file) -> bool);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn file_write_started(file : *const file) -> bool);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn filemap_flush_range(mapping : *mut address_space, start : super::types:: loff_t, end : super::types:: loff_t) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn filemap_invalidate_lock(mapping : *mut address_space));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn filemap_invalidate_lock_shared(mapping : *mut address_space));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn filemap_invalidate_lock_two(mapping1 : *mut address_space, mapping2 : *mut address_space));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn filemap_invalidate_trylock_shared(mapping : *mut address_space) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn filemap_invalidate_unlock(mapping : *mut address_space));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn filemap_invalidate_unlock_shared(mapping : *mut address_space));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn filemap_invalidate_unlock_two(mapping1 : *mut address_space, mapping2 : *mut address_space));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn filemap_read(iocb : *mut kiocb, to : *mut core::ffi::c_void, already_read : super::types:: ssize_t) -> super::types:: ssize_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn filemap_splice_read(r#in : *mut file, ppos : *mut super::types:: loff_t, pipe : *mut core::ffi::c_void, len : super::types:: size_t, flags : u32) -> super::types:: ssize_t);
@@ -1100,342 +1459,562 @@ windows_link::link!("kernel" "C" fn files_maxfiles_init());
 windows_link::link!("kernel" "C" fn filesystems_freeze(freeze_all : bool));
 windows_link::link!("kernel" "C" fn filesystems_thaw());
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn fill_mg_cmtime(stat : *mut kstat, request_mask : u32, inode : *mut inode));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn filp_close(param0 : *mut file, id : fl_owner_t) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn filp_open(param0 : *const i8, param1 : i32, param2 : super::types:: umode_t) -> *mut file);
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn find_ge_pid(nr : i32, param1 : *mut core::ffi::c_void) -> *mut pid);
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn find_get_pid(nr : i32) -> *mut pid);
 #[cfg(all(
     feature = "dcache",
+    feature = "ds",
     feature = "sync",
     feature = "types",
+    feature = "wait"
+))]
+windows_link::link!("kernel" "C" fn find_ge_pid(nr : i32, param1 : *mut core::ffi::c_void) -> *mut pid);
+#[cfg(all(
+    feature = "dcache",
+    feature = "ds",
+    feature = "sync",
+    feature = "types",
+    feature = "wait"
+))]
+windows_link::link!("kernel" "C" fn find_get_pid(nr : i32) -> *mut pid);
+#[cfg(all(
+    feature = "cred",
+    feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
+    feature = "sync",
+    feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn find_inode_by_ino_rcu(param0 : *mut super_block, param1 : u64) -> *mut inode);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn find_inode_nowait(param0 : *mut super_block, param1 : u64, r#match : *mut isize, data : *mut core::ffi::c_void) -> *mut inode);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn find_inode_rcu(param0 : *mut super_block, param1 : u64, param2 : *mut isize, param3 : *mut core::ffi::c_void) -> *mut inode);
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn find_pid_ns(nr : i32, ns : *mut core::ffi::c_void) -> *mut pid);
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn find_vpid(nr : i32) -> *mut pid);
 #[cfg(all(
     feature = "dcache",
+    feature = "ds",
     feature = "sync",
     feature = "types",
+    feature = "wait"
+))]
+windows_link::link!("kernel" "C" fn find_pid_ns(nr : i32, ns : *mut core::ffi::c_void) -> *mut pid);
+#[cfg(all(
+    feature = "dcache",
+    feature = "ds",
+    feature = "sync",
+    feature = "types",
+    feature = "wait"
+))]
+windows_link::link!("kernel" "C" fn find_vpid(nr : i32) -> *mut pid);
+#[cfg(all(
+    feature = "cred",
+    feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
+    feature = "sync",
+    feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn finish_no_open(file : *mut file, dentry : *mut super::dcache:: dentry) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn finish_open(file : *mut file, dentry : *mut super::dcache:: dentry, open : *mut isize) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn finish_open_simple(file : *mut file, error : i32) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn finish_swait(q : *mut swait_queue_head, wait : *mut swait_queue));
-#[cfg(all(feature = "pagemap", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn finish_wait(wq_head : *mut wait_queue_head, wq_entry : *mut super::pagemap:: wait_queue_entry));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn fixed_size_llseek(file : *mut file, offset : super::types:: loff_t, whence : i32, size : super::types:: loff_t) -> super::types:: loff_t);
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn free_anon_bdev(param0 : super::types:: dev_t));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn free_inode_nonrcu(inode : *mut inode));
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "ds",
+    feature = "sync",
+    feature = "types",
+    feature = "wait"
+))]
 windows_link::link!("kernel" "C" fn free_pid(pid : *mut pid));
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "ds",
+    feature = "sync",
+    feature = "types",
+    feature = "wait"
+))]
 windows_link::link!("kernel" "C" fn free_pids(pids : *mut *mut pid));
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn from_kprojid(to : *mut core::ffi::c_void, kprojid : kprojid_t) -> projid_t);
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn from_kprojid_munged(to : *mut core::ffi::c_void, kprojid : kprojid_t) -> projid_t);
-#[cfg(feature = "types")]
+#[cfg(all(feature = "cred", feature = "types"))]
 windows_link::link!("kernel" "C" fn from_kqid(to : *mut core::ffi::c_void, qid : kqid) -> qid_t);
-#[cfg(feature = "types")]
+#[cfg(all(feature = "cred", feature = "types"))]
 windows_link::link!("kernel" "C" fn from_kqid_munged(to : *mut core::ffi::c_void, qid : kqid) -> qid_t);
+#[cfg(all(feature = "cred", feature = "types"))]
+windows_link::link!("kernel" "C" fn from_vfsgid(idmap : *mut core::ffi::c_void, fs_userns : *mut core::ffi::c_void, vfsgid : vfsgid_t) -> super::cred:: kgid_t);
+#[cfg(all(feature = "cred", feature = "types"))]
+windows_link::link!("kernel" "C" fn from_vfsuid(idmap : *mut core::ffi::c_void, fs_userns : *mut core::ffi::c_void, vfsuid : vfsuid_t) -> super::cred:: kuid_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn fsuidgid_has_mapping(sb : *mut super_block, idmap : *mut core::ffi::c_void) -> bool);
+windows_link::link!("kernel" "C" fn generate_random_guid(guid : *mut u8));
+windows_link::link!("kernel" "C" fn generate_random_uuid(uuid : *mut u8));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn generic_atomic_write_valid(iocb : *mut kiocb, iter : *mut core::ffi::c_void) -> i32);
 windows_link::link!("kernel" "C" fn generic_check_addressable(param0 : u32, param1 : u64) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn generic_ci_match(parent : *const inode, name : *const super::dcache:: qstr, folded_name : *const super::dcache:: qstr, de_name : *const u8, de_name_len : u32) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn generic_ci_validate_strict_name(dir : *mut inode, name : *const super::dcache:: qstr) -> bool);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn generic_fadvise(file : *mut file, offset : super::types:: loff_t, len : super::types:: loff_t, advice : i32) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn generic_file_direct_write(param0 : *mut kiocb, param1 : *mut core::ffi::c_void) -> super::types:: ssize_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn generic_file_fsync(param0 : *mut file, param1 : super::types:: loff_t, param2 : super::types:: loff_t, param3 : i32) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn generic_file_llseek(file : *mut file, offset : super::types:: loff_t, whence : i32) -> super::types:: loff_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn generic_file_llseek_size(file : *mut file, offset : super::types:: loff_t, whence : i32, maxsize : super::types:: loff_t, eof : super::types:: loff_t) -> super::types:: loff_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
+    feature = "sync",
+    feature = "types",
+    feature = "wait",
+    feature = "workqueue"
+))]
+windows_link::link!("kernel" "C" fn generic_file_mmap(param0 : *mut file, param1 : *mut super::mm_types:: vm_area_struct) -> i32);
+#[cfg(all(
+    feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
     feature = "workqueue"
 ))]
-windows_link::link!("kernel" "C" fn generic_file_mmap(param0 : *mut file, param1 : *mut vm_area_struct) -> i32);
-windows_link::link!("kernel" "C" fn generic_file_mmap_prepare(desc : *mut vm_area_desc) -> i32);
+windows_link::link!("kernel" "C" fn generic_file_mmap_prepare(desc : *mut super::mm_types:: vm_area_desc) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn generic_file_open(inode : *mut inode, filp : *mut file) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn generic_file_read_iter(param0 : *mut kiocb, param1 : *mut core::ffi::c_void) -> super::types:: ssize_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
+    feature = "sync",
+    feature = "types",
+    feature = "wait",
+    feature = "workqueue"
+))]
+windows_link::link!("kernel" "C" fn generic_file_readonly_mmap(param0 : *mut file, param1 : *mut super::mm_types:: vm_area_struct) -> i32);
+#[cfg(all(
+    feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
     feature = "workqueue"
 ))]
-windows_link::link!("kernel" "C" fn generic_file_readonly_mmap(param0 : *mut file, param1 : *mut vm_area_struct) -> i32);
-windows_link::link!("kernel" "C" fn generic_file_readonly_mmap_prepare(desc : *mut vm_area_desc) -> i32);
+windows_link::link!("kernel" "C" fn generic_file_readonly_mmap_prepare(desc : *mut super::mm_types:: vm_area_desc) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn generic_file_rw_checks(file_in : *mut file, file_out : *mut file) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn generic_file_write_iter(param0 : *mut kiocb, param1 : *mut core::ffi::c_void) -> super::types:: ssize_t);
-#[cfg(feature = "types")]
+#[cfg(all(feature = "cred", feature = "types"))]
 windows_link::link!("kernel" "C" fn generic_fill_statx_atomic_writes(stat : *mut kstat, unit_min : u32, unit_max : u32, unit_max_opt : u32));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn generic_fill_statx_attr(inode : *mut inode, stat : *mut kstat));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn generic_fillattr(param0 : *mut core::ffi::c_void, param1 : u32, param2 : *mut inode, param3 : *mut kstat));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn generic_llseek_cookie(file : *mut file, offset : super::types:: loff_t, whence : i32, cookie : *mut u64) -> super::types:: loff_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn generic_perform_write(param0 : *mut kiocb, param1 : *mut core::ffi::c_void) -> super::types:: ssize_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn generic_permission(param0 : *mut core::ffi::c_void, param1 : *mut inode, param2 : i32) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn generic_read_dir(param0 : *mut file, param1 : *mut i8, param2 : super::types:: size_t, param3 : *mut super::types:: loff_t) -> super::types:: ssize_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn generic_remap_file_range_prep(file_in : *mut file, pos_in : super::types:: loff_t, file_out : *mut file, pos_out : super::types:: loff_t, count : *mut super::types:: loff_t, remap_flags : u32) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn generic_set_sb_d_ops(sb : *mut super_block));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn generic_shutdown_super(sb : *mut super_block));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn generic_update_time(inode : *mut inode, r#type : fs_update_time, flags : u32) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn generic_write_check_limits(file : *mut file, pos : super::types:: loff_t, count : *mut super::types:: loff_t) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn generic_write_checks(param0 : *mut kiocb, param1 : *mut core::ffi::c_void) -> super::types:: ssize_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn generic_write_checks_count(iocb : *mut kiocb, count : *mut super::types:: loff_t) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn generic_write_sync(iocb : *mut kiocb, count : super::types:: ssize_t) -> super::types:: ssize_t);
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn get_anon_bdev(param0 : *mut super::types:: dev_t) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn get_cred(cred : *const cred) -> *mut cred);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn get_cred_many(cred : *const cred, nr : i32) -> *mut cred);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn get_cred_rcu(cred : *const cred) -> *mut cred);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn get_file(f : *mut file) -> *mut file);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn get_file_active(f : *mut *mut file) -> *mut file);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn get_file_rcu(f : *mut *mut file) -> *mut file);
@@ -1443,24 +2022,40 @@ windows_link::link!("kernel" "C" fn get_file_rcu(f : *mut *mut file) -> *mut fil
 windows_link::link!("kernel" "C" fn get_filesystem(fs : *mut file_system_type) -> *mut file_system_type);
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn get_fs_type(name : *const i8) -> *mut file_system_type);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn get_group_info(gi : *mut group_info) -> *mut group_info);
 windows_link::link!("kernel" "C" fn get_max_files() -> u64);
 windows_link::link!("kernel" "C" fn get_next_ino() -> u32);
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn get_pid(pid : *mut pid) -> *mut pid);
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn get_pid_task(pid : *mut pid, param1 : pid_type) -> *mut task_struct);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn get_task_cred(param0 : *mut task_struct) -> *mut cred);
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn get_task_pid(task : *mut task_struct, r#type : pid_type) -> *mut pid);
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn get_vfs_caps_from_disk(idmap : *mut core::ffi::c_void, dentry : *const super::dcache:: dentry, cpu_caps : *mut cpu_vfs_cap_data) -> i32);
 #[cfg(all(
     feature = "dcache",
+    feature = "ds",
     feature = "sync",
     feature = "types",
+    feature = "wait"
+))]
+windows_link::link!("kernel" "C" fn get_pid(pid : *mut pid) -> *mut pid);
+#[cfg(all(
+    feature = "dcache",
+    feature = "ds",
+    feature = "sync",
+    feature = "types",
+    feature = "wait"
+))]
+windows_link::link!("kernel" "C" fn get_pid_task(pid : *mut pid, param1 : pid_type) -> *mut task_struct);
+#[cfg(all(
+    feature = "dcache",
+    feature = "ds",
+    feature = "sync",
+    feature = "types",
+    feature = "wait"
+))]
+windows_link::link!("kernel" "C" fn get_task_pid(task : *mut task_struct, r#type : pid_type) -> *mut pid);
+#[cfg(all(
+    feature = "cred",
+    feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
+    feature = "sync",
+    feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn get_write_access(inode : *mut inode) -> i32);
@@ -1469,987 +2064,1495 @@ windows_link::link!("kernel" "C" fn getname_flags(param0 : *const i8, param1 : i
 windows_link::link!("kernel" "C" fn getname_kernel(param0 : *const i8) -> *mut filename);
 windows_link::link!("kernel" "C" fn getname_maybe_null(name : *const i8, flags : i32) -> *mut filename);
 windows_link::link!("kernel" "C" fn getname_uflags(param0 : *const i8, param1 : i32) -> *mut filename);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn groups_free(group_info : *mut group_info));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn groups_search(group_info : *const group_info, grp : kgid_t) -> i32);
-windows_link::link!("kernel" "C" fn has_capability_noaudit(t : *mut task_struct, cap : i32) -> bool);
-windows_link::link!("kernel" "C" fn has_ns_capability(t : *mut task_struct, ns : *mut core::ffi::c_void, cap : i32) -> bool);
-windows_link::link!("kernel" "C" fn has_ns_capability_noaudit(t : *mut task_struct, ns : *mut core::ffi::c_void, cap : i32) -> bool);
-#[cfg(feature = "dcache")]
-windows_link::link!("kernel" "C" fn hlist_bl_add_before(n : *mut super::dcache:: hlist_bl_node, next : *mut super::dcache:: hlist_bl_node));
-#[cfg(feature = "dcache")]
-windows_link::link!("kernel" "C" fn hlist_bl_add_behind(n : *mut super::dcache:: hlist_bl_node, prev : *mut super::dcache:: hlist_bl_node));
-#[cfg(feature = "dcache")]
-windows_link::link!("kernel" "C" fn hlist_bl_add_head(n : *mut super::dcache:: hlist_bl_node, h : *mut super::dcache:: hlist_bl_head));
-#[cfg(feature = "dcache")]
-windows_link::link!("kernel" "C" fn hlist_bl_del(n : *mut super::dcache:: hlist_bl_node));
-#[cfg(feature = "dcache")]
-windows_link::link!("kernel" "C" fn hlist_bl_del_init(n : *mut super::dcache:: hlist_bl_node));
-#[cfg(feature = "dcache")]
-windows_link::link!("kernel" "C" fn hlist_bl_empty(h : *const super::dcache:: hlist_bl_head) -> bool);
-#[cfg(feature = "dcache")]
-windows_link::link!("kernel" "C" fn hlist_bl_first(h : *mut super::dcache:: hlist_bl_head) -> *mut super::dcache:: hlist_bl_node);
-#[cfg(feature = "dcache")]
-windows_link::link!("kernel" "C" fn hlist_bl_is_locked(b : *mut super::dcache:: hlist_bl_head) -> bool);
-#[cfg(feature = "dcache")]
-windows_link::link!("kernel" "C" fn hlist_bl_lock(b : *mut super::dcache:: hlist_bl_head));
-#[cfg(feature = "dcache")]
-windows_link::link!("kernel" "C" fn hlist_bl_set_first(h : *mut super::dcache:: hlist_bl_head, n : *mut super::dcache:: hlist_bl_node));
-#[cfg(feature = "dcache")]
-windows_link::link!("kernel" "C" fn hlist_bl_unhashed(h : *const super::dcache:: hlist_bl_node) -> bool);
-#[cfg(feature = "dcache")]
-windows_link::link!("kernel" "C" fn hlist_bl_unlock(b : *mut super::dcache:: hlist_bl_head));
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn guid_copy(dst : *mut guid_t, src : *const guid_t));
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn guid_equal(u1 : *const guid_t, u2 : *const guid_t) -> bool);
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn guid_gen(u : *mut guid_t));
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn guid_is_null(guid : *const guid_t) -> bool);
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn guid_parse(uuid : *const i8, u : *mut guid_t) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn i_blocksize(node : *const inode) -> u32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn i_gid_into_vfsgid(idmap : *mut core::ffi::c_void, inode : *const inode) -> vfsgid_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn i_gid_needs_update(idmap : *mut core::ffi::c_void, attr : *const iattr, inode : *const inode) -> bool);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn i_gid_read(inode : *const inode) -> super::types:: gid_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn i_gid_update(idmap : *mut core::ffi::c_void, attr : *const iattr, inode : *mut inode));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn i_gid_write(inode : *mut inode, gid : super::types:: gid_t));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn i_mmap_assert_locked(mapping : *mut address_space));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn i_mmap_assert_write_locked(mapping : *mut address_space));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn i_mmap_lock_read(mapping : *mut address_space));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn i_mmap_lock_write(mapping : *mut address_space));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn i_mmap_trylock_read(mapping : *mut address_space) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn i_mmap_trylock_write(mapping : *mut address_space) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn i_mmap_unlock_read(mapping : *mut address_space));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn i_mmap_unlock_write(mapping : *mut address_space));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn i_readcount_dec(inode : *mut inode));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn i_readcount_inc(inode : *mut inode));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn i_size_read(inode : *const inode) -> super::types:: loff_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn i_size_write(inode : *mut inode, i_size : super::types:: loff_t));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn i_uid_into_vfsuid(idmap : *mut core::ffi::c_void, inode : *const inode) -> vfsuid_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn i_uid_needs_update(idmap : *mut core::ffi::c_void, attr : *const iattr, inode : *const inode) -> bool);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn i_uid_read(inode : *const inode) -> super::types:: uid_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn i_uid_update(idmap : *mut core::ffi::c_void, attr : *const iattr, inode : *mut inode));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn i_uid_write(inode : *mut inode, uid : super::types:: uid_t));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn i_user_ns(inode : *const inode) -> *mut core::ffi::c_void);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn icount_read(inode : *const inode) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn iget5_locked(param0 : *mut super_block, param1 : u64, test : *mut isize, set : *mut isize, param4 : *mut core::ffi::c_void) -> *mut inode);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn iget5_locked_rcu(param0 : *mut super_block, param1 : u64, test : *mut isize, set : *mut isize, param4 : *mut core::ffi::c_void) -> *mut inode);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn iget_failed(param0 : *mut inode));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn iget_locked(param0 : *mut super_block, param1 : u64) -> *mut inode);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn igrab(param0 : *mut inode) -> *mut inode);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn ihold(inode : *mut inode));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn ilookup(sb : *mut super_block, ino : u64) -> *mut inode);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn ilookup5(sb : *mut super_block, hashval : u64, test : *mut isize, data : *mut core::ffi::c_void) -> *mut inode);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn ilookup5_nowait(sb : *mut super_block, hashval : u64, test : *mut isize, data : *mut core::ffi::c_void, isnew : *mut bool) -> *mut inode);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn imajor(inode : *const inode) -> u32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn iminor(inode : *const inode) -> u32);
-windows_link::link!("kernel" "C" fn in_egroup_p(grp : kgid_t) -> i32);
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn import_guid(dst : *mut guid_t, src : *const super::types:: __u8));
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn import_uuid(dst : *mut uuid_t, src : *const super::types:: __u8));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn in_group_or_capable(idmap : *mut core::ffi::c_void, inode : *const inode, vfsgid : vfsgid_t) -> bool);
-windows_link::link!("kernel" "C" fn in_group_p(grp : kgid_t) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inc_nlink(inode : *mut inode));
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn info_dirty(info : *mut mem_dqinfo) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn init_completion(x : *mut completion));
-windows_link::link!("kernel" "C" fn init_llist_head(list : *mut llist_head));
-windows_link::link!("kernel" "C" fn init_llist_node(node : *mut llist_node));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn init_special_inode(param0 : *mut inode, param1 : super::types:: umode_t, param2 : super::types:: dev_t));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn init_sync_kiocb(kiocb : *mut kiocb, filp : *mut file));
-#[cfg(feature = "pagemap")]
-windows_link::link!("kernel" "C" fn init_wait_entry(wq_entry : *mut super::pagemap:: wait_queue_entry, flags : i32));
-#[cfg(feature = "pagemap")]
-windows_link::link!("kernel" "C" fn init_wait_var_entry(wbq_entry : *mut wait_bit_queue_entry, var : *mut core::ffi::c_void, flags : i32));
-#[cfg(feature = "pagemap")]
-windows_link::link!("kernel" "C" fn init_waitqueue_entry(wq_entry : *mut super::pagemap:: wait_queue_entry, p : *mut task_struct));
-#[cfg(feature = "pagemap")]
-windows_link::link!("kernel" "C" fn init_waitqueue_func_entry(wq_entry : *mut super::pagemap:: wait_queue_entry, func : wait_queue_func_t));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_add_bytes(inode : *mut inode, bytes : super::types:: loff_t));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
-    feature = "pagemap",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
-windows_link::link!("kernel" "C" fn inode_bit_waitqueue(wqe : *mut wait_bit_queue_entry, inode : *mut inode, bit : u32) -> *mut wait_queue_head);
+windows_link::link!("kernel" "C" fn inode_bit_waitqueue(wqe : *mut super::wait:: wait_bit_queue_entry, inode : *mut inode, bit : u32) -> *mut super::wait:: wait_queue_head);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_dec_link_count(inode : *mut inode));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_dio_begin(inode : *mut inode));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_dio_end(inode : *mut inode));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_dio_finished(inode : *const inode) -> bool);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_dio_wait(inode : *mut inode));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_dio_wait_interruptible(inode : *mut inode));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_fake_hash(inode : *mut inode));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_fsgid_set(inode : *mut inode, idmap : *mut core::ffi::c_void));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_fsuid_set(inode : *mut inode, idmap : *mut core::ffi::c_void));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_generic_drop(inode : *mut inode) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_get_atime(inode : *const inode) -> timespec64);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_get_atime_nsec(inode : *const inode) -> i64);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_get_atime_sec(inode : *const inode) -> time64_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_get_bytes(inode : *mut inode) -> super::types:: loff_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_get_ctime(inode : *const inode) -> timespec64);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_get_ctime_nsec(inode : *const inode) -> i64);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_get_ctime_sec(inode : *const inode) -> time64_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_get_mtime(inode : *const inode) -> timespec64);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_get_mtime_nsec(inode : *const inode) -> i64);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_get_mtime_sec(inode : *const inode) -> time64_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_has_no_xattr(inode : *mut inode));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_inc_link_count(inode : *mut inode));
 windows_link::link!("kernel" "C" fn inode_init());
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_init_always(sb : *mut super_block, inode : *mut inode) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_init_always_gfp(param0 : *mut super_block, param1 : *mut inode, param2 : super::types:: gfp_t) -> i32);
 windows_link::link!("kernel" "C" fn inode_init_early());
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_init_once(param0 : *mut inode));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_init_owner(idmap : *mut core::ffi::c_void, inode : *mut inode, dir : *const inode, mode : super::types:: umode_t));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_insert5(inode : *mut inode, hashval : u64, test : *mut isize, set : *mut isize, data : *mut core::ffi::c_void) -> *mut inode);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_is_dirtytime_only(inode : *mut inode) -> bool);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_is_locked(inode : *mut inode) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_is_open_for_write(inode : *const inode) -> bool);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_just_drop(inode : *mut inode) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_lock(inode : *mut inode));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_lock_killable(inode : *mut inode) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_lock_nested(inode : *mut inode, subclass : u32));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_lock_shared(inode : *mut inode));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_lock_shared_killable(inode : *mut inode) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_lock_shared_nested(inode : *mut inode, subclass : u32));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_lru_list_add(inode : *mut inode));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_needs_sync(inode : *mut inode) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_newsize_ok(param0 : *const inode, offset : super::types:: loff_t) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_nohighmem(inode : *mut inode));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_owner_or_capable(idmap : *mut core::ffi::c_void, inode : *const inode) -> bool);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_permission(param0 : *mut core::ffi::c_void, param1 : *mut inode, param2 : i32) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_sb_list_add(inode : *mut inode));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_set_atime(inode : *mut inode, sec : time64_t, nsec : i64) -> timespec64);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_set_atime_to_ts(inode : *mut inode, ts : timespec64) -> timespec64);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_set_bytes(inode : *mut inode, bytes : super::types:: loff_t));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_set_cached_link(inode : *mut inode, link : *mut i8, linklen : i32));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_set_ctime(inode : *mut inode, sec : time64_t, nsec : i64) -> timespec64);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_set_ctime_current(inode : *mut inode) -> timespec64);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_set_ctime_deleg(inode : *mut inode, update : timespec64) -> timespec64);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_set_ctime_to_ts(inode : *mut inode, ts : timespec64) -> timespec64);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_set_flags(inode : *mut inode, flags : u32, mask : u32));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_set_mtime(inode : *mut inode, sec : time64_t, nsec : i64) -> timespec64);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_set_mtime_to_ts(inode : *mut inode, ts : timespec64) -> timespec64);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_state_assign(inode : *mut inode, flags : inode_state_flags_enum));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_state_assign_raw(inode : *mut inode, flags : inode_state_flags_enum));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_state_clear(inode : *mut inode, flags : inode_state_flags_enum));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_state_clear_raw(inode : *mut inode, flags : inode_state_flags_enum));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_state_read(inode : *mut inode) -> inode_state_flags_enum);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_state_read_once(inode : *mut inode) -> inode_state_flags_enum);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_state_replace(inode : *mut inode, clearflags : inode_state_flags_enum, setflags : inode_state_flags_enum));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_state_replace_raw(inode : *mut inode, clearflags : inode_state_flags_enum, setflags : inode_state_flags_enum));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_state_set(inode : *mut inode, flags : inode_state_flags_enum));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_state_set_raw(inode : *mut inode, flags : inode_state_flags_enum));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_sub_bytes(inode : *mut inode, bytes : super::types:: loff_t));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_time_dirty_flag(inode : *mut inode) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_trylock(inode : *mut inode) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_trylock_shared(inode : *mut inode) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_unhashed(inode : *mut inode) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_unlock(inode : *mut inode));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_unlock_shared(inode : *mut inode));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_update_time(inode : *mut inode, r#type : fs_update_time, flags : u32) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_wake_up_bit(inode : *mut inode, bit : u32));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn inode_wrong_type(inode : *const inode, mode : super::types:: umode_t) -> bool);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn insert_inode_hash(inode : *mut inode));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn insert_inode_locked(param0 : *mut inode) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn insert_inode_locked4(param0 : *mut inode, param1 : u64, test : *mut isize, param3 : *mut core::ffi::c_void) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn iocb_flags(file : *mut file) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn iocb_is_dsync(iocb : *const kiocb) -> bool);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn iput(param0 : *mut inode));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn iput_not_last(param0 : *mut inode));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn is_bad_inode(param0 : *mut inode) -> bool);
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn is_child_reaper(pid : *mut pid) -> bool);
 #[cfg(all(
     feature = "dcache",
+    feature = "ds",
     feature = "sync",
     feature = "types",
+    feature = "wait"
+))]
+windows_link::link!("kernel" "C" fn is_child_reaper(pid : *mut pid) -> bool);
+#[cfg(all(
+    feature = "cred",
+    feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
+    feature = "sync",
+    feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn is_empty_dir_inode(inode : *mut inode) -> bool);
 windows_link::link!("kernel" "C" fn is_global_init(tsk : *mut task_struct) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn is_idmapped_mnt(mnt : *const vfsmount) -> bool);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn is_mgtime(inode : *const inode) -> bool);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn is_root_inode(inode : *mut inode) -> bool);
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "sync",
+    feature = "types",
+    feature = "wait"
+))]
 windows_link::link!("kernel" "C" fn is_subdir(param0 : *mut super::dcache:: dentry, param1 : *mut super::dcache:: dentry) -> bool);
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn is_sxid(mode : super::types:: umode_t) -> bool);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn is_sync_kiocb(kiocb : *mut kiocb) -> bool);
 windows_link::link!("kernel" "C" fn is_uncached_acl(acl : *mut core::ffi::c_void) -> bool);
+windows_link::link!("kernel" "C" fn is_valid_mnt_idmap(idmap : *const core::ffi::c_void) -> bool);
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn is_zero_ino(ino : super::types:: ino_t) -> bool);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn iter_file_splice_write(param0 : *mut core::ffi::c_void, param1 : *mut file, param2 : *mut super::types:: loff_t, param3 : super::types:: size_t, param4 : u32) -> super::types:: ssize_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn iterate_dir(param0 : *mut file, param1 : *mut dir_context) -> i32);
@@ -2457,117 +3560,179 @@ windows_link::link!("kernel" "C" fn iterate_supers(f : *mut isize, arg : *mut co
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn iterate_supers_type(param0 : *mut file_system_type, param1 : *mut isize, param2 : *mut core::ffi::c_void));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn iunique(param0 : *mut super_block, param1 : super::types:: ino_t) -> super::types:: ino_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn kern_mount(param0 : *mut file_system_type) -> *mut vfsmount);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn kern_unmount(mnt : *mut vfsmount));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn kern_unmount_array(mnt : *mut *mut vfsmount, num : u32));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn kernel_cred() -> *mut cred);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
-windows_link::link!("kernel" "C" fn kernel_file_open(path : *const path, flags : i32, cred : *const cred) -> *mut file);
+windows_link::link!("kernel" "C" fn kernel_file_open(path : *const path, flags : i32, cred : *const super::cred:: cred) -> *mut file);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn kernel_read(param0 : *mut file, param1 : *mut core::ffi::c_void, param2 : super::types:: size_t, param3 : *mut super::types:: loff_t) -> super::types:: ssize_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
-windows_link::link!("kernel" "C" fn kernel_tmpfile_open(idmap : *mut core::ffi::c_void, parentpath : *const path, mode : super::types:: umode_t, open_flag : i32, cred : *const cred) -> *mut file);
+windows_link::link!("kernel" "C" fn kernel_tmpfile_open(idmap : *mut core::ffi::c_void, parentpath : *const path, mode : super::types:: umode_t, open_flag : i32, cred : *const super::cred:: cred) -> *mut file);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn kernel_write(param0 : *mut file, param1 : *const core::ffi::c_void, param2 : super::types:: size_t, param3 : *mut super::types:: loff_t) -> super::types:: ssize_t);
 windows_link::link!("kernel" "C" fn kfree_link(param0 : *mut core::ffi::c_void));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn kill_anon_super(sb : *mut super_block));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn kill_block_super(sb : *mut super_block));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn kill_fasync(param0 : *mut *mut fasync_struct, param1 : i32, param2 : i32));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn kiocb_clone(kiocb : *mut kiocb, kiocb_src : *mut kiocb, filp : *mut file));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn kiocb_end_write(iocb : *mut kiocb));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn kiocb_modified(iocb : *mut kiocb) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn kiocb_set_rw_flags(ki : *mut kiocb, flags : rwf_t, rw_type : i32) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn kiocb_start_write(iocb : *mut kiocb));
@@ -2575,415 +3740,422 @@ windows_link::link!("kernel" "C" fn kiocb_start_write(iocb : *mut kiocb));
 windows_link::link!("kernel" "C" fn kprojid_has_mapping(ns : *mut core::ffi::c_void, projid : kprojid_t) -> bool);
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn list_bdev_fs_names(buf : *mut i8, size : super::types:: size_t) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn list_lru_add(lru : *mut list_lru, item : *mut super::types:: list_head, nid : i32, memcg : *mut core::ffi::c_void) -> bool);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn list_lru_add_obj(lru : *mut list_lru, item : *mut super::types:: list_head) -> bool);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn list_lru_count(lru : *mut list_lru) -> u64);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn list_lru_count_node(lru : *mut list_lru, nid : i32) -> u64);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn list_lru_count_one(lru : *mut list_lru, nid : i32, memcg : *mut core::ffi::c_void) -> u64);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn list_lru_del(lru : *mut list_lru, item : *mut super::types:: list_head, nid : i32, memcg : *mut core::ffi::c_void) -> bool);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn list_lru_del_obj(lru : *mut list_lru, item : *mut super::types:: list_head) -> bool);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn list_lru_destroy(lru : *mut list_lru));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn list_lru_init_memcg_key(lru : *mut list_lru, shrinker : *mut shrinker, key : *mut lock_class_key) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn list_lru_isolate(list : *mut list_lru_one, item : *mut super::types:: list_head));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn list_lru_isolate_move(list : *mut list_lru_one, item : *mut super::types:: list_head, head : *mut super::types:: list_head));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn list_lru_shrink_count(lru : *mut list_lru, sc : *mut shrink_control) -> u64);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn list_lru_shrink_walk(lru : *mut list_lru, sc : *mut shrink_control, isolate : list_lru_walk_cb, cb_arg : *mut core::ffi::c_void) -> u64);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn list_lru_shrink_walk_irq(lru : *mut list_lru, sc : *mut shrink_control, isolate : list_lru_walk_cb, cb_arg : *mut core::ffi::c_void) -> u64);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn list_lru_walk(lru : *mut list_lru, isolate : list_lru_walk_cb, cb_arg : *mut core::ffi::c_void, nr_to_walk : u64) -> u64);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn list_lru_walk_node(lru : *mut list_lru, nid : i32, isolate : list_lru_walk_cb, cb_arg : *mut core::ffi::c_void, nr_to_walk : *mut u64) -> u64);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn list_lru_walk_one(lru : *mut list_lru, nid : i32, memcg : *mut core::ffi::c_void, isolate : list_lru_walk_cb, cb_arg : *mut core::ffi::c_void, nr_to_walk : *mut u64) -> u64);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn list_lru_walk_one_irq(lru : *mut list_lru, nid : i32, memcg : *mut core::ffi::c_void, isolate : list_lru_walk_cb, cb_arg : *mut core::ffi::c_void, nr_to_walk : *mut u64) -> u64);
-windows_link::link!("kernel" "C" fn llist_add(new : *mut llist_node, head : *mut llist_head) -> bool);
-windows_link::link!("kernel" "C" fn llist_add_batch(new_first : *mut llist_node, new_last : *mut llist_node, head : *mut llist_head) -> bool);
-windows_link::link!("kernel" "C" fn llist_del_all(head : *mut llist_head) -> *mut llist_node);
-windows_link::link!("kernel" "C" fn llist_del_first(head : *mut llist_head) -> *mut llist_node);
-windows_link::link!("kernel" "C" fn llist_del_first_init(head : *mut llist_head) -> *mut llist_node);
-windows_link::link!("kernel" "C" fn llist_del_first_this(head : *mut llist_head, this : *mut llist_node) -> bool);
-windows_link::link!("kernel" "C" fn llist_empty(head : *const llist_head) -> bool);
-windows_link::link!("kernel" "C" fn llist_next(node : *mut llist_node) -> *mut llist_node);
-windows_link::link!("kernel" "C" fn llist_on_list(node : *const llist_node) -> bool);
-windows_link::link!("kernel" "C" fn llist_reverse_order(head : *mut llist_node) -> *mut llist_node);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn lock_two_nondirectories(param0 : *mut inode, param1 : *mut inode));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn lockdep_annotate_inode_mutex_key(inode : *mut inode));
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn locked_recursive_removal(param0 : *mut super::dcache:: dentry, callback : *mut isize));
 #[cfg(all(
     feature = "dcache",
     feature = "sync",
     feature = "types",
+    feature = "wait"
+))]
+windows_link::link!("kernel" "C" fn locked_recursive_removal(param0 : *mut super::dcache:: dentry, callback : *mut isize));
+#[cfg(all(
+    feature = "cred",
+    feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
+    feature = "sync",
+    feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn make_bad_inode(param0 : *mut inode));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn make_empty_dir_inode(inode : *mut inode));
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn make_kprojid(from : *mut core::ffi::c_void, projid : projid_t) -> kprojid_t);
-#[cfg(feature = "types")]
+#[cfg(all(feature = "cred", feature = "types"))]
 windows_link::link!("kernel" "C" fn make_kqid(from : *mut core::ffi::c_void, r#type : quota_type, qid : qid_t) -> kqid);
-#[cfg(feature = "types")]
-windows_link::link!("kernel" "C" fn make_kqid_gid(gid : kgid_t) -> kqid);
-#[cfg(feature = "types")]
+#[cfg(all(feature = "cred", feature = "types"))]
+windows_link::link!("kernel" "C" fn make_kqid_gid(gid : super::cred:: kgid_t) -> kqid);
+#[cfg(all(feature = "cred", feature = "types"))]
 windows_link::link!("kernel" "C" fn make_kqid_invalid(r#type : quota_type) -> kqid);
-#[cfg(feature = "types")]
+#[cfg(all(feature = "cred", feature = "types"))]
 windows_link::link!("kernel" "C" fn make_kqid_projid(projid : kprojid_t) -> kqid);
-#[cfg(feature = "types")]
-windows_link::link!("kernel" "C" fn make_kqid_uid(uid : kuid_t) -> kqid);
-windows_link::link!("kernel" "C" fn maple_tree_init());
+#[cfg(all(feature = "cred", feature = "types"))]
+windows_link::link!("kernel" "C" fn make_kqid_uid(uid : super::cred:: kuid_t) -> kqid);
+#[cfg(all(feature = "cred", feature = "types"))]
+windows_link::link!("kernel" "C" fn make_vfsgid(idmap : *mut core::ffi::c_void, fs_userns : *mut core::ffi::c_void, kgid : super::cred:: kgid_t) -> vfsgid_t);
+#[cfg(all(feature = "cred", feature = "types"))]
+windows_link::link!("kernel" "C" fn make_vfsuid(idmap : *mut core::ffi::c_void, fs_userns : *mut core::ffi::c_void, kuid : super::cred:: kuid_t) -> vfsuid_t);
+#[cfg(all(feature = "cred", feature = "types"))]
+windows_link::link!("kernel" "C" fn mapped_fsgid(idmap : *mut core::ffi::c_void, fs_userns : *mut core::ffi::c_void) -> super::cred:: kgid_t);
+#[cfg(all(feature = "cred", feature = "types"))]
+windows_link::link!("kernel" "C" fn mapped_fsuid(idmap : *mut core::ffi::c_void, fs_userns : *mut core::ffi::c_void) -> super::cred:: kuid_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mapping_allow_writable(mapping : *mut address_space));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mapping_deny_writable(mapping : *mut address_space) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mapping_map_writable(mapping : *mut address_space) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mapping_mapped(mapping : *const address_space) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
-windows_link::link!("kernel" "C" fn mapping_tagged(mapping : *const address_space, tag : xa_mark_t) -> bool);
+windows_link::link!("kernel" "C" fn mapping_tagged(mapping : *const address_space, tag : super::ds:: xa_mark_t) -> bool);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mapping_unmap_writable(mapping : *mut address_space));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mapping_writably_mapped(mapping : *const address_space) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mark_info_dirty(sb : *mut super_block, r#type : i32));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mark_inode_dirty(inode : *mut inode));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mark_inode_dirty_sync(inode : *mut inode));
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn mark_mounts_for_expiry(mounts : *mut super::types:: list_head));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mas_alloc_cyclic(mas : *mut ma_state, startp : *mut u64, entry : *mut core::ffi::c_void, range_lo : u64, range_hi : u64, next : *mut u64, gfp : super::types:: gfp_t) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mas_destroy(mas : *mut ma_state));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mas_empty_area(mas : *mut ma_state, min : u64, max : u64, size : u64) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mas_empty_area_rev(mas : *mut ma_state, min : u64, max : u64, size : u64) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mas_erase(mas : *mut ma_state) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mas_find(mas : *mut ma_state, max : u64) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mas_find_range(mas : *mut ma_state, max : u64) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mas_find_range_rev(mas : *mut ma_state, max : u64) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mas_find_rev(mas : *mut ma_state, min : u64) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mas_init(mas : *mut ma_state, tree : *mut maple_tree, addr : u64));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mas_is_active(mas : *mut ma_state) -> bool);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mas_is_err(mas : *mut ma_state) -> bool);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mas_next(mas : *mut ma_state, max : u64) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mas_next_range(mas : *mut ma_state, max : u64) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mas_nomem(mas : *mut ma_state, gfp : super::types:: gfp_t) -> bool);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mas_pause(mas : *mut ma_state));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mas_preallocate(mas : *mut ma_state, entry : *mut core::ffi::c_void, gfp : super::types:: gfp_t) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mas_prev(mas : *mut ma_state, min : u64) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mas_prev_range(mas : *mut ma_state, max : u64) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mas_reset(mas : *mut ma_state));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mas_set(mas : *mut ma_state, index : u64));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mas_set_range(mas : *mut ma_state, start : u64, last : u64));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mas_store(mas : *mut ma_state, entry : *mut core::ffi::c_void) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mas_store_gfp(mas : *mut ma_state, entry : *mut core::ffi::c_void, gfp : super::types:: gfp_t) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mas_store_prealloc(mas : *mut ma_state, entry : *mut core::ffi::c_void));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mas_walk(mas : *mut ma_state) -> *mut core::ffi::c_void);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn may_create_dentry(idmap : *mut core::ffi::c_void, dir : *mut inode, child : *mut super::dcache:: dentry) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn may_delete_dentry(idmap : *mut core::ffi::c_void, dir : *mut inode, victim : *mut super::dcache:: dentry, isdir : bool) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn may_open_dev(path : *const path) -> bool);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn may_setattr(idmap : *mut core::ffi::c_void, inode : *mut inode, ia_valid : u32) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn may_umount(param0 : *mut vfsmount) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn may_umount_tree(param0 : *mut vfsmount) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn memcg_list_lru_alloc(memcg : *mut core::ffi::c_void, lru : *mut list_lru, gfp : super::types:: gfp_t) -> i32);
-windows_link::link!("kernel" "C" fn memcg_reparent_list_lrus(memcg : *mut core::ffi::c_void, parent : *mut core::ffi::c_void));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mnt_clone_internal(path : *const path) -> *mut vfsmount);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mnt_drop_write(mnt : *mut vfsmount));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mnt_drop_write_file(file : *mut file));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mnt_get_write_access(mnt : *mut vfsmount) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mnt_idmap(mnt : *const vfsmount) -> *mut core::ffi::c_void);
+windows_link::link!("kernel" "C" fn mnt_idmap_get(idmap : *mut core::ffi::c_void) -> *mut core::ffi::c_void);
+windows_link::link!("kernel" "C" fn mnt_idmap_put(idmap : *mut core::ffi::c_void));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mnt_make_shortterm(mnt : *mut vfsmount));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mnt_may_suid(mnt : *mut vfsmount) -> bool);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mnt_put_write_access(mnt : *mut vfsmount));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mnt_set_expiry(mnt : *mut vfsmount, expiry_list : *mut super::types:: list_head));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mnt_want_write(mnt : *mut vfsmount) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mnt_want_write_file(file : *mut file) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mntget(mnt : *mut vfsmount) -> *mut vfsmount);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mntput(mnt : *mut vfsmount));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mode_strip_sgid(idmap : *mut core::ffi::c_void, dir : *const inode, mode : super::types:: umode_t) -> super::types:: umode_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mount_subtree(mnt : *mut vfsmount, path : *const i8) -> *mut super::dcache:: dentry);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mt_clear_in_rcu(mt : *mut maple_tree));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mt_external_lock(mt : *const maple_tree) -> bool);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mt_find(mt : *mut maple_tree, index : *mut u64, max : u64) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mt_find_after(mt : *mut maple_tree, index : *mut u64, max : u64) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mt_height(mt : *const maple_tree) -> u32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mt_in_rcu(mt : *mut maple_tree) -> bool);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mt_init(mt : *mut maple_tree));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mt_init_flags(mt : *mut maple_tree, flags : u32));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mt_next(mt : *mut maple_tree, index : u64, max : u64) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mt_prev(mt : *mut maple_tree, index : u64, min : u64) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mt_set_in_rcu(mt : *mut maple_tree));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mtree_alloc_cyclic(mt : *mut maple_tree, startp : *mut u64, entry : *mut core::ffi::c_void, range_lo : u64, range_hi : u64, next : *mut u64, gfp : super::types:: gfp_t) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mtree_alloc_range(mt : *mut maple_tree, startp : *mut u64, entry : *mut core::ffi::c_void, size : u64, min : u64, max : u64, gfp : super::types:: gfp_t) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mtree_alloc_rrange(mt : *mut maple_tree, startp : *mut u64, entry : *mut core::ffi::c_void, size : u64, min : u64, max : u64, gfp : super::types:: gfp_t) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mtree_destroy(mt : *mut maple_tree));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mtree_dup(mt : *mut maple_tree, new : *mut maple_tree, gfp : super::types:: gfp_t) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mtree_empty(mt : *const maple_tree) -> bool);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mtree_erase(mt : *mut maple_tree, index : u64) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mtree_insert(mt : *mut maple_tree, index : u64, entry : *mut core::ffi::c_void, gfp : super::types:: gfp_t) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mtree_insert_range(mt : *mut maple_tree, first : u64, last : u64, entry : *mut core::ffi::c_void, gfp : super::types:: gfp_t) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mtree_load(mt : *mut maple_tree, index : u64) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mtree_store(mt : *mut maple_tree, index : u64, entry : *mut core::ffi::c_void, gfp : super::types:: gfp_t) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn mtree_store_range(mt : *mut maple_tree, first : u64, last : u64, entry : *mut core::ffi::c_void, gfp : super::types:: gfp_t) -> i32);
 windows_link::link!("kernel" "C" fn name_contains_dotdot(name : *const i8) -> bool);
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn name_is_dot(name : *const i8, len : super::types:: size_t) -> bool);
@@ -2992,164 +4164,251 @@ windows_link::link!("kernel" "C" fn name_is_dot_dotdot(name : *const i8, len : s
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn name_is_dotdot(name : *const i8, len : super::types:: size_t) -> bool);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn new_inode(sb : *mut super_block) -> *mut inode);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn new_inode_pseudo(sb : *mut super_block) -> *mut inode);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn no_seek_end_llseek(param0 : *mut file, param1 : super::types:: loff_t, param2 : i32) -> super::types:: loff_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn no_seek_end_llseek_size(param0 : *mut file, param1 : super::types:: loff_t, param2 : i32, param3 : super::types:: loff_t) -> super::types:: loff_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn nonseekable_open(inode : *mut inode, filp : *mut file) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn noop_direct_IO(iocb : *mut kiocb, iter : *mut core::ffi::c_void) -> super::types:: ssize_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn noop_fsync(param0 : *mut file, param1 : super::types:: loff_t, param2 : super::types:: loff_t, param3 : i32) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn noop_llseek(file : *mut file, offset : super::types:: loff_t, whence : i32) -> super::types:: loff_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn notify_change(param0 : *mut core::ffi::c_void, param1 : *mut super::dcache:: dentry, param2 : *mut iattr, param3 : *mut core::ffi::c_void) -> i32);
-windows_link::link!("kernel" "C" fn ns_capable(ns : *mut core::ffi::c_void, cap : i32) -> bool);
-windows_link::link!("kernel" "C" fn ns_capable_noaudit(ns : *mut core::ffi::c_void, cap : i32) -> bool);
-windows_link::link!("kernel" "C" fn ns_capable_setid(ns : *mut core::ffi::c_void, cap : i32) -> bool);
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "ds",
+    feature = "sync",
+    feature = "types",
+    feature = "wait"
+))]
 windows_link::link!("kernel" "C" fn ns_of_pid(pid : *mut pid) -> *mut core::ffi::c_void);
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn ns_to_timespec64(nsec : i64) -> timespec64);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn open_exec(param0 : *const i8) -> *mut file);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn our_mnt(mnt : *mut vfsmount) -> bool);
-windows_link::link!("kernel" "C" fn out_of_line_wait_on_bit(word : *mut u64, param1 : i32, action : *mut wait_bit_action_f, mode : u32) -> i32);
-windows_link::link!("kernel" "C" fn out_of_line_wait_on_bit_lock(word : *mut u64, param1 : i32, action : *mut wait_bit_action_f, mode : u32) -> i32);
-windows_link::link!("kernel" "C" fn out_of_line_wait_on_bit_timeout(word : *mut u64, param1 : i32, action : *mut wait_bit_action_f, mode : u32, timeout : u64) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn override_creds(override_cred : *const cred) -> *mut cred);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn page_get_link(param0 : *mut super::dcache:: dentry, param1 : *mut inode, param2 : *mut delayed_call) -> *mut i8);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn page_get_link_raw(param0 : *mut super::dcache:: dentry, param1 : *mut inode, param2 : *mut delayed_call) -> *mut i8);
 windows_link::link!("kernel" "C" fn page_put_link(param0 : *mut core::ffi::c_void));
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn page_readlink(param0 : *mut super::dcache:: dentry, param1 : *mut i8, param2 : i32) -> i32);
 #[cfg(all(
     feature = "dcache",
     feature = "sync",
     feature = "types",
+    feature = "wait"
+))]
+windows_link::link!("kernel" "C" fn page_readlink(param0 : *mut super::dcache:: dentry, param1 : *mut i8, param2 : i32) -> i32);
+#[cfg(all(
+    feature = "cred",
+    feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
+    feature = "sync",
+    feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn page_symlink(inode : *mut inode, symname : *const i8, len : i32) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn path_equal(path1 : *const path, path2 : *const path) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn path_get(param0 : *const path));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn path_is_mountpoint(path : *const path) -> bool);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn path_is_under(param0 : *const path, param1 : *const path) -> bool);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn path_noexec(path : *const path) -> bool);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn path_permission(path : *const path, mask : i32) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn path_put(param0 : *const path));
@@ -3189,127 +4448,152 @@ windows_link::link!("kernel" "C" fn percpu_counter_sum(fbc : *mut percpu_counter
 windows_link::link!("kernel" "C" fn percpu_counter_sum_positive(fbc : *mut percpu_counter) -> i64);
 #[cfg(all(feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn percpu_counter_sync(fbc : *mut percpu_counter));
-#[cfg(all(feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn percpu_down_read(sem : *mut percpu_rw_semaphore));
-#[cfg(all(feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn percpu_down_read_freezable(sem : *mut percpu_rw_semaphore, freeze : bool));
-#[cfg(all(feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn percpu_down_read_internal(sem : *mut percpu_rw_semaphore, freezable : bool));
-#[cfg(all(feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn percpu_down_read_trylock(sem : *mut percpu_rw_semaphore) -> bool);
-#[cfg(all(feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn percpu_down_write(param0 : *mut percpu_rw_semaphore));
-#[cfg(all(feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn percpu_free_rwsem(param0 : *mut percpu_rw_semaphore));
-#[cfg(all(feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn percpu_is_read_locked(param0 : *mut percpu_rw_semaphore) -> bool);
-#[cfg(all(feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn percpu_is_write_locked(sem : *mut percpu_rw_semaphore) -> bool);
-#[cfg(all(feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn percpu_rwsem_acquire(sem : *mut percpu_rw_semaphore, read : bool, ip : u64));
-#[cfg(all(feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn percpu_rwsem_release(sem : *mut percpu_rw_semaphore, ip : u64));
-#[cfg(all(feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn percpu_up_read(sem : *mut percpu_rw_semaphore));
-#[cfg(all(feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn percpu_up_write(param0 : *mut percpu_rw_semaphore));
-windows_link::link!("kernel" "C" fn perfmon_capable() -> bool);
 windows_link::link!("kernel" "C" fn pid_alive(p : *const task_struct) -> i32);
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "ds",
+    feature = "sync",
+    feature = "types",
+    feature = "wait"
+))]
 windows_link::link!("kernel" "C" fn pid_has_task(pid : *mut pid, r#type : pid_type) -> bool);
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "ds",
+    feature = "sync",
+    feature = "types",
+    feature = "wait"
+))]
 windows_link::link!("kernel" "C" fn pid_nr(pid : *mut pid) -> super::types:: pid_t);
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "ds",
+    feature = "sync",
+    feature = "types",
+    feature = "wait"
+))]
 windows_link::link!("kernel" "C" fn pid_nr_ns(pid : *mut pid, ns : *mut core::ffi::c_void) -> super::types:: pid_t);
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "ds",
+    feature = "sync",
+    feature = "types",
+    feature = "wait"
+))]
 windows_link::link!("kernel" "C" fn pid_task(pid : *mut pid, param1 : pid_type) -> *mut task_struct);
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "ds",
+    feature = "sync",
+    feature = "types",
+    feature = "wait"
+))]
 windows_link::link!("kernel" "C" fn pid_vnr(pid : *mut pid) -> super::types:: pid_t);
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "ds",
+    feature = "sync",
+    feature = "types",
+    feature = "wait"
+))]
 windows_link::link!("kernel" "C" fn pidfd_get_pid(fd : u32, flags : *mut u32) -> *mut pid);
 windows_link::link!("kernel" "C" fn pidfd_get_task(pidfd : i32, flags : *mut u32) -> *mut task_struct);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn pidfd_pid(file : *const file) -> *mut pid);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn pidfd_prepare(pid : *mut pid, flags : u32, ret_file : *mut *mut file) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn prepare_creds() -> *mut cred);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn prepare_exec_creds() -> *mut cred);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn prepare_kernel_cred(param0 : *mut task_struct) -> *mut cred);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn prepare_to_swait_event(q : *mut swait_queue_head, wait : *mut swait_queue, state : i32) -> i64);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn prepare_to_swait_exclusive(q : *mut swait_queue_head, wait : *mut swait_queue, state : i32));
-#[cfg(all(feature = "pagemap", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn prepare_to_wait(wq_head : *mut wait_queue_head, wq_entry : *mut super::pagemap:: wait_queue_entry, state : i32));
-#[cfg(all(feature = "pagemap", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn prepare_to_wait_event(wq_head : *mut wait_queue_head, wq_entry : *mut super::pagemap:: wait_queue_entry, state : i32) -> i64);
-#[cfg(all(feature = "pagemap", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn prepare_to_wait_exclusive(wq_head : *mut wait_queue_head, wq_entry : *mut super::pagemap:: wait_queue_entry, state : i32) -> bool);
-#[cfg(all(
-    feature = "dcache",
-    feature = "sync",
-    feature = "types",
-    feature = "workqueue"
-))]
-windows_link::link!("kernel" "C" fn privileged_wrt_inode_uidgid(ns : *mut core::ffi::c_void, idmap : *mut core::ffi::c_void, inode : *const inode) -> bool);
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn projid_eq(left : kprojid_t, right : kprojid_t) -> bool);
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn projid_lt(left : kprojid_t, right : kprojid_t) -> bool);
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn projid_valid(projid : kprojid_t) -> bool);
-windows_link::link!("kernel" "C" fn ptracer_capable(tsk : *mut task_struct, ns : *mut core::ffi::c_void) -> bool);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn put_cred(cred : *const cred));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn put_cred_many(_cred : *const cred, nr : i32));
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn put_filesystem(fs : *mut file_system_type));
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn put_pid(pid : *mut pid));
 #[cfg(all(
     feature = "dcache",
+    feature = "ds",
     feature = "sync",
     feature = "types",
+    feature = "wait"
+))]
+windows_link::link!("kernel" "C" fn put_pid(pid : *mut pid));
+#[cfg(all(
+    feature = "cred",
+    feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
+    feature = "sync",
+    feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn put_write_access(inode : *mut inode));
 windows_link::link!("kernel" "C" fn putname(name : *mut filename));
 windows_link::link!("kernel" "C" fn putname_to_delayed(param0 : *mut delayed_filename, param1 : *mut filename) -> i32);
-#[cfg(feature = "types")]
+#[cfg(all(feature = "cred", feature = "types"))]
 windows_link::link!("kernel" "C" fn qid_eq(left : kqid, right : kqid) -> bool);
-#[cfg(feature = "types")]
+#[cfg(all(feature = "cred", feature = "types"))]
 windows_link::link!("kernel" "C" fn qid_has_mapping(ns : *mut core::ffi::c_void, qid : kqid) -> bool);
-#[cfg(feature = "types")]
+#[cfg(all(feature = "cred", feature = "types"))]
 windows_link::link!("kernel" "C" fn qid_lt(left : kqid, right : kqid) -> bool);
-#[cfg(feature = "types")]
+#[cfg(all(feature = "cred", feature = "types"))]
 windows_link::link!("kernel" "C" fn qid_valid(qid : kqid) -> bool);
-#[cfg(feature = "types")]
+#[cfg(all(feature = "cred", feature = "types"))]
 windows_link::link!("kernel" "C" fn quota_send_warning(qid : kqid, dev : super::types:: dev_t, warntype : i8));
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn ra_has_index(ra : *mut file_ra_state, index : u64) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn rcu_sync_dtor(param0 : *mut rcu_sync));
-#[cfg(all(feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn rcu_sync_enter(param0 : *mut rcu_sync));
-#[cfg(all(feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn rcu_sync_exit(param0 : *mut rcu_sync));
-#[cfg(all(feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn rcu_sync_init(param0 : *mut rcu_sync));
-#[cfg(all(feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn rcu_sync_is_idle(rsp : *mut rcu_sync) -> bool);
 windows_link::link!("kernel" "C" fn readlink_copy(param0 : *mut i8, param1 : i32, param2 : *const i8, param3 : i32) -> i32);
 windows_link::link!("kernel" "C" fn register_chrdev(major : u32, name : *const i8, fops : *const file_operations) -> i32);
@@ -3318,444 +4602,668 @@ windows_link::link!("kernel" "C" fn register_chrdev_region(param0 : super::types
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn register_filesystem(param0 : *mut file_system_type) -> i32);
 windows_link::link!("kernel" "C" fn register_quota_format(fmt : *mut quota_format_type));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn reinit_completion(x : *mut completion));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn remap_verify_area(file : *mut file, pos : super::types:: loff_t, len : super::types:: loff_t, write : bool) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn remove_inode_hash(inode : *mut inode));
-#[cfg(all(feature = "pagemap", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn remove_wait_queue(wq_head : *mut wait_queue_head, wq_entry : *mut super::pagemap:: wait_queue_entry));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn retire_super(sb : *mut super_block));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn revert_creds(revert_cred : *const cred) -> *mut cred);
-#[cfg(all(feature = "sync", feature = "types", feature = "workqueue"))]
-windows_link::link!("kernel" "C" fn rhashtable_init_noprof(ht : *mut rhashtable, params : *const rhashtable_params) -> i32);
-#[cfg(all(feature = "sync", feature = "types", feature = "workqueue"))]
-windows_link::link!("kernel" "C" fn rhltable_init_noprof(hlt : *mut rhltable, params : *const rhashtable_params) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn rw_verify_area(param0 : i32, param1 : *mut file, param2 : *const super::types:: loff_t, param3 : super::types:: size_t) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn send_sigio(fown : *mut fown_struct, fd : i32, band : i32));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn send_sigurg(file : *mut file) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn set_anon_super(s : *mut super_block, data : *mut core::ffi::c_void) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn set_anon_super_fc(s : *mut super_block, fc : *mut core::ffi::c_void) -> i32);
-#[cfg(all(
-    feature = "dcache",
-    feature = "sync",
-    feature = "types",
-    feature = "workqueue"
-))]
-windows_link::link!("kernel" "C" fn set_create_files_as(param0 : *mut cred, param1 : *mut inode) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn set_cred_ucounts(param0 : *mut cred) -> i32);
 windows_link::link!("kernel" "C" fn set_delayed_call(call : *mut delayed_call, r#fn : *mut isize, arg : *mut core::ffi::c_void));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn set_nlink(inode : *mut inode, nlink : u32));
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn set_normalized_timespec64(ts : *mut timespec64, sec : time64_t, nsec : i64));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn set_security_override(param0 : *mut cred, param1 : u32) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn setattr_copy(param0 : *mut core::ffi::c_void, inode : *mut inode, attr : *const iattr));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn setattr_prepare(param0 : *mut core::ffi::c_void, param1 : *mut super::dcache:: dentry, param2 : *mut iattr) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn setattr_should_drop_sgid(idmap : *mut core::ffi::c_void, inode : *const inode) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn setattr_should_drop_suidgid(param0 : *mut core::ffi::c_void, param1 : *mut inode) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn sget(r#type : *mut file_system_type, test : *mut isize, set : *mut isize, flags : i32, data : *mut core::ffi::c_void) -> *mut super_block);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn sget_dev(fc : *mut core::ffi::c_void, dev : super::types:: dev_t) -> *mut super_block);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn sget_fc(fc : *mut core::ffi::c_void, test : *mut isize, set : *mut isize) -> *mut super_block);
-#[cfg(all(feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn shrinker_free(shrinker : *mut shrinker));
-#[cfg(all(feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn shrinker_put(shrinker : *mut shrinker));
-#[cfg(all(feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn shrinker_register(shrinker : *mut shrinker));
-#[cfg(all(feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn shrinker_try_get(shrinker : *mut shrinker) -> bool);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn simple_attr_open(inode : *mut inode, file : *mut file, get : *mut isize, set : *mut isize, fmt : *const i8) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn simple_attr_read(file : *mut file, buf : *mut i8, len : super::types:: size_t, ppos : *mut super::types:: loff_t) -> super::types:: ssize_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn simple_attr_release(inode : *mut inode, file : *mut file) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn simple_attr_write(file : *mut file, buf : *const i8, len : super::types:: size_t, ppos : *mut super::types:: loff_t) -> super::types:: ssize_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn simple_attr_write_signed(file : *mut file, buf : *const i8, len : super::types:: size_t, ppos : *mut super::types:: loff_t) -> super::types:: ssize_t);
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn simple_done_creating(param0 : *mut super::dcache:: dentry));
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn simple_empty(param0 : *mut super::dcache:: dentry) -> i32);
 #[cfg(all(
     feature = "dcache",
     feature = "sync",
     feature = "types",
+    feature = "wait"
+))]
+windows_link::link!("kernel" "C" fn simple_done_creating(param0 : *mut super::dcache:: dentry));
+#[cfg(all(
+    feature = "dcache",
+    feature = "sync",
+    feature = "types",
+    feature = "wait"
+))]
+windows_link::link!("kernel" "C" fn simple_empty(param0 : *mut super::dcache:: dentry) -> i32);
+#[cfg(all(
+    feature = "cred",
+    feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
+    feature = "sync",
+    feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn simple_fill_super(param0 : *mut super_block, param1 : u64, param2 : *const tree_descr) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn simple_get_link(param0 : *mut super::dcache:: dentry, param1 : *mut inode, param2 : *mut delayed_call) -> *mut i8);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn simple_getattr(param0 : *mut core::ffi::c_void, param1 : *const path, param2 : *mut kstat, param3 : u32, param4 : u32) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn simple_inode_init_ts(inode : *mut inode) -> timespec64);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn simple_link(param0 : *mut super::dcache:: dentry, param1 : *mut inode, param2 : *mut super::dcache:: dentry) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn simple_lookup(param0 : *mut inode, param1 : *mut super::dcache:: dentry, flags : u32) -> *mut super::dcache:: dentry);
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn simple_offset_add(octx : *mut offset_ctx, dentry : *mut super::dcache:: dentry) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn simple_offset_destroy(octx : *mut offset_ctx));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn simple_offset_init(octx : *mut offset_ctx));
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn simple_offset_remove(octx : *mut offset_ctx, dentry : *mut super::dcache:: dentry));
 #[cfg(all(
     feature = "dcache",
+    feature = "ds",
     feature = "sync",
     feature = "types",
+    feature = "wait"
+))]
+windows_link::link!("kernel" "C" fn simple_offset_add(octx : *mut offset_ctx, dentry : *mut super::dcache:: dentry) -> i32);
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
+windows_link::link!("kernel" "C" fn simple_offset_destroy(octx : *mut offset_ctx));
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
+windows_link::link!("kernel" "C" fn simple_offset_init(octx : *mut offset_ctx));
+#[cfg(all(
+    feature = "dcache",
+    feature = "ds",
+    feature = "sync",
+    feature = "types",
+    feature = "wait"
+))]
+windows_link::link!("kernel" "C" fn simple_offset_remove(octx : *mut offset_ctx, dentry : *mut super::dcache:: dentry));
+#[cfg(all(
+    feature = "cred",
+    feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
+    feature = "sync",
+    feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn simple_offset_rename(old_dir : *mut inode, old_dentry : *mut super::dcache:: dentry, new_dir : *mut inode, new_dentry : *mut super::dcache:: dentry));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn simple_offset_rename_exchange(old_dir : *mut inode, old_dentry : *mut super::dcache:: dentry, new_dir : *mut inode, new_dentry : *mut super::dcache:: dentry) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn simple_open(inode : *mut inode, file : *mut file) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn simple_pin_fs(param0 : *mut file_system_type, mount : *mut *mut vfsmount, count : *mut i32) -> i32);
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn simple_read_from_buffer(to : *mut core::ffi::c_void, count : super::types:: size_t, ppos : *mut super::types:: loff_t, from : *const core::ffi::c_void, available : super::types:: size_t) -> super::types:: ssize_t);
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn simple_recursive_removal(param0 : *mut super::dcache:: dentry, callback : *mut isize));
 #[cfg(all(
     feature = "dcache",
     feature = "sync",
     feature = "types",
+    feature = "wait"
+))]
+windows_link::link!("kernel" "C" fn simple_recursive_removal(param0 : *mut super::dcache:: dentry, callback : *mut isize));
+#[cfg(all(
+    feature = "cred",
+    feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
+    feature = "sync",
+    feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn simple_release_fs(mount : *mut *mut vfsmount, count : *mut i32));
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn simple_remove_by_name(param0 : *mut super::dcache:: dentry, param1 : *const i8, callback : *mut isize));
 #[cfg(all(
     feature = "dcache",
     feature = "sync",
     feature = "types",
+    feature = "wait"
+))]
+windows_link::link!("kernel" "C" fn simple_remove_by_name(param0 : *mut super::dcache:: dentry, param1 : *const i8, callback : *mut isize));
+#[cfg(all(
+    feature = "cred",
+    feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
+    feature = "sync",
+    feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn simple_rename(param0 : *mut core::ffi::c_void, param1 : *mut inode, param2 : *mut super::dcache:: dentry, param3 : *mut inode, param4 : *mut super::dcache:: dentry, param5 : u32) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn simple_rename_exchange(old_dir : *mut inode, old_dentry : *mut super::dcache:: dentry, new_dir : *mut inode, new_dentry : *mut super::dcache:: dentry) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn simple_rename_timestamp(old_dir : *mut inode, old_dentry : *mut super::dcache:: dentry, new_dir : *mut inode, new_dentry : *mut super::dcache:: dentry));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn simple_rmdir(param0 : *mut inode, param1 : *mut super::dcache:: dentry) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn simple_setattr(param0 : *mut core::ffi::c_void, param1 : *mut super::dcache:: dentry, param2 : *mut iattr) -> i32);
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn simple_start_creating(param0 : *mut super::dcache:: dentry, param1 : *const i8) -> *mut super::dcache:: dentry);
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn simple_statfs(param0 : *mut super::dcache:: dentry, param1 : *mut core::ffi::c_void) -> i32);
 #[cfg(all(
     feature = "dcache",
     feature = "sync",
     feature = "types",
+    feature = "wait"
+))]
+windows_link::link!("kernel" "C" fn simple_start_creating(param0 : *mut super::dcache:: dentry, param1 : *const i8) -> *mut super::dcache:: dentry);
+#[cfg(all(
+    feature = "dcache",
+    feature = "sync",
+    feature = "types",
+    feature = "wait"
+))]
+windows_link::link!("kernel" "C" fn simple_statfs(param0 : *mut super::dcache:: dentry, param1 : *mut core::ffi::c_void) -> i32);
+#[cfg(all(
+    feature = "cred",
+    feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
+    feature = "sync",
+    feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn simple_transaction_get(file : *mut file, buf : *const i8, size : super::types:: size_t) -> *mut i8);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn simple_transaction_read(file : *mut file, buf : *mut i8, size : super::types:: size_t, pos : *mut super::types:: loff_t) -> super::types:: ssize_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn simple_transaction_release(inode : *mut inode, file : *mut file) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn simple_transaction_set(file : *mut file, n : super::types:: size_t));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn simple_unlink(param0 : *mut inode, param1 : *mut super::dcache:: dentry) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
-windows_link::link!("kernel" "C" fn simple_write_begin(iocb : *const kiocb, mapping : *mut address_space, pos : super::types:: loff_t, len : u32, foliop : *mut *mut folio, fsdata : *mut *mut core::ffi::c_void) -> i32);
+windows_link::link!("kernel" "C" fn simple_write_begin(iocb : *const kiocb, mapping : *mut address_space, pos : super::types:: loff_t, len : u32, foliop : *mut *mut super::mm_types:: folio, fsdata : *mut *mut core::ffi::c_void) -> i32);
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn simple_write_to_buffer(to : *mut core::ffi::c_void, available : super::types:: size_t, ppos : *mut super::types:: loff_t, from : *const core::ffi::c_void, count : super::types:: size_t) -> super::types:: ssize_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn stream_open(inode : *mut inode, filp : *mut file) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn super_set_sysfs_name_bdev(sb : *mut super_block));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn super_set_sysfs_name_id(sb : *mut super_block));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn super_set_sysfs_name_uuid(sb : *mut super_block));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn super_set_uuid(sb : *mut super_block, uuid : *const u8, len : u32));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn super_setup_bdi(sb : *mut super_block) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn swait_active(wq : *mut swait_queue_head) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn swake_up_all(q : *mut swait_queue_head));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn swake_up_locked(q : *mut swait_queue_head, wake_flags : i32));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn swake_up_one(q : *mut swait_queue_head));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn swq_has_sleeper(wq : *mut swait_queue_head) -> bool);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn sync_file_range(file : *mut file, offset : super::types:: loff_t, nbytes : super::types:: loff_t, flags : u32) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn sync_filesystem(param0 : *mut super_block) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn sync_inode_metadata(inode : *mut inode, wait : i32) -> i32);
-windows_link::link!("kernel" "C" fn task_call_func(p : *mut task_struct, func : task_call_f, arg : *mut core::ffi::c_void) -> i32);
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn task_pgrp_nr(tsk : *mut task_struct) -> super::types:: pid_t);
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn task_pgrp_nr_ns(tsk : *mut task_struct, ns : *mut core::ffi::c_void) -> super::types:: pid_t);
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn task_pgrp_vnr(tsk : *mut task_struct) -> super::types:: pid_t);
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "ds",
+    feature = "sync",
+    feature = "types",
+    feature = "wait"
+))]
 windows_link::link!("kernel" "C" fn task_pid(task : *mut task_struct) -> *mut pid);
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn task_pid_nr(tsk : *mut task_struct) -> super::types:: pid_t);
@@ -3779,7 +5287,6 @@ windows_link::link!("kernel" "C" fn task_tgid_nr(tsk : *mut task_struct) -> supe
 windows_link::link!("kernel" "C" fn task_tgid_nr_ns(tsk : *mut task_struct, ns : *mut core::ffi::c_void) -> super::types:: pid_t);
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn task_tgid_vnr(tsk : *mut task_struct) -> super::types:: pid_t);
-windows_link::link!("kernel" "C" fn test_and_clear_wake_up_bit(bit : i32, word : *mut u64) -> bool);
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn timespec64_add(lhs : timespec64, rhs : timespec64) -> timespec64);
 #[cfg(feature = "types")]
@@ -3803,34 +5310,48 @@ windows_link::link!("kernel" "C" fn timespec64_valid_settod(ts : *const timespec
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn timespec64_valid_strict(ts : *const timespec64) -> bool);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn timestamp_truncate(t : timespec64, inode : *mut inode) -> timespec64);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn touch_atime(param0 : *const path));
 windows_link::link!("kernel" "C" fn transfer_pid(old : *mut task_struct, new : *mut task_struct, param2 : pid_type));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn try_wait_for_completion(x : *mut completion) -> bool);
 windows_link::link!("kernel" "C" fn uncached_acl_sentinel(task : *mut task_struct) -> *mut core::ffi::c_void);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn unlock_new_inode(param0 : *mut inode));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn unlock_two_nondirectories(param0 : *mut inode, param1 : *mut inode));
@@ -3841,521 +5362,518 @@ windows_link::link!("kernel" "C" fn unregister_chrdev_region(param0 : super::typ
 windows_link::link!("kernel" "C" fn unregister_filesystem(param0 : *mut file_system_type) -> i32);
 windows_link::link!("kernel" "C" fn unregister_quota_format(fmt : *mut quota_format_type));
 windows_link::link!("kernel" "C" fn user_statfs(param0 : *const i8, param1 : *mut core::ffi::c_void) -> i32);
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn uuid_copy(dst : *mut uuid_t, src : *const uuid_t));
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn uuid_equal(u1 : *const uuid_t, u2 : *const uuid_t) -> bool);
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn uuid_gen(u : *mut uuid_t));
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn uuid_is_null(uuid : *const uuid_t) -> bool);
+windows_link::link!("kernel" "C" fn uuid_is_valid(uuid : *const i8) -> bool);
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn uuid_parse(uuid : *const i8, u : *mut uuid_t) -> i32);
 windows_link::link!("kernel" "C" fn vfs_caches_init());
 windows_link::link!("kernel" "C" fn vfs_caches_init_early());
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn vfs_clone_file_range(file_in : *mut file, pos_in : super::types:: loff_t, file_out : *mut file, pos_out : super::types:: loff_t, len : super::types:: loff_t, remap_flags : u32) -> super::types:: loff_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn vfs_copy_file_range(param0 : *mut file, param1 : super::types:: loff_t, param2 : *mut file, param3 : super::types:: loff_t, param4 : super::types:: size_t, param5 : u32) -> super::types:: ssize_t);
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn vfs_create(param0 : *mut core::ffi::c_void, param1 : *mut super::dcache:: dentry, param2 : super::types:: umode_t, param3 : *mut core::ffi::c_void) -> i32);
 #[cfg(all(
     feature = "dcache",
     feature = "sync",
     feature = "types",
+    feature = "wait"
+))]
+windows_link::link!("kernel" "C" fn vfs_create(param0 : *mut core::ffi::c_void, param1 : *mut super::dcache:: dentry, param2 : super::types:: umode_t, param3 : *mut core::ffi::c_void) -> i32);
+#[cfg(all(
+    feature = "cred",
+    feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
+    feature = "sync",
+    feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn vfs_create_mount(fc : *mut core::ffi::c_void) -> *mut vfsmount);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn vfs_dedupe_file_range(file : *mut file, same : *mut file_dedupe_range) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn vfs_dedupe_file_range_one(src_file : *mut file, src_pos : super::types:: loff_t, dst_file : *mut file, dst_pos : super::types:: loff_t, len : super::types:: loff_t, remap_flags : u32) -> super::types:: loff_t);
 windows_link::link!("kernel" "C" fn vfs_empty_path(dfd : i32, path : *const i8) -> bool);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn vfs_fadvise(file : *mut file, offset : super::types:: loff_t, len : super::types:: loff_t, advice : i32) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn vfs_fallocate(file : *mut file, mode : i32, offset : super::types:: loff_t, len : super::types:: loff_t) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn vfs_fchmod(file : *mut file, mode : super::types:: umode_t) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn vfs_fchown(file : *mut file, user : super::types:: uid_t, group : super::types:: gid_t) -> i32);
-#[cfg(feature = "types")]
+#[cfg(all(feature = "cred", feature = "types"))]
 windows_link::link!("kernel" "C" fn vfs_fstat(fd : i32, stat : *mut kstat) -> i32);
-#[cfg(feature = "types")]
+#[cfg(all(feature = "cred", feature = "types"))]
 windows_link::link!("kernel" "C" fn vfs_fstatat(dfd : i32, filename : *const i8, stat : *mut kstat, flags : i32) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn vfs_fsync(file : *mut file, datasync : i32) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn vfs_fsync_range(file : *mut file, start : super::types:: loff_t, end : super::types:: loff_t, datasync : i32) -> i32);
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn vfs_get_link(param0 : *mut super::dcache:: dentry, param1 : *mut delayed_call) -> *mut i8);
 #[cfg(all(
     feature = "dcache",
     feature = "sync",
     feature = "types",
+    feature = "wait"
+))]
+windows_link::link!("kernel" "C" fn vfs_get_link(param0 : *mut super::dcache:: dentry, param1 : *mut delayed_call) -> *mut i8);
+#[cfg(all(
+    feature = "cred",
+    feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
+    feature = "sync",
+    feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn vfs_getattr(param0 : *const path, param1 : *mut kstat, param2 : u32, param3 : u32) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn vfs_getattr_nosec(param0 : *const path, param1 : *mut kstat, param2 : u32, param3 : u32) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn vfs_iocb_iter_read(file : *mut file, iocb : *mut kiocb, iter : *mut core::ffi::c_void) -> super::types:: ssize_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn vfs_iocb_iter_write(file : *mut file, iocb : *mut kiocb, iter : *mut core::ffi::c_void) -> super::types:: ssize_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn vfs_iter_read(file : *mut file, iter : *mut core::ffi::c_void, ppos : *mut super::types:: loff_t, flags : rwf_t) -> super::types:: ssize_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn vfs_iter_write(file : *mut file, iter : *mut core::ffi::c_void, ppos : *mut super::types:: loff_t, flags : rwf_t) -> super::types:: ssize_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn vfs_kern_mount(r#type : *mut file_system_type, flags : i32, name : *const i8, data : *mut core::ffi::c_void) -> *mut vfsmount);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn vfs_link(param0 : *mut super::dcache:: dentry, param1 : *mut core::ffi::c_void, param2 : *mut inode, param3 : *mut super::dcache:: dentry, param4 : *mut core::ffi::c_void) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn vfs_llseek(file : *mut file, offset : super::types:: loff_t, whence : i32) -> super::types:: loff_t);
-#[cfg(feature = "types")]
+#[cfg(all(feature = "cred", feature = "types"))]
 windows_link::link!("kernel" "C" fn vfs_lstat(name : *const i8, stat : *mut kstat) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn vfs_mkdir(param0 : *mut core::ffi::c_void, param1 : *mut inode, param2 : *mut super::dcache:: dentry, param3 : super::types:: umode_t, param4 : *mut core::ffi::c_void) -> *mut super::dcache:: dentry);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn vfs_mknod(param0 : *mut core::ffi::c_void, param1 : *mut inode, param2 : *mut super::dcache:: dentry, param3 : super::types:: umode_t, param4 : super::types:: dev_t, param5 : *mut core::ffi::c_void) -> i32);
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "sync",
+    feature = "types",
+    feature = "wait"
+))]
 windows_link::link!("kernel" "C" fn vfs_mkobj(param0 : *mut super::dcache:: dentry, param1 : super::types:: umode_t, f : *mut isize, param3 : *mut core::ffi::c_void) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
-windows_link::link!("kernel" "C" fn vfs_mmap(file : *mut file, vma : *mut vm_area_struct) -> i32);
+windows_link::link!("kernel" "C" fn vfs_mmap(file : *mut file, vma : *mut super::mm_types:: vm_area_struct) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
-windows_link::link!("kernel" "C" fn vfs_mmap_prepare(file : *mut file, desc : *mut vm_area_desc) -> i32);
+windows_link::link!("kernel" "C" fn vfs_mmap_prepare(file : *mut file, desc : *mut super::mm_types:: vm_area_desc) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn vfs_read(param0 : *mut file, param1 : *mut i8, param2 : super::types:: size_t, param3 : *mut super::types:: loff_t) -> super::types:: ssize_t);
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn vfs_readlink(param0 : *mut super::dcache:: dentry, param1 : *mut i8, param2 : i32) -> i32);
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn vfs_rename(param0 : *mut renamedata) -> i32);
 #[cfg(all(
     feature = "dcache",
     feature = "sync",
     feature = "types",
+    feature = "wait"
+))]
+windows_link::link!("kernel" "C" fn vfs_readlink(param0 : *mut super::dcache:: dentry, param1 : *mut i8, param2 : i32) -> i32);
+#[cfg(all(
+    feature = "dcache",
+    feature = "sync",
+    feature = "types",
+    feature = "wait"
+))]
+windows_link::link!("kernel" "C" fn vfs_rename(param0 : *mut renamedata) -> i32);
+#[cfg(all(
+    feature = "cred",
+    feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
+    feature = "sync",
+    feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn vfs_rmdir(param0 : *mut core::ffi::c_void, param1 : *mut inode, param2 : *mut super::dcache:: dentry, param3 : *mut core::ffi::c_void) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn vfs_setpos(file : *mut file, offset : super::types:: loff_t, maxsize : super::types:: loff_t) -> super::types:: loff_t);
-#[cfg(feature = "types")]
+#[cfg(all(feature = "cred", feature = "types"))]
 windows_link::link!("kernel" "C" fn vfs_stat(filename : *const i8, stat : *mut kstat) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn vfs_statfs(param0 : *const path, param1 : *mut core::ffi::c_void) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn vfs_symlink(param0 : *mut core::ffi::c_void, param1 : *mut inode, param2 : *mut super::dcache:: dentry, param3 : *const i8, param4 : *mut core::ffi::c_void) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn vfs_truncate(param0 : *const path, param1 : super::types:: loff_t) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn vfs_unlink(param0 : *mut core::ffi::c_void, param1 : *mut inode, param2 : *mut super::dcache:: dentry, param3 : *mut core::ffi::c_void) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn vfs_utimes(path : *const path, times : *mut timespec64) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn vfs_whiteout(idmap : *mut core::ffi::c_void, dir : *mut inode, dentry : *mut super::dcache:: dentry) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn vfs_write(param0 : *mut file, param1 : *const i8, param2 : super::types:: size_t, param3 : *mut super::types:: loff_t) -> super::types:: ssize_t);
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn vfsgid_eq(left : vfsgid_t, right : vfsgid_t) -> bool);
+#[cfg(all(feature = "cred", feature = "types"))]
+windows_link::link!("kernel" "C" fn vfsgid_eq_kgid(vfsgid : vfsgid_t, kgid : super::cred:: kgid_t) -> bool);
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn vfsgid_has_fsmapping(idmap : *mut core::ffi::c_void, fs_userns : *mut core::ffi::c_void, vfsgid : vfsgid_t) -> bool);
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn vfsgid_has_mapping(userns : *mut core::ffi::c_void, vfsgid : vfsgid_t) -> bool);
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn vfsgid_in_group_p(vfsgid : vfsgid_t) -> i32);
+#[cfg(all(feature = "cred", feature = "types"))]
+windows_link::link!("kernel" "C" fn vfsgid_into_kgid(vfsgid : vfsgid_t) -> super::cred:: kgid_t);
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn vfsgid_valid(gid : vfsgid_t) -> bool);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn vfsmount_to_propagation_flags(mnt : *mut vfsmount) -> u64);
-windows_link::link!("kernel" "C" fn vma_is_dax(vma : *const vm_area_struct) -> bool);
-windows_link::link!("kernel" "C" fn vma_is_fsdax(vma : *mut vm_area_struct) -> bool);
-windows_link::link!("kernel" "C" fn wait_bit_init());
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn wait_for_completion(param0 : *mut completion));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn wait_for_completion_interruptible(x : *mut completion) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn wait_for_completion_interruptible_timeout(x : *mut completion, timeout : u64) -> i64);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn wait_for_completion_io(param0 : *mut completion));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn wait_for_completion_io_timeout(x : *mut completion, timeout : u64) -> u64);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn wait_for_completion_killable(x : *mut completion) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn wait_for_completion_killable_timeout(x : *mut completion, timeout : u64) -> i64);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn wait_for_completion_state(x : *mut completion, state : u32) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn wait_for_completion_timeout(x : *mut completion, timeout : u64) -> u64);
-windows_link::link!("kernel" "C" fn wait_on_bit(word : *mut u64, bit : i32, mode : u32) -> i32);
-windows_link::link!("kernel" "C" fn wait_on_bit_action(word : *mut u64, bit : i32, action : *mut wait_bit_action_f, mode : u32) -> i32);
-windows_link::link!("kernel" "C" fn wait_on_bit_io(word : *mut u64, bit : i32, mode : u32) -> i32);
-windows_link::link!("kernel" "C" fn wait_on_bit_lock(word : *mut u64, bit : i32, mode : u32) -> i32);
-windows_link::link!("kernel" "C" fn wait_on_bit_lock_action(word : *mut u64, bit : i32, action : *mut wait_bit_action_f, mode : u32) -> i32);
-windows_link::link!("kernel" "C" fn wait_on_bit_lock_io(word : *mut u64, bit : i32, mode : u32) -> i32);
-windows_link::link!("kernel" "C" fn wait_on_bit_timeout(word : *mut u64, bit : i32, mode : u32, timeout : u64) -> i32);
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn vfsuid_eq(left : vfsuid_t, right : vfsuid_t) -> bool);
+#[cfg(all(feature = "cred", feature = "types"))]
+windows_link::link!("kernel" "C" fn vfsuid_eq_kuid(vfsuid : vfsuid_t, kuid : super::cred:: kuid_t) -> bool);
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn vfsuid_has_fsmapping(idmap : *mut core::ffi::c_void, fs_userns : *mut core::ffi::c_void, vfsuid : vfsuid_t) -> bool);
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn vfsuid_has_mapping(userns : *mut core::ffi::c_void, vfsuid : vfsuid_t) -> bool);
+#[cfg(all(feature = "cred", feature = "types"))]
+windows_link::link!("kernel" "C" fn vfsuid_into_kuid(vfsuid : vfsuid_t) -> super::cred:: kuid_t);
+#[cfg(feature = "types")]
+windows_link::link!("kernel" "C" fn vfsuid_valid(uid : vfsuid_t) -> bool);
 #[cfg(all(
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "workqueue"
+))]
+windows_link::link!("kernel" "C" fn vma_is_dax(vma : *const super::mm_types:: vm_area_struct) -> bool);
+#[cfg(all(
+    feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
+    feature = "sync",
+    feature = "types",
+    feature = "workqueue"
+))]
+windows_link::link!("kernel" "C" fn vma_is_fsdax(vma : *mut super::mm_types:: vm_area_struct) -> bool);
+#[cfg(all(
+    feature = "cred",
+    feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
+    feature = "sync",
+    feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn wait_on_new_inode(inode : *mut inode));
-#[cfg(feature = "pagemap")]
-windows_link::link!("kernel" "C" fn wait_woken(wq_entry : *mut super::pagemap:: wait_queue_entry, mode : u32, timeout : i64) -> i64);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn waitqueue_active(wq_head : *mut wait_queue_head) -> i32);
-#[cfg(feature = "pagemap")]
-windows_link::link!("kernel" "C" fn wake_bit_function(wq_entry : *mut super::pagemap:: wait_queue_entry, mode : u32, sync : i32, key : *mut core::ffi::c_void) -> i32);
-windows_link::link!("kernel" "C" fn wake_up_bit(word : *mut u64, bit : i32));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn wake_up_pollfree(wq_head : *mut wait_queue_head));
-windows_link::link!("kernel" "C" fn wake_up_var(var : *mut core::ffi::c_void));
-#[cfg(feature = "pagemap")]
-windows_link::link!("kernel" "C" fn woken_wake_function(wq_entry : *mut super::pagemap:: wait_queue_entry, mode : u32, sync : i32, key : *mut core::ffi::c_void) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn wq_has_single_sleeper(wq_head : *mut wait_queue_head) -> bool);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn wq_has_sleeper(wq_head : *mut wait_queue_head) -> bool);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn wrap_directory_iterator(param0 : *mut file, param1 : *mut dir_context, param2 : *mut isize) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_alloc(xa : *mut xarray, id : *mut u32, entry : *mut core::ffi::c_void, limit : xa_limit, gfp : super::types:: gfp_t) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_alloc_bh(xa : *mut xarray, id : *mut u32, entry : *mut core::ffi::c_void, limit : xa_limit, gfp : super::types:: gfp_t) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_alloc_cyclic(xa : *mut xarray, id : *mut u32, entry : *mut core::ffi::c_void, limit : xa_limit, next : *mut u32, gfp : super::types:: gfp_t) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_alloc_cyclic_bh(xa : *mut xarray, id : *mut u32, entry : *mut core::ffi::c_void, limit : xa_limit, next : *mut u32, gfp : super::types:: gfp_t) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_alloc_cyclic_irq(xa : *mut xarray, id : *mut u32, entry : *mut core::ffi::c_void, limit : xa_limit, next : *mut u32, gfp : super::types:: gfp_t) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_alloc_irq(xa : *mut xarray, id : *mut u32, entry : *mut core::ffi::c_void, limit : xa_limit, gfp : super::types:: gfp_t) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_clear_mark(param0 : *mut xarray, index : u64, param2 : xa_mark_t));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_cmpxchg(xa : *mut xarray, index : u64, old : *mut core::ffi::c_void, entry : *mut core::ffi::c_void, gfp : super::types:: gfp_t) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_cmpxchg_bh(xa : *mut xarray, index : u64, old : *mut core::ffi::c_void, entry : *mut core::ffi::c_void, gfp : super::types:: gfp_t) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_cmpxchg_irq(xa : *mut xarray, index : u64, old : *mut core::ffi::c_void, entry : *mut core::ffi::c_void, gfp : super::types:: gfp_t) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_delete_node(param0 : *mut xa_node, param1 : xa_update_node_t));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_destroy(param0 : *mut xarray));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_dump(param0 : *const xarray));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_dump_node(param0 : *const xa_node));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_empty(xa : *const xarray) -> bool);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_entry(xa : *const xarray, node : *const xa_node, offset : u32) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_entry_locked(xa : *const xarray, node : *const xa_node, offset : u32) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_erase(param0 : *mut xarray, index : u64) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_erase_bh(xa : *mut xarray, index : u64) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_erase_irq(xa : *mut xarray, index : u64) -> *mut core::ffi::c_void);
-windows_link::link!("kernel" "C" fn xa_err(entry : *mut core::ffi::c_void) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_extract(param0 : *mut xarray, dst : *mut *mut core::ffi::c_void, start : u64, max : u64, n : u32, param5 : xa_mark_t) -> u32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_find(xa : *mut xarray, index : *mut u64, max : u64, param3 : xa_mark_t) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_find_after(xa : *mut xarray, index : *mut u64, max : u64, param3 : xa_mark_t) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_get_mark(param0 : *mut xarray, index : u64, param2 : xa_mark_t) -> bool);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_get_order(xa : *mut xarray, index : u64) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_head(xa : *const xarray) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_head_locked(xa : *const xarray) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_init(xa : *mut xarray));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_init_flags(xa : *mut xarray, flags : super::types:: gfp_t));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_insert(xa : *mut xarray, index : u64, entry : *mut core::ffi::c_void, gfp : super::types:: gfp_t) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_insert_bh(xa : *mut xarray, index : u64, entry : *mut core::ffi::c_void, gfp : super::types:: gfp_t) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_insert_irq(xa : *mut xarray, index : u64, entry : *mut core::ffi::c_void, gfp : super::types:: gfp_t) -> i32);
-windows_link::link!("kernel" "C" fn xa_is_advanced(entry : *const core::ffi::c_void) -> bool);
-windows_link::link!("kernel" "C" fn xa_is_err(entry : *const core::ffi::c_void) -> bool);
-windows_link::link!("kernel" "C" fn xa_is_internal(entry : *const core::ffi::c_void) -> bool);
-windows_link::link!("kernel" "C" fn xa_is_node(entry : *const core::ffi::c_void) -> bool);
-windows_link::link!("kernel" "C" fn xa_is_retry(entry : *const core::ffi::c_void) -> bool);
-windows_link::link!("kernel" "C" fn xa_is_sibling(entry : *const core::ffi::c_void) -> bool);
-windows_link::link!("kernel" "C" fn xa_is_value(entry : *const core::ffi::c_void) -> bool);
-windows_link::link!("kernel" "C" fn xa_is_zero(entry : *const core::ffi::c_void) -> bool);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_load(param0 : *mut xarray, index : u64) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_marked(xa : *const xarray, mark : xa_mark_t) -> bool);
-windows_link::link!("kernel" "C" fn xa_mk_internal(v : u64) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_mk_node(node : *const xa_node) -> *mut core::ffi::c_void);
-windows_link::link!("kernel" "C" fn xa_mk_sibling(offset : u32) -> *mut core::ffi::c_void);
-windows_link::link!("kernel" "C" fn xa_mk_value(v : u64) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_parent(xa : *const xarray, node : *const xa_node) -> *mut xa_node);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_parent_locked(xa : *const xarray, node : *const xa_node) -> *mut xa_node);
-windows_link::link!("kernel" "C" fn xa_pointer_tag(entry : *mut core::ffi::c_void) -> u32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_release(xa : *mut xarray, index : u64));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_reserve(xa : *mut xarray, index : u64, gfp : super::types:: gfp_t) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_reserve_bh(xa : *mut xarray, index : u64, gfp : super::types:: gfp_t) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_reserve_irq(xa : *mut xarray, index : u64, gfp : super::types:: gfp_t) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_set_mark(param0 : *mut xarray, index : u64, param2 : xa_mark_t));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_store(param0 : *mut xarray, index : u64, entry : *mut core::ffi::c_void, param3 : super::types:: gfp_t) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_store_bh(xa : *mut xarray, index : u64, entry : *mut core::ffi::c_void, gfp : super::types:: gfp_t) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_store_irq(xa : *mut xarray, index : u64, entry : *mut core::ffi::c_void, gfp : super::types:: gfp_t) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_store_range(param0 : *mut xarray, first : u64, last : u64, entry : *mut core::ffi::c_void, param4 : super::types:: gfp_t) -> *mut core::ffi::c_void);
-windows_link::link!("kernel" "C" fn xa_tag_pointer(p : *mut core::ffi::c_void, tag : u64) -> *mut core::ffi::c_void);
-windows_link::link!("kernel" "C" fn xa_to_internal(entry : *const core::ffi::c_void) -> u64);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xa_to_node(entry : *const core::ffi::c_void) -> *mut xa_node);
-windows_link::link!("kernel" "C" fn xa_to_sibling(entry : *const core::ffi::c_void) -> u64);
-windows_link::link!("kernel" "C" fn xa_to_value(entry : *const core::ffi::c_void) -> u64);
-windows_link::link!("kernel" "C" fn xa_untag_pointer(entry : *mut core::ffi::c_void) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xas_advance(xas : *mut xa_state, index : u64));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xas_clear_mark(param0 : *const xa_state, param1 : xa_mark_t));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xas_create_range(param0 : *mut xa_state));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xas_destroy(param0 : *mut xa_state));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xas_error(xas : *const xa_state) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xas_find(param0 : *mut xa_state, max : u64) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xas_find_chunk(xas : *mut xa_state, advance : bool, mark : xa_mark_t) -> u32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xas_find_conflict(param0 : *mut xa_state) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xas_find_marked(param0 : *mut xa_state, max : u64, param2 : xa_mark_t) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xas_frozen(node : *mut xa_node) -> bool);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xas_get_mark(param0 : *const xa_state, param1 : xa_mark_t) -> bool);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xas_get_order(xas : *mut xa_state) -> i32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xas_init_marks(param0 : *const xa_state));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xas_invalid(xas : *const xa_state) -> bool);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xas_is_node(xas : *const xa_state) -> bool);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xas_load(param0 : *mut xa_state) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xas_next(xas : *mut xa_state) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xas_next_entry(xas : *mut xa_state, max : u64) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xas_next_marked(xas : *mut xa_state, max : u64, mark : xa_mark_t) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xas_nomem(param0 : *mut xa_state, param1 : super::types:: gfp_t) -> bool);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xas_not_node(node : *mut xa_node) -> bool);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xas_pause(param0 : *mut xa_state));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xas_prev(xas : *mut xa_state) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xas_reload(xas : *mut xa_state) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xas_reset(xas : *mut xa_state));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xas_retry(xas : *mut xa_state, entry : *const core::ffi::c_void) -> bool);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xas_set(xas : *mut xa_state, index : u64));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xas_set_err(xas : *mut xa_state, err : i64));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xas_set_lru(xas : *mut xa_state, lru : *mut list_lru));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xas_set_mark(param0 : *const xa_state, param1 : xa_mark_t));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xas_set_order(xas : *mut xa_state, index : u64, order : u32));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xas_set_update(xas : *mut xa_state, update : xa_update_node_t));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xas_split(xas : *mut xa_state, entry : *mut core::ffi::c_void, order : u32));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xas_split_alloc(xas : *mut xa_state, entry : *mut core::ffi::c_void, order : u32, gfp : super::types:: gfp_t));
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xas_store(param0 : *mut xa_state, entry : *mut core::ffi::c_void) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xas_top(node : *mut xa_node) -> bool);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xas_try_split(xas : *mut xa_state, entry : *mut core::ffi::c_void, order : u32));
-windows_link::link!("kernel" "C" fn xas_try_split_min_order(order : u32) -> u32);
-#[cfg(all(feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn xas_valid(xas : *const xa_state) -> bool);
 pub const AOP_TRUNCATED_PAGE: u32 = 524289u32;
 pub const AOP_WRITEPAGE_ACTIVATE: u32 = 524288u32;
+pub const BLOCK_SIZE_BITS: i32 = 10i32;
+pub const BMAP_IOCTL: i32 = 1i32;
 pub const CHRDEV_MAJOR_DYN_END: i32 = 234i32;
 pub const CHRDEV_MAJOR_DYN_EXT_END: i32 = 384i32;
 pub const CHRDEV_MAJOR_DYN_EXT_START: i32 = 511i32;
@@ -4382,24 +5900,86 @@ pub const DQ_READ_B: i32 = 4i32;
 pub const DQ_RELEASING_B: i32 = 6i32;
 pub const FASYNC_MAGIC: i32 = 17921i32;
 pub const FILESYSTEM_MAX_STACK_DEPTH: i32 = 2i32;
+pub const FILE_ATTR_SIZE_VER0: i32 = 24i32;
+pub const FILE_DEDUPE_RANGE_DIFFERS: i32 = 1i32;
+pub const FILE_DEDUPE_RANGE_SAME: i32 = 0i32;
+pub const FILE_REF_DEAD: u64 = 16140901064495857664u64;
+pub const FILE_REF_MAXREF: i32 = -1i32;
+pub const FILE_REF_NOREF: u64 = 18446744073709551615u64;
+pub const FILE_REF_ONEREF: i32 = 0i32;
+pub const FILE_REF_RELEASED: u64 = 13835058055282163712u64;
+pub const FILE_REF_SATURATED: u64 = 11529215046068469760u64;
 pub const FILLDIR_FLAG_NOINTR: i32 = 4096i32;
 pub const FREEZE_EXCL: u32 = 8u32;
 pub const FREEZE_HOLDER_KERNEL: u32 = 1u32;
 pub const FREEZE_HOLDER_USERSPACE: u32 = 2u32;
 pub const FREEZE_MAY_NEST: u32 = 4u32;
+pub const FSLABEL_MAX: i32 = 256i32;
 pub const FS_ALLOW_IDMAP: i32 = 32i32;
+pub const FS_APPEND_FL: i32 = 32i32;
 pub const FS_BINARY_MOUNTDATA: i32 = 2i32;
+pub const FS_BTREE_FL: i32 = 4096i32;
+pub const FS_CASEFOLD_FL: i32 = 1073741824i32;
+pub const FS_COMPRBLK_FL: i32 = 512i32;
+pub const FS_COMPR_FL: i32 = 4i32;
+pub const FS_DAX_FL: i32 = 33554432i32;
+pub const FS_DIRSYNC_FL: i32 = 65536i32;
+pub const FS_DIRTY_FL: i32 = 256i32;
 pub const FS_DISALLOW_NOTIFY_PERM: i32 = 16i32;
+pub const FS_EA_INODE_FL: i32 = 2097152i32;
+pub const FS_ENCRYPT_FL: i32 = 2048i32;
+pub const FS_EOFBLOCKS_FL: i32 = 4194304i32;
+pub const FS_EXTENT_FL: i32 = 524288i32;
+pub const FS_FL_USER_MODIFIABLE: i32 = 229631i32;
+pub const FS_FL_USER_VISIBLE: i32 = 253951i32;
 pub const FS_HAS_SUBTYPE: i32 = 4i32;
+pub const FS_HUGE_FILE_FL: i32 = 262144i32;
+pub const FS_IMAGIC_FL: i32 = 8192i32;
+pub const FS_IMMUTABLE_FL: i32 = 16i32;
+pub const FS_INDEX_FL: i32 = 4096i32;
+pub const FS_INLINE_DATA_FL: i32 = 268435456i32;
+pub const FS_JOURNAL_DATA_FL: i32 = 16384i32;
 pub const FS_LBS: i32 = 128i32;
 pub const FS_MGTIME: i32 = 64i32;
+pub const FS_NOATIME_FL: i32 = 128i32;
+pub const FS_NOCOMP_FL: i32 = 1024i32;
+pub const FS_NOCOW_FL: i32 = 8388608i32;
+pub const FS_NODUMP_FL: i32 = 64i32;
+pub const FS_NOTAIL_FL: i32 = 32768i32;
 pub const FS_POWER_FREEZE: i32 = 256i32;
+pub const FS_PROJINHERIT_FL: i32 = 536870912i32;
 pub const FS_RENAME_DOES_D_MOVE: i32 = 32768i32;
 pub const FS_REQUIRES_DEV: i32 = 1i32;
+pub const FS_RESERVED_FL: i32 = -2147483648i32;
+pub const FS_SECRM_FL: i32 = 1i32;
+pub const FS_SYNC_FL: i32 = 8i32;
+pub const FS_TOPDIR_FL: i32 = 131072i32;
+pub const FS_UNRM_FL: i32 = 2i32;
 pub const FS_UPD_ATIME: u32 = 0u32;
 pub const FS_UPD_CMTIME: u32 = 1u32;
 pub const FS_USERNS_MOUNT: i32 = 8i32;
+pub const FS_VERITY_FL: i32 = 1048576i32;
+pub const FS_XFLAG_APPEND: i32 = 16i32;
+pub const FS_XFLAG_COWEXTSIZE: i32 = 65536i32;
+pub const FS_XFLAG_DAX: i32 = 32768i32;
+pub const FS_XFLAG_EXTSIZE: i32 = 2048i32;
+pub const FS_XFLAG_EXTSZINHERIT: i32 = 4096i32;
+pub const FS_XFLAG_FILESTREAM: i32 = 16384i32;
+pub const FS_XFLAG_HASATTR: i32 = -2147483648i32;
+pub const FS_XFLAG_IMMUTABLE: i32 = 8i32;
+pub const FS_XFLAG_NOATIME: i32 = 64i32;
+pub const FS_XFLAG_NODEFRAG: i32 = 8192i32;
+pub const FS_XFLAG_NODUMP: i32 = 128i32;
+pub const FS_XFLAG_NOSYMLINKS: i32 = 1024i32;
+pub const FS_XFLAG_PREALLOC: i32 = 2i32;
+pub const FS_XFLAG_PROJINHERIT: i32 = 512i32;
+pub const FS_XFLAG_REALTIME: i32 = 1i32;
+pub const FS_XFLAG_RTINHERIT: i32 = 256i32;
+pub const FS_XFLAG_SYNC: i32 = 32i32;
+pub const FS_XFLAG_VERITY: i32 = 131072i32;
 pub const GRPQUOTA: u32 = 1u32;
+pub const INR_OPEN_CUR: i32 = 1024i32;
+pub const INR_OPEN_MAX: i32 = 4096i32;
 pub const IOP_CACHED_LINK: i32 = 64i32;
 pub const IOP_DEFAULT_READLINK: i32 = 16i32;
 pub const IOP_FASTPERM: i32 = 1i32;
@@ -4433,6 +6013,11 @@ pub const I_SYNC: u32 = 2u32;
 pub const I_SYNC_QUEUED: u32 = 131072u32;
 pub const I_WB_SWITCH: u32 = 8192u32;
 pub const I_WILL_FREE: u32 = 128u32;
+pub const LBMD_PI_CSUM_CRC16_T10DIF: i32 = 2i32;
+pub const LBMD_PI_CSUM_CRC64_NVME: i32 = 4i32;
+pub const LBMD_PI_CSUM_IP: i32 = 1i32;
+pub const LBMD_PI_CSUM_NONE: i32 = 0i32;
+pub const LBMD_SIZE_VER0: i32 = 16i32;
 pub const LD_LOCK_MAX: u32 = 3u32;
 pub const LD_LOCK_NORMAL: u32 = 0u32;
 pub const LD_LOCK_PERCPU: u32 = 1u32;
@@ -4443,21 +6028,6 @@ pub const LD_WAIT_INV: u32 = 0u32;
 pub const LD_WAIT_MAX: u32 = 4u32;
 pub const LD_WAIT_SLEEP: u32 = 3u32;
 pub const LD_WAIT_SPIN: u32 = 2u32;
-pub const LIST_BL_LOCKMASK: i32 = 1i32;
-pub const LRU_REMOVED: u32 = 0u32;
-pub const LRU_REMOVED_RETRY: u32 = 1u32;
-pub const LRU_RETRY: u32 = 4u32;
-pub const LRU_ROTATE: u32 = 2u32;
-pub const LRU_SKIP: u32 = 3u32;
-pub const LRU_STOP: u32 = 5u32;
-pub const MAPLE_ARANGE64_SLOTS: i32 = 10i32;
-pub const MAPLE_HEIGHT_MAX: i32 = 31i32;
-pub const MAPLE_NODE_MASK: i32 = 255i32;
-pub const MAPLE_NODE_SLOTS: i32 = 31i32;
-pub const MAPLE_NODE_TYPE_MASK: i32 = 15i32;
-pub const MAPLE_NODE_TYPE_SHIFT: i32 = 3i32;
-pub const MAPLE_RANGE64_SLOTS: i32 = 16i32;
-pub const MAPLE_RESERVED_RANGE: i32 = 4096i32;
 pub const MAX_LOCKDEP_SUBCLASSES: i32 = 8i32;
 pub const MAY_ACCESS: i32 = 16i32;
 pub const MAY_APPEND: i32 = 8i32;
@@ -4506,17 +6076,9 @@ pub const MR_MEMPOLICY_MBIND: u32 = 4u32;
 pub const MR_NUMA_MISPLACED: u32 = 5u32;
 pub const MR_SYSCALL: u32 = 3u32;
 pub const MR_TYPES: u32 = 10u32;
-pub const MT_FLAGS_ALLOC_RANGE: i32 = 1i32;
-pub const MT_FLAGS_ALLOC_WRAPPED: i32 = 2048i32;
-pub const MT_FLAGS_HEIGHT_MASK: i32 = 124i32;
-pub const MT_FLAGS_HEIGHT_OFFSET: i32 = 2i32;
-pub const MT_FLAGS_LOCK_BH: i32 = 512i32;
-pub const MT_FLAGS_LOCK_EXTERN: i32 = 768i32;
-pub const MT_FLAGS_LOCK_IRQ: i32 = 256i32;
-pub const MT_FLAGS_LOCK_MASK: i32 = 768i32;
-pub const MT_FLAGS_USE_RCU: i32 = 2i32;
 pub const NOMMU_MAP_COPY: i32 = 1i32;
 pub const NOMMU_MAP_DIRECT: i32 = 8i32;
+pub const NR_FILE: i32 = 8192i32;
 pub const OVERFLOW_PROJID: i32 = 65534i32;
 pub const PIDTYPE_MAX: u32 = 4u32;
 pub const PIDTYPE_PGID: u32 = 2u32;
@@ -4524,8 +6086,16 @@ pub const PIDTYPE_PID: u32 = 0u32;
 pub const PIDTYPE_SID: u32 = 3u32;
 pub const PIDTYPE_TGID: u32 = 1u32;
 pub const PRJQUOTA: u32 = 2u32;
+pub const PROCFS_ROOT_INO: u32 = 1u32;
+pub const PROCMAP_QUERY_COVERING_OR_NEXT_VMA: u32 = 16u32;
+pub const PROCMAP_QUERY_FILE_BACKED_VMA: u32 = 32u32;
+pub const PROCMAP_QUERY_VMA_EXECUTABLE: u32 = 4u32;
+pub const PROCMAP_QUERY_VMA_READABLE: u32 = 1u32;
+pub const PROCMAP_QUERY_VMA_SHARED: u32 = 8u32;
+pub const PROCMAP_QUERY_VMA_WRITABLE: u32 = 2u32;
 pub const PSEC_PER_NSEC: i32 = 1000i32;
 pub const RESERVED_PIDS: i32 = 300i32;
+pub const RWLOCK_MAGIC: i32 = -558948627i32;
 pub const SB_FREEZE_COMPLETE: u32 = 4u32;
 pub const SB_FREEZE_FS: u32 = 3u32;
 pub const SB_FREEZE_PAGEFAULT: u32 = 2u32;
@@ -4546,19 +6116,24 @@ pub const SB_I_TS_EXPIRY_WARNED: i32 = 1024i32;
 pub const SB_I_UNTRUSTED_MOUNTER: i32 = 64i32;
 pub const SB_I_USERNS_VISIBLE: i32 = 16i32;
 pub const SB_UNFROZEN: u32 = 0u32;
+pub const SEEK_CUR: i32 = 1i32;
+pub const SEEK_DATA: i32 = 3i32;
+pub const SEEK_END: i32 = 2i32;
+pub const SEEK_HOLE: i32 = 4i32;
+pub const SEEK_SET: i32 = 0i32;
 pub const STATX_ATTR_CHANGE_MONOTONIC: u64 = 9223372036854775808u64;
 pub const STATX_CHANGE_COOKIE: i32 = 1073741824i32;
+pub const SYNC_FILE_RANGE_WAIT_AFTER: i32 = 4i32;
+pub const SYNC_FILE_RANGE_WAIT_BEFORE: i32 = 1i32;
+pub const SYNC_FILE_RANGE_WRITE: i32 = 2i32;
 pub const S_DAX: i32 = 0i32;
 pub const UMOUNT_NOFOLLOW: i32 = 8i32;
 pub const UMOUNT_UNUSED: i32 = -2147483648i32;
 pub const USRQUOTA: u32 = 0u32;
+pub const UUID_SIZE: i32 = 16i32;
+pub const UUID_STRING_LEN: i32 = 36i32;
 pub const WHITEOUT_DEV: i32 = 0i32;
 pub const WHITEOUT_MODE: i32 = 0i32;
-pub const WQ_FLAG_CUSTOM: i32 = 4i32;
-pub const WQ_FLAG_DONE: i32 = 8i32;
-pub const WQ_FLAG_EXCLUSIVE: i32 = 1i32;
-pub const WQ_FLAG_PRIORITY: i32 = 16i32;
-pub const WQ_FLAG_WOKEN: i32 = 2i32;
 pub const WRITE_LIFE_EXTREME: u8 = 5u8;
 pub const WRITE_LIFE_HINT_NR: u8 = 6u8;
 pub const WRITE_LIFE_LONG: u8 = 4u8;
@@ -4566,10 +6141,6 @@ pub const WRITE_LIFE_MEDIUM: u8 = 3u8;
 pub const WRITE_LIFE_NONE: u8 = 1u8;
 pub const WRITE_LIFE_NOT_SET: u8 = 0u8;
 pub const WRITE_LIFE_SHORT: u8 = 2u8;
-pub const XA_CHECK_SCHED: u32 = 4096u32;
-pub const XA_LOCK_BH: u32 = 2u32;
-pub const XA_LOCK_IRQ: u32 = 1u32;
-pub const XA_MAX_MARKS: i32 = 3i32;
 pub const _DQST_DQSTAT_LAST: u32 = 8u32;
 pub const _DQUOT_LIMITS_ENABLED: u32 = 1u32;
 pub const _DQUOT_STATE_FLAGS: u32 = 3u32;
@@ -4590,21 +6161,26 @@ impl Default for __filename_head {
         unsafe { core::mem::zeroed() }
     }
 }
+pub type __kernel_rwf_t = i32;
 #[repr(C, packed(8))]
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 #[derive(Clone, Copy)]
 pub struct address_space {
     pub host: *mut inode,
-    pub i_pages: xarray,
+    pub i_pages: super::ds::xarray,
     pub invalidate_lock: super::sync::rw_semaphore,
     pub gfp_mask: super::types::gfp_t,
     pub i_mmap_writable: super::types::atomic_t,
-    pub i_mmap: rb_root_cached,
+    pub i_mmap: super::ds::rb_root_cached,
     pub nrpages: u64,
     pub writeback_index: u64,
     pub a_ops: *mut address_space_operations,
@@ -4616,9 +6192,13 @@ pub struct address_space {
     pub i_private_data: *mut core::ffi::c_void,
 }
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 impl Default for address_space {
@@ -4654,83 +6234,27 @@ impl Default for address_space_operations {
         unsafe { core::mem::zeroed() }
     }
 }
+#[repr(C)]
+#[cfg(all(feature = "sync", feature = "types"))]
+#[derive(Clone, Copy)]
+pub struct arch_rwlock_t {
+    pub Value: qrwlock,
+}
+#[cfg(all(feature = "sync", feature = "types"))]
+impl Default for arch_rwlock_t {
+    fn default() -> Self {
+        unsafe { core::mem::zeroed() }
+    }
+}
 pub type class_filename_complete_delayed_t = class_filename_t;
 pub type class_filename_flags_t = class_filename_t;
 pub type class_filename_kernel_t = class_filename_t;
 pub type class_filename_maybe_null_t = class_filename_t;
 pub type class_filename_t = *mut filename;
 pub type class_filename_uflags_t = class_filename_t;
-pub type class_override_creds_t = *mut cred;
 pub type class_percpu_read_t = *mut percpu_rw_semaphore;
 pub type class_percpu_read_try_t = class_percpu_read_t;
 pub type class_percpu_write_t = *mut percpu_rw_semaphore;
-pub type class_prepare_creds_t = *mut cred;
-#[repr(C, packed(8))]
-#[cfg(all(feature = "sync", feature = "types"))]
-#[derive(Clone, Copy)]
-pub struct completion {
-    pub done: u32,
-    pub wait: swait_queue_head,
-}
-#[cfg(all(feature = "sync", feature = "types"))]
-impl Default for completion {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-#[repr(C, packed(8))]
-#[cfg(feature = "types")]
-#[derive(Clone, Copy, Default)]
-pub struct cpu_vfs_cap_data {
-    pub magic_etc: super::types::__u32,
-    pub rootid: kuid_t,
-    pub permitted: kernel_cap_t,
-    pub inheritable: kernel_cap_t,
-}
-#[repr(C, packed(8))]
-#[cfg(all(feature = "sync", feature = "types"))]
-#[derive(Clone, Copy)]
-pub struct cred {
-    pub usage: super::types::atomic64_t,
-    pub uid: kuid_t,
-    pub gid: kgid_t,
-    pub suid: kuid_t,
-    pub sgid: kgid_t,
-    pub euid: kuid_t,
-    pub egid: kgid_t,
-    pub fsuid: kuid_t,
-    pub fsgid: kgid_t,
-    pub securebits: u32,
-    pub cap_inheritable: kernel_cap_t,
-    pub cap_permitted: kernel_cap_t,
-    pub cap_effective: kernel_cap_t,
-    pub cap_bset: kernel_cap_t,
-    pub cap_ambient: kernel_cap_t,
-    pub user: *mut user_struct,
-    pub user_ns: *mut core::ffi::c_void,
-    pub ucounts: *mut core::ffi::c_void,
-    pub group_info: *mut group_info,
-    pub cred__anon_0: cred__anon_0,
-}
-#[cfg(all(feature = "sync", feature = "types"))]
-impl Default for cred {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-#[repr(C, packed(8))]
-#[cfg(feature = "types")]
-#[derive(Clone, Copy)]
-pub union cred__anon_0 {
-    pub non_rcu: i32,
-    pub rcu: super::types::callback_head,
-}
-#[cfg(feature = "types")]
-impl Default for cred__anon_0 {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
 #[repr(C, packed(8))]
 #[derive(Clone, Copy)]
 pub struct delayed_call {
@@ -4753,9 +6277,13 @@ impl Default for delayed_filename {
     }
 }
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 pub type dio_iodone_t = Option<
@@ -4767,9 +6295,13 @@ pub type dio_iodone_t = Option<
     ) -> i32,
 >;
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 pub type dio_submit_t = Option<
@@ -4803,9 +6335,13 @@ impl Default for dqstats {
 }
 #[repr(C, packed(8))]
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 #[derive(Clone, Copy)]
@@ -4824,9 +6360,13 @@ pub struct dquot {
     pub dq_dqb: mem_dqblk,
 }
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 impl Default for dquot {
@@ -4856,9 +6396,13 @@ impl Default for dquot_operations {
 }
 #[repr(C, packed(8))]
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 #[derive(Clone, Copy)]
@@ -4871,9 +6415,13 @@ pub struct fasync_struct {
     pub fa_rcu: super::types::callback_head,
 }
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 impl Default for fasync_struct {
@@ -4883,9 +6431,13 @@ impl Default for fasync_struct {
 }
 #[repr(C, packed(8))]
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 #[derive(Clone, Copy)]
@@ -4898,7 +6450,7 @@ pub struct file {
     pub f_inode: *mut inode,
     pub f_flags: u32,
     pub f_iocb_flags: u32,
-    pub f_cred: *mut cred,
+    pub f_cred: *mut super::cred::cred,
     pub f_owner: *mut fown_struct,
     pub file__anon_0: file__anon_0,
     pub file__anon_1: file__anon_1,
@@ -4910,9 +6462,13 @@ pub struct file {
     pub f_ref: file_ref_t,
 }
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 impl Default for file {
@@ -4922,9 +6478,13 @@ impl Default for file {
 }
 #[repr(C, packed(8))]
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 #[derive(Clone, Copy)]
@@ -4933,9 +6493,13 @@ pub union file__anon_0 {
     pub __f_path: path,
 }
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 impl Default for file__anon_0 {
@@ -4957,29 +6521,65 @@ impl Default for file__anon_1 {
     }
 }
 #[repr(C, packed(8))]
-#[cfg(feature = "types")]
+#[cfg(all(feature = "ds", feature = "mm_types", feature = "types"))]
 #[derive(Clone, Copy)]
 pub union file__anon_2 {
     pub f_task_work: super::types::callback_head,
-    pub f_llist: llist_node,
+    pub f_llist: super::ds::llist_node,
     pub f_ra: file_ra_state,
-    pub f_freeptr: freeptr_t,
+    pub f_freeptr: super::mm_types::freeptr_t,
 }
-#[cfg(feature = "types")]
+#[cfg(all(feature = "ds", feature = "mm_types", feature = "types"))]
 impl Default for file__anon_2 {
     fn default() -> Self {
         unsafe { core::mem::zeroed() }
     }
 }
 #[repr(C, packed(8))]
+#[cfg(feature = "types")]
+#[derive(Clone, Copy, Default)]
+pub struct file_attr {
+    pub fa_xflags: super::types::__u64,
+    pub fa_extsize: super::types::__u32,
+    pub fa_nextents: super::types::__u32,
+    pub fa_projid: super::types::__u32,
+    pub fa_cowextsize: super::types::__u32,
+}
+#[repr(C, packed(8))]
+#[cfg(feature = "types")]
+#[derive(Clone, Copy, Default)]
+pub struct file_clone_range {
+    pub src_fd: super::types::__s64,
+    pub src_offset: super::types::__u64,
+    pub src_length: super::types::__u64,
+    pub dest_offset: super::types::__u64,
+}
+#[repr(C, packed(8))]
+#[cfg(feature = "types")]
 #[derive(Clone, Copy)]
 pub struct file_dedupe_range {
-    pub _reserved: [u64; 3],
+    pub src_offset: super::types::__u64,
+    pub src_length: super::types::__u64,
+    pub dest_count: super::types::__u16,
+    pub reserved1: super::types::__u16,
+    pub reserved2: super::types::__u32,
+    pub info: *mut file_dedupe_range_info,
 }
+#[cfg(feature = "types")]
 impl Default for file_dedupe_range {
     fn default() -> Self {
         unsafe { core::mem::zeroed() }
     }
+}
+#[repr(C, packed(8))]
+#[cfg(feature = "types")]
+#[derive(Clone, Copy, Default)]
+pub struct file_dedupe_range_info {
+    pub dest_fd: super::types::__s64,
+    pub dest_offset: super::types::__u64,
+    pub bytes_deduped: super::types::__u64,
+    pub status: super::types::__s32,
+    pub reserved: super::types::__u32,
 }
 #[repr(C, packed(4))]
 #[cfg(feature = "types")]
@@ -5051,14 +6651,10 @@ pub struct file_ra_state {
     pub prev_pos: super::types::loff_t,
 }
 #[repr(C, packed(8))]
-#[derive(Clone, Copy)]
+#[cfg(feature = "types")]
+#[derive(Clone, Copy, Default)]
 pub struct file_ref_t {
-    pub _reserved: [u64; 1],
-}
-impl Default for file_ref_t {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
+    pub refcnt: super::types::atomic64_t,
 }
 #[repr(C, packed(8))]
 #[cfg(feature = "types")]
@@ -5098,6 +6694,13 @@ impl Default for filename {
         unsafe { core::mem::zeroed() }
     }
 }
+#[repr(C, packed(8))]
+#[derive(Clone, Copy, Default)]
+pub struct files_stat_struct {
+    pub nr_files: u64,
+    pub nr_free_files: u64,
+    pub max_files: u64,
+}
 #[cfg(feature = "types")]
 pub type filldir_t = Option<
     unsafe extern "system" fn(
@@ -5110,22 +6713,16 @@ pub type filldir_t = Option<
     ) -> bool,
 >;
 pub type fl_owner_t = *mut core::ffi::c_void;
-#[repr(C, packed(8))]
-#[derive(Clone, Copy)]
-pub struct folio {
-    pub _reserved: [u64; 32],
-}
-impl Default for folio {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
 pub type fop_flags_t = u32;
 #[repr(C, packed(8))]
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 #[derive(Clone, Copy)]
@@ -5134,14 +6731,18 @@ pub struct fown_struct {
     pub lock: rwlock_t,
     pub pid: *mut pid,
     pub pid_type: pid_type,
-    pub uid: kuid_t,
-    pub euid: kuid_t,
+    pub uid: super::cred::kuid_t,
+    pub euid: super::cred::kuid_t,
     pub signum: i32,
 }
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 impl Default for fown_struct {
@@ -5149,22 +6750,67 @@ impl Default for fown_struct {
         unsafe { core::mem::zeroed() }
     }
 }
-#[repr(C, packed(8))]
+pub type freeze_holder = u32;
+#[repr(C, packed(1))]
+#[cfg(feature = "types")]
 #[derive(Clone, Copy)]
-pub struct freeptr_t {
-    pub _reserved: [u64; 1],
+pub struct fs_sysfs_path {
+    pub len: super::types::__u8,
+    pub name: [super::types::__u8; 128],
 }
-impl Default for freeptr_t {
+#[cfg(feature = "types")]
+impl Default for fs_sysfs_path {
     fn default() -> Self {
         unsafe { core::mem::zeroed() }
     }
 }
-pub type freeze_holder = u32;
 pub type fs_update_time = u32;
+#[repr(C, packed(8))]
+#[cfg(feature = "types")]
+#[derive(Clone, Copy, Default)]
+pub struct fstrim_range {
+    pub start: super::types::__u64,
+    pub len: super::types::__u64,
+    pub minlen: super::types::__u64,
+}
+#[repr(C, packed(1))]
+#[cfg(feature = "types")]
+#[derive(Clone, Copy)]
+pub struct fsuuid2 {
+    pub len: super::types::__u8,
+    pub uuid: [super::types::__u8; 16],
+}
+#[cfg(feature = "types")]
+impl Default for fsuuid2 {
+    fn default() -> Self {
+        unsafe { core::mem::zeroed() }
+    }
+}
+#[repr(C, packed(4))]
+#[cfg(feature = "types")]
+#[derive(Clone, Copy)]
+pub struct fsxattr {
+    pub fsx_xflags: super::types::__u32,
+    pub fsx_extsize: super::types::__u32,
+    pub fsx_nextents: super::types::__u32,
+    pub fsx_projid: super::types::__u32,
+    pub fsx_cowextsize: super::types::__u32,
+    pub fsx_pad: [u8; 8],
+}
+#[cfg(feature = "types")]
+impl Default for fsxattr {
+    fn default() -> Self {
+        unsafe { core::mem::zeroed() }
+    }
+}
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 pub type get_block_t = Option<
@@ -5175,25 +6821,27 @@ pub type get_block_t = Option<
         param3: i32,
     ) -> i32,
 >;
-#[repr(C, packed(4))]
-#[cfg(all(feature = "sync", feature = "types"))]
+#[repr(C, packed(1))]
+#[cfg(feature = "types")]
 #[derive(Clone, Copy)]
-pub struct group_info {
-    pub usage: super::sync::refcount_t,
-    pub ngroups: i32,
-    pub gid: *mut kgid_t,
+pub struct guid_t {
+    pub b: [super::types::__u8; 16],
 }
-#[cfg(all(feature = "sync", feature = "types"))]
-impl Default for group_info {
+#[cfg(feature = "types")]
+impl Default for guid_t {
     fn default() -> Self {
         unsafe { core::mem::zeroed() }
     }
 }
 #[repr(C, packed(8))]
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 #[derive(Clone, Copy)]
@@ -5209,9 +6857,13 @@ pub struct iattr {
     pub ia_file: *mut file,
 }
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 impl Default for iattr {
@@ -5220,22 +6872,26 @@ impl Default for iattr {
     }
 }
 #[repr(C, packed(4))]
+#[cfg(all(feature = "cred", feature = "types"))]
 #[derive(Clone, Copy)]
 pub union iattr__anon_0 {
-    pub ia_uid: kuid_t,
+    pub ia_uid: super::cred::kuid_t,
     pub ia_vfsuid: vfsuid_t,
 }
+#[cfg(all(feature = "cred", feature = "types"))]
 impl Default for iattr__anon_0 {
     fn default() -> Self {
         unsafe { core::mem::zeroed() }
     }
 }
 #[repr(C, packed(4))]
+#[cfg(all(feature = "cred", feature = "types"))]
 #[derive(Clone, Copy)]
 pub union iattr__anon_1 {
-    pub ia_gid: kgid_t,
+    pub ia_gid: super::cred::kgid_t,
     pub ia_vfsgid: vfsgid_t,
 }
+#[cfg(all(feature = "cred", feature = "types"))]
 impl Default for iattr__anon_1 {
     fn default() -> Self {
         unsafe { core::mem::zeroed() }
@@ -5243,9 +6899,13 @@ impl Default for iattr__anon_1 {
 }
 #[repr(C, packed(8))]
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 #[derive(Clone, Copy)]
@@ -5253,8 +6913,8 @@ pub struct inode {
     pub i_mode: super::types::umode_t,
     pub i_opflags: u16,
     pub i_flags: u32,
-    pub i_uid: kuid_t,
-    pub i_gid: kgid_t,
+    pub i_uid: super::cred::kuid_t,
+    pub i_gid: super::cred::kgid_t,
     pub i_op: *mut inode_operations,
     pub i_sb: *mut super_block,
     pub i_mapping: *mut address_space,
@@ -5297,9 +6957,13 @@ pub struct inode {
     pub i_private: *mut core::ffi::c_void,
 }
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 impl Default for inode {
@@ -5413,6 +7077,18 @@ pub struct inode_state_flags {
 }
 pub type inode_state_flags_enum = u32;
 #[repr(C, packed(8))]
+#[derive(Clone, Copy)]
+pub struct inodes_stat_t {
+    pub nr_inodes: i64,
+    pub nr_unused: i64,
+    pub dummy: [i64; 5],
+}
+impl Default for inodes_stat_t {
+    fn default() -> Self {
+        unsafe { core::mem::zeroed() }
+    }
+}
+#[repr(C, packed(8))]
 #[cfg(feature = "types")]
 #[derive(Clone, Copy, Default)]
 pub struct itimerspec64 {
@@ -5420,35 +7096,14 @@ pub struct itimerspec64 {
     pub it_value: timespec64,
 }
 #[repr(C, packed(8))]
-#[derive(Clone, Copy, Default)]
-pub struct kernel_cap_t {
-    pub val: u64,
-}
-#[repr(C, packed(8))]
-#[derive(Clone, Copy)]
-pub struct key {
-    pub _reserved: [u64; 1],
-}
-impl Default for key {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-#[repr(C, packed(4))]
-#[derive(Clone, Copy)]
-pub struct kgid_t {
-    pub _reserved: [u32; 1],
-}
-impl Default for kgid_t {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-#[repr(C, packed(8))]
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 #[derive(Clone, Copy)]
@@ -5463,9 +7118,13 @@ pub struct kiocb {
     pub ki_waitq: *mut core::ffi::c_void,
 }
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 impl Default for kiocb {
@@ -5480,34 +7139,34 @@ pub struct kprojid_t {
     pub val: projid_t,
 }
 #[repr(C, packed(4))]
-#[cfg(feature = "types")]
+#[cfg(all(feature = "cred", feature = "types"))]
 #[derive(Clone, Copy)]
 pub struct kqid {
     pub kqid__anon_0: kqid__anon_0,
     pub r#type: quota_type,
 }
-#[cfg(feature = "types")]
+#[cfg(all(feature = "cred", feature = "types"))]
 impl Default for kqid {
     fn default() -> Self {
         unsafe { core::mem::zeroed() }
     }
 }
 #[repr(C, packed(4))]
-#[cfg(feature = "types")]
+#[cfg(all(feature = "cred", feature = "types"))]
 #[derive(Clone, Copy)]
 pub union kqid__anon_0 {
-    pub uid: kuid_t,
-    pub gid: kgid_t,
+    pub uid: super::cred::kuid_t,
+    pub gid: super::cred::kgid_t,
     pub projid: kprojid_t,
 }
-#[cfg(feature = "types")]
+#[cfg(all(feature = "cred", feature = "types"))]
 impl Default for kqid__anon_0 {
     fn default() -> Self {
         unsafe { core::mem::zeroed() }
     }
 }
 #[repr(C, packed(8))]
-#[cfg(feature = "types")]
+#[cfg(all(feature = "cred", feature = "types"))]
 #[derive(Clone, Copy, Default)]
 pub struct kstat {
     pub result_mask: u32,
@@ -5519,8 +7178,8 @@ pub struct kstat {
     pub ino: u64,
     pub dev: super::types::dev_t,
     pub rdev: super::types::dev_t,
-    pub uid: kuid_t,
-    pub gid: kgid_t,
+    pub uid: super::cred::kuid_t,
+    pub gid: super::cred::kgid_t,
     pub size: super::types::loff_t,
     pub atime: timespec64,
     pub mtime: timespec64,
@@ -5538,97 +7197,6 @@ pub struct kstat {
     pub atomic_write_unit_max_opt: u32,
     pub atomic_write_segments_max: u32,
 }
-#[repr(C, packed(4))]
-#[derive(Clone, Copy)]
-pub struct kuid_t {
-    pub _reserved: [u32; 1],
-}
-impl Default for kuid_t {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-#[repr(C, packed(8))]
-#[cfg(all(feature = "sync", feature = "types"))]
-#[derive(Clone, Copy)]
-pub struct list_lru {
-    pub node: *mut list_lru_node,
-}
-#[cfg(all(feature = "sync", feature = "types"))]
-impl Default for list_lru {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-#[repr(C, packed(8))]
-#[cfg(all(feature = "sync", feature = "types"))]
-#[derive(Clone, Copy)]
-pub struct list_lru_memcg {
-    pub rcu: super::types::callback_head,
-    pub node: *mut list_lru_one,
-}
-#[cfg(all(feature = "sync", feature = "types"))]
-impl Default for list_lru_memcg {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-#[repr(C, packed(64))]
-#[cfg(all(feature = "sync", feature = "types"))]
-#[derive(Clone, Copy)]
-pub struct list_lru_node {
-    pub lru: list_lru_one,
-    pub nr_items: super::types::atomic64_t,
-    pub _padding: [u8; 24],
-}
-#[cfg(all(feature = "sync", feature = "types"))]
-impl Default for list_lru_node {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-#[repr(C, packed(8))]
-#[cfg(all(feature = "sync", feature = "types"))]
-#[derive(Clone, Copy)]
-pub struct list_lru_one {
-    pub list: super::types::list_head,
-    pub nr_items: i64,
-    pub lock: super::sync::spinlock_t,
-}
-#[cfg(all(feature = "sync", feature = "types"))]
-impl Default for list_lru_one {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-#[cfg(all(feature = "sync", feature = "types"))]
-pub type list_lru_walk_cb = Option<
-    unsafe extern "system" fn(
-        param0: *const super::types::list_head,
-        param1: *const list_lru_one,
-        param2: *const core::ffi::c_void,
-    ) -> lru_status,
->;
-#[repr(C, packed(8))]
-#[derive(Clone, Copy)]
-pub struct llist_head {
-    pub first: *mut llist_node,
-}
-impl Default for llist_head {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-#[repr(C, packed(8))]
-#[derive(Clone, Copy)]
-pub struct llist_node {
-    pub next: *mut llist_node,
-}
-impl Default for llist_node {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
 #[repr(C, packed(1))]
 #[derive(Clone, Copy, Default)]
 pub struct lock_class_key(pub u8);
@@ -5638,242 +7206,31 @@ pub type lock_filename_kernel_t = lock_filename_t;
 pub type lock_filename_maybe_null_t = lock_filename_t;
 pub type lock_filename_t = *mut filename;
 pub type lock_filename_uflags_t = lock_filename_t;
-pub type lock_override_creds_t = *mut cred;
 pub type lock_percpu_read_t = *mut percpu_rw_semaphore;
 pub type lock_percpu_read_try_t = lock_percpu_read_t;
 pub type lock_percpu_write_t = *mut percpu_rw_semaphore;
-pub type lock_prepare_creds_t = *mut cred;
 pub type lockdep_lock_type = u32;
 #[repr(C, packed(1))]
 #[derive(Clone, Copy, Default)]
 pub struct lockdep_map(pub u8);
 pub type lockdep_wait_type = u32;
-pub type lru_status = u32;
-pub const ma_active: u32 = 0u32;
-pub const ma_error: u32 = 7u32;
-pub const ma_none: u32 = 3u32;
-pub const ma_overflow: u32 = 5u32;
-pub const ma_pause: u32 = 4u32;
-pub const ma_root: u32 = 2u32;
-pub const ma_start: u32 = 1u32;
-#[repr(C, packed(8))]
-#[cfg(all(feature = "sync", feature = "types"))]
-#[derive(Clone, Copy)]
-pub struct ma_state {
-    pub tree: *mut maple_tree,
-    pub index: u64,
-    pub last: u64,
-    pub node: *mut core::ffi::c_void,
-    pub min: u64,
-    pub max: u64,
-    pub sheaf: *mut core::ffi::c_void,
-    pub alloc: *mut maple_node,
-    pub node_request: u64,
-    pub status: maple_status,
-    pub depth: u8,
-    pub offset: u8,
-    pub mas_flags: u8,
-    pub end: u8,
-    pub store_type: store_type,
-}
-#[cfg(all(feature = "sync", feature = "types"))]
-impl Default for ma_state {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-#[repr(C, packed(8))]
-#[cfg(all(feature = "sync", feature = "types"))]
-#[derive(Clone, Copy)]
-pub struct ma_topiary {
-    pub head: *mut core::ffi::c_void,
-    pub tail: *mut core::ffi::c_void,
-    pub mtree: *mut maple_tree,
-}
-#[cfg(all(feature = "sync", feature = "types"))]
-impl Default for ma_topiary {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-pub const ma_underflow: u32 = 6u32;
-#[repr(C, packed(8))]
-#[cfg(all(feature = "sync", feature = "types"))]
-#[derive(Clone, Copy)]
-pub struct ma_wr_state {
-    pub mas: *mut ma_state,
-    pub node: *mut maple_node,
-    pub r_min: u64,
-    pub r_max: u64,
-    pub r#type: maple_type,
-    pub offset_end: u8,
-    pub pivots: *mut u64,
-    pub end_piv: u64,
-    pub slots: *mut *mut core::ffi::c_void,
-    pub entry: *mut core::ffi::c_void,
-    pub content: *mut core::ffi::c_void,
-    pub vacant_height: u8,
-    pub sufficient_height: u8,
-}
-#[cfg(all(feature = "sync", feature = "types"))]
-impl Default for ma_wr_state {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-#[repr(C, packed(8))]
-#[derive(Clone, Copy)]
-pub struct maple_arange_64 {
-    pub parent: *mut core::ffi::c_void,
-    pub pivot: [u64; 9],
-    pub slot: [*mut core::ffi::c_void; 10],
-    pub gap: [u64; 10],
-    pub meta: maple_metadata,
-}
-impl Default for maple_arange_64 {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-pub const maple_arange_64: u32 = 3u32;
-pub const maple_dense: u32 = 0u32;
-pub const maple_leaf_64: u32 = 1u32;
-#[repr(C, packed(1))]
-#[derive(Clone, Copy, Default)]
-pub struct maple_metadata {
-    pub end: u8,
-    pub gap: u8,
-}
-#[repr(C, packed(8))]
-#[cfg(feature = "types")]
-#[derive(Clone, Copy)]
-pub struct maple_node {
-    pub maple_node__anon_0: maple_node__anon_0,
-}
-#[cfg(feature = "types")]
-impl Default for maple_node {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-#[repr(C, packed(8))]
-#[cfg(feature = "types")]
-#[derive(Clone, Copy)]
-pub union maple_node__anon_0 {
-    pub maple_node__anon_0__anon_0: maple_node__anon_0__anon_0,
-    pub maple_node__anon_0__anon_1: maple_node__anon_0__anon_1,
-    pub mr64: maple_range_64,
-    pub ma64: maple_arange_64,
-}
-#[cfg(feature = "types")]
-impl Default for maple_node__anon_0 {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-#[repr(C, packed(8))]
-#[derive(Clone, Copy)]
-pub struct maple_node__anon_0__anon_0 {
-    pub parent: *mut core::ffi::c_void,
-    pub slot: [*mut core::ffi::c_void; 31],
-}
-impl Default for maple_node__anon_0__anon_0 {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-#[repr(C, packed(8))]
-#[cfg(feature = "types")]
-#[derive(Clone, Copy)]
-pub struct maple_node__anon_0__anon_1 {
-    pub pad: *mut core::ffi::c_void,
-    pub rcu: super::types::callback_head,
-    pub piv_parent: *mut core::ffi::c_void,
-    pub parent_slot: u8,
-    pub r#type: maple_type,
-    pub slot_len: u8,
-    pub ma_flags: u32,
-}
-#[cfg(feature = "types")]
-impl Default for maple_node__anon_0__anon_1 {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-#[repr(C, packed(8))]
-#[derive(Clone, Copy)]
-pub struct maple_range_64 {
-    pub parent: *mut core::ffi::c_void,
-    pub pivot: [u64; 15],
-    pub maple_range_64__anon_0: maple_range_64__anon_0,
-}
-impl Default for maple_range_64 {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-pub const maple_range_64: u32 = 2u32;
-#[repr(C, packed(8))]
-#[derive(Clone, Copy)]
-pub union maple_range_64__anon_0 {
-    pub slot: [*mut core::ffi::c_void; 16],
-    pub maple_range_64__anon_0__anon_0: maple_range_64__anon_0__anon_0,
-}
-impl Default for maple_range_64__anon_0 {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-#[repr(C, packed(8))]
-#[derive(Clone, Copy)]
-pub struct maple_range_64__anon_0__anon_0 {
-    pub pad: [*mut core::ffi::c_void; 15],
-    pub meta: maple_metadata,
-}
-impl Default for maple_range_64__anon_0__anon_0 {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-pub type maple_status = u32;
-#[repr(C, packed(8))]
-#[derive(Clone, Copy)]
-pub struct maple_topiary {
-    pub parent: *mut core::ffi::c_void,
-    pub next: *mut core::ffi::c_void,
-}
-impl Default for maple_topiary {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-#[repr(C, packed(8))]
-#[cfg(all(feature = "sync", feature = "types"))]
-#[derive(Clone, Copy)]
-pub struct maple_tree {
-    pub maple_tree__anon_0: maple_tree__anon_0,
-    pub ma_flags: u32,
-    pub ma_root: *mut core::ffi::c_void,
-}
-#[cfg(all(feature = "sync", feature = "types"))]
-impl Default for maple_tree {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
 #[repr(C, packed(4))]
-#[cfg(all(feature = "sync", feature = "types"))]
-#[derive(Clone, Copy)]
-pub union maple_tree__anon_0 {
-    pub ma_lock: super::sync::spinlock_t,
+#[cfg(feature = "types")]
+#[derive(Clone, Copy, Default)]
+pub struct logical_block_metadata_cap {
+    pub lbmd_flags: super::types::__u32,
+    pub lbmd_interval: super::types::__u16,
+    pub lbmd_size: super::types::__u8,
+    pub lbmd_opaque_size: super::types::__u8,
+    pub lbmd_opaque_offset: super::types::__u8,
+    pub lbmd_pi_size: super::types::__u8,
+    pub lbmd_pi_offset: super::types::__u8,
+    pub lbmd_guard_tag_type: super::types::__u8,
+    pub lbmd_app_tag_size: super::types::__u8,
+    pub lbmd_ref_tag_size: super::types::__u8,
+    pub lbmd_storage_tag_size: super::types::__u8,
+    pub pad: super::types::__u8,
 }
-#[cfg(all(feature = "sync", feature = "types"))]
-impl Default for maple_tree__anon_0 {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-pub type maple_type = u32;
 #[repr(C, packed(8))]
 #[cfg(feature = "types")]
 #[derive(Clone, Copy, Default)]
@@ -5922,23 +7279,35 @@ impl Default for mnt_idmap {
 }
 pub type mount_flags = u32;
 #[repr(C, packed(8))]
-#[cfg(all(feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 #[derive(Clone, Copy)]
 pub struct offset_ctx {
-    pub mt: maple_tree,
+    pub mt: super::ds::maple_tree,
     pub next_offset: u64,
 }
-#[cfg(all(feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 impl Default for offset_ctx {
     fn default() -> Self {
         unsafe { core::mem::zeroed() }
     }
 }
 #[repr(C, packed(8))]
+#[cfg(feature = "types")]
+#[derive(Clone, Copy, Default)]
+pub struct page_region {
+    pub start: super::types::__u64,
+    pub end: super::types::__u64,
+    pub categories: super::types::__u64,
+}
+#[repr(C, packed(8))]
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 #[derive(Clone, Copy)]
@@ -5947,9 +7316,13 @@ pub struct path {
     pub dentry: *mut super::dcache::dentry,
 }
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 impl Default for path {
@@ -5973,23 +7346,29 @@ impl Default for percpu_counter {
     }
 }
 #[repr(C, packed(8))]
-#[cfg(all(feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 #[derive(Clone, Copy)]
 pub struct percpu_rw_semaphore {
     pub rss: rcu_sync,
     pub read_count: *mut u32,
     pub writer: super::types::rcuwait,
-    pub waiters: wait_queue_head_t,
+    pub waiters: super::wait::wait_queue_head_t,
     pub block: super::types::atomic_t,
 }
-#[cfg(all(feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 impl Default for percpu_rw_semaphore {
     fn default() -> Self {
         unsafe { core::mem::zeroed() }
     }
 }
 #[repr(C, packed(8))]
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "ds",
+    feature = "sync",
+    feature = "types",
+    feature = "wait"
+))]
 #[derive(Clone, Copy)]
 pub struct pid {
     pub count: super::sync::refcount_t,
@@ -5998,26 +7377,44 @@ pub struct pid {
     pub pid__anon_0: pid__anon_0,
     pub tasks: [super::types::hlist_head; 4],
     pub inodes: super::types::hlist_head,
-    pub wait_pidfd: wait_queue_head_t,
+    pub wait_pidfd: super::wait::wait_queue_head_t,
     pub rcu: super::types::callback_head,
     pub numbers: *mut upid,
 }
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "ds",
+    feature = "sync",
+    feature = "types",
+    feature = "wait"
+))]
 impl Default for pid {
     fn default() -> Self {
         unsafe { core::mem::zeroed() }
     }
 }
 #[repr(C, packed(8))]
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "ds",
+    feature = "sync",
+    feature = "types",
+    feature = "wait"
+))]
 #[derive(Clone, Copy)]
 pub struct pid__anon_0 {
     pub ino: u64,
-    pub pidfs_hash: rhash_head,
+    pub pidfs_hash: super::ds::rhash_head,
     pub stashed: *mut super::dcache::dentry,
     pub attr: *mut core::ffi::c_void,
 }
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "ds",
+    feature = "sync",
+    feature = "types",
+    feature = "wait"
+))]
 impl Default for pid__anon_0 {
     fn default() -> Self {
         unsafe { core::mem::zeroed() }
@@ -6027,7 +7424,46 @@ pub type pid_type = u32;
 #[repr(C, packed(1))]
 #[derive(Clone, Copy, Default)]
 pub struct pin_cookie(pub u8);
+#[repr(C, packed(8))]
+#[cfg(feature = "types")]
+#[derive(Clone, Copy, Default)]
+pub struct pm_scan_arg {
+    pub size: super::types::__u64,
+    pub flags: super::types::__u64,
+    pub start: super::types::__u64,
+    pub end: super::types::__u64,
+    pub walk_end: super::types::__u64,
+    pub vec: super::types::__u64,
+    pub vec_len: super::types::__u64,
+    pub max_pages: super::types::__u64,
+    pub category_inverted: super::types::__u64,
+    pub category_mask: super::types::__u64,
+    pub category_anyof_mask: super::types::__u64,
+    pub return_mask: super::types::__u64,
+}
 pub type positive_aop_returns = u32;
+pub type procfs_ino = u32;
+#[repr(C, packed(8))]
+#[cfg(feature = "types")]
+#[derive(Clone, Copy, Default)]
+pub struct procmap_query {
+    pub size: super::types::__u64,
+    pub query_flags: super::types::__u64,
+    pub query_addr: super::types::__u64,
+    pub vma_start: super::types::__u64,
+    pub vma_end: super::types::__u64,
+    pub vma_flags: super::types::__u64,
+    pub vma_page_size: super::types::__u64,
+    pub vma_offset: super::types::__u64,
+    pub inode: super::types::__u64,
+    pub dev_major: super::types::__u32,
+    pub dev_minor: super::types::__u32,
+    pub vma_name_size: super::types::__u32,
+    pub build_id_size: super::types::__u32,
+    pub vma_name_addr: super::types::__u64,
+    pub build_id_addr: super::types::__u64,
+}
+pub type procmap_query_flags = u32;
 pub type projid_t = super::types::__kernel_uid32_t;
 #[repr(C, packed(8))]
 #[derive(Clone, Copy, Default)]
@@ -6090,6 +7526,43 @@ pub struct qc_type_state {
     pub nextents: super::types::blkcnt_t,
 }
 pub type qid_t = super::types::__kernel_uid32_t;
+#[repr(C, packed(4))]
+#[cfg(all(feature = "sync", feature = "types"))]
+#[derive(Clone, Copy)]
+pub struct qrwlock {
+    pub qrwlock__anon_0: qrwlock__anon_0,
+    pub wait_lock: super::sync::arch_spinlock_t,
+}
+#[cfg(all(feature = "sync", feature = "types"))]
+impl Default for qrwlock {
+    fn default() -> Self {
+        unsafe { core::mem::zeroed() }
+    }
+}
+#[repr(C, packed(4))]
+#[cfg(feature = "types")]
+#[derive(Clone, Copy)]
+pub union qrwlock__anon_0 {
+    pub cnts: super::types::atomic_t,
+    pub qrwlock__anon_0__anon_0: qrwlock__anon_0__anon_0,
+}
+#[cfg(feature = "types")]
+impl Default for qrwlock__anon_0 {
+    fn default() -> Self {
+        unsafe { core::mem::zeroed() }
+    }
+}
+#[repr(C, packed(1))]
+#[derive(Clone, Copy)]
+pub struct qrwlock__anon_0__anon_0 {
+    pub wlocked: u8,
+    pub __lstate: [u8; 3],
+}
+impl Default for qrwlock__anon_0__anon_0 {
+    fn default() -> Self {
+        unsafe { core::mem::zeroed() }
+    }
+}
 pub type qsize_t = i64;
 #[repr(C, packed(8))]
 #[derive(Clone, Copy)]
@@ -6123,9 +7596,13 @@ impl Default for quota_format_type {
 }
 #[repr(C, packed(8))]
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 #[derive(Clone, Copy)]
@@ -6137,9 +7614,13 @@ pub struct quota_info {
     pub ops: [*mut quota_format_ops; 3],
 }
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 impl Default for quota_info {
@@ -6180,55 +7661,27 @@ impl Default for quotactl_ops {
     }
 }
 #[repr(C, packed(8))]
-#[derive(Clone, Copy)]
-pub struct rb_node {
-    pub __rb_parent_color: u64,
-    pub rb_right: *mut rb_node,
-    pub rb_left: *mut rb_node,
-}
-impl Default for rb_node {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-#[repr(C, packed(8))]
-#[derive(Clone, Copy)]
-pub struct rb_root {
-    pub rb_node: *mut rb_node,
-}
-impl Default for rb_root {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-#[repr(C, packed(8))]
-#[derive(Clone, Copy)]
-pub struct rb_root_cached {
-    pub rb_root: rb_root,
-    pub rb_leftmost: *mut rb_node,
-}
-impl Default for rb_root_cached {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-#[repr(C, packed(8))]
-#[cfg(all(feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 #[derive(Clone, Copy)]
 pub struct rcu_sync {
     pub gp_state: i32,
     pub gp_count: i32,
-    pub gp_wait: wait_queue_head_t,
+    pub gp_wait: super::wait::wait_queue_head_t,
     pub cb_head: super::types::callback_head,
 }
-#[cfg(all(feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 impl Default for rcu_sync {
     fn default() -> Self {
         unsafe { core::mem::zeroed() }
     }
 }
 #[repr(C, packed(8))]
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "sync",
+    feature = "types",
+    feature = "wait"
+))]
 #[derive(Clone, Copy)]
 pub struct renamedata {
     pub mnt_idmap: *mut core::ffi::c_void,
@@ -6239,151 +7692,45 @@ pub struct renamedata {
     pub delegated_inode: *mut core::ffi::c_void,
     pub flags: u32,
 }
-#[cfg(all(feature = "dcache", feature = "sync", feature = "types"))]
+#[cfg(all(
+    feature = "dcache",
+    feature = "sync",
+    feature = "types",
+    feature = "wait"
+))]
 impl Default for renamedata {
     fn default() -> Self {
         unsafe { core::mem::zeroed() }
     }
 }
-#[repr(C, packed(8))]
-#[derive(Clone, Copy)]
-pub struct rhash_head {
-    pub next: *mut rhash_head,
-}
-impl Default for rhash_head {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-#[repr(C, packed(8))]
-#[cfg(all(feature = "sync", feature = "types", feature = "workqueue"))]
-#[derive(Clone, Copy)]
-pub struct rhashtable {
-    pub tbl: *mut core::ffi::c_void,
-    pub key_len: u32,
-    pub max_elems: u32,
-    pub p: rhashtable_params,
-    pub rhlist: bool,
-    pub run_work: super::workqueue::work_struct,
-    pub mutex: super::sync::mutex,
-    pub lock: super::sync::spinlock_t,
-    pub nelems: super::types::atomic_t,
-}
-#[cfg(all(feature = "sync", feature = "types", feature = "workqueue"))]
-impl Default for rhashtable {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-#[repr(C, packed(8))]
-#[cfg(all(feature = "sync", feature = "types", feature = "workqueue"))]
-#[derive(Clone, Copy)]
-pub struct rhashtable_compare_arg {
-    pub ht: *mut rhashtable,
-    pub key: *mut core::ffi::c_void,
-}
-#[cfg(all(feature = "sync", feature = "types", feature = "workqueue"))]
-impl Default for rhashtable_compare_arg {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-#[repr(C, packed(8))]
-#[cfg(all(feature = "sync", feature = "types", feature = "workqueue"))]
-#[derive(Clone, Copy)]
-pub struct rhashtable_iter {
-    pub ht: *mut rhashtable,
-    pub p: *mut rhash_head,
-    pub list: *mut rhlist_head,
-    pub walker: rhashtable_walker,
-    pub slot: u32,
-    pub skip: u32,
-    pub end_of_table: bool,
-}
-#[cfg(all(feature = "sync", feature = "types", feature = "workqueue"))]
-impl Default for rhashtable_iter {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-#[repr(C, packed(8))]
-#[cfg(all(feature = "sync", feature = "types", feature = "workqueue"))]
-#[derive(Clone, Copy, Default)]
-pub struct rhashtable_params {
-    pub nelem_hint: u16,
-    pub key_len: u16,
-    pub key_offset: u16,
-    pub head_offset: u16,
-    pub max_size: u32,
-    pub min_size: u16,
-    pub automatic_shrinking: bool,
-    pub hashfn: rht_hashfn_t,
-    pub obj_hashfn: rht_obj_hashfn_t,
-    pub obj_cmpfn: rht_obj_cmpfn_t,
-}
-#[repr(C, packed(8))]
-#[cfg(feature = "types")]
-#[derive(Clone, Copy)]
-pub struct rhashtable_walker {
-    pub list: super::types::list_head,
-    pub tbl: *mut core::ffi::c_void,
-}
-#[cfg(feature = "types")]
-impl Default for rhashtable_walker {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-#[repr(C, packed(8))]
-#[derive(Clone, Copy)]
-pub struct rhlist_head {
-    pub rhead: rhash_head,
-    pub next: *mut rhlist_head,
-}
-impl Default for rhlist_head {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-#[repr(C, packed(8))]
-#[cfg(all(feature = "sync", feature = "types", feature = "workqueue"))]
-#[derive(Clone, Copy)]
-pub struct rhltable {
-    pub ht: rhashtable,
-}
-#[cfg(all(feature = "sync", feature = "types", feature = "workqueue"))]
-impl Default for rhltable {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-pub type rht_hashfn_t = Option<
-    unsafe extern "system" fn(param0: *const core::ffi::c_void, param1: u32, param2: u32) -> u32,
->;
-#[cfg(all(feature = "sync", feature = "types", feature = "workqueue"))]
-pub type rht_obj_cmpfn_t = Option<
-    unsafe extern "system" fn(
-        param0: *const rhashtable_compare_arg,
-        param1: *const core::ffi::c_void,
-    ) -> i32,
->;
-pub type rht_obj_hashfn_t = Option<
-    unsafe extern "system" fn(param0: *const core::ffi::c_void, param1: u32, param2: u32) -> u32,
->;
 pub type rw_hint = u8;
-pub type rwf_t = i32;
+pub type rwf_t = __kernel_rwf_t;
 #[repr(C, packed(4))]
+#[cfg(all(feature = "sync", feature = "types"))]
+#[derive(Clone, Copy)]
+pub struct rwlock {
+    pub raw_lock: arch_rwlock_t,
+}
+#[cfg(all(feature = "sync", feature = "types"))]
+impl Default for rwlock {
+    fn default() -> Self {
+        unsafe { core::mem::zeroed() }
+    }
+}
+#[repr(C)]
+#[cfg(all(feature = "sync", feature = "types"))]
 #[derive(Clone, Copy)]
 pub struct rwlock_t {
-    pub _reserved: [u32; 2],
+    pub Value: rwlock,
 }
+#[cfg(all(feature = "sync", feature = "types"))]
 impl Default for rwlock_t {
     fn default() -> Self {
         unsafe { core::mem::zeroed() }
     }
 }
 #[repr(C, packed(8))]
-#[cfg(all(feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 #[derive(Clone, Copy)]
 pub struct sb_writers {
     pub frozen: u16,
@@ -6392,7 +7739,7 @@ pub struct sb_writers {
     pub freeze_owner: *mut core::ffi::c_void,
     pub rw_sem: [percpu_rw_semaphore; 3],
 }
-#[cfg(all(feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 impl Default for sb_writers {
     fn default() -> Self {
         unsafe { core::mem::zeroed() }
@@ -6415,7 +7762,7 @@ impl Default for shrink_control {
     }
 }
 #[repr(C, packed(8))]
-#[cfg(all(feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 #[derive(Clone, Copy)]
 pub struct shrinker {
     pub count_objects: *mut isize,
@@ -6424,13 +7771,13 @@ pub struct shrinker {
     pub seeks: i32,
     pub flags: u32,
     pub refcount: super::sync::refcount_t,
-    pub done: completion,
+    pub done: super::wait::completion,
     pub rcu: super::types::callback_head,
     pub private_data: *mut core::ffi::c_void,
     pub list: super::types::list_head,
     pub nr_deferred: *mut super::types::atomic64_t,
 }
-#[cfg(all(feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 impl Default for shrinker {
     fn default() -> Self {
         unsafe { core::mem::zeroed() }
@@ -6476,12 +7823,15 @@ impl Default for simple_transaction_argresp {
         unsafe { core::mem::zeroed() }
     }
 }
-pub type store_type = u32;
 #[repr(C, packed(64))]
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 #[derive(Clone, Copy)]
@@ -6534,8 +7884,8 @@ pub struct super_block {
     pub s_dio_done_wq: *mut core::ffi::c_void,
     pub s_pins: super::types::hlist_head,
     pub s_user_ns: *mut core::ffi::c_void,
-    pub s_dentry_lru: list_lru,
-    pub s_inode_lru: list_lru,
+    pub s_dentry_lru: super::ds::list_lru,
+    pub s_inode_lru: super::ds::list_lru,
     pub rcu: super::types::callback_head,
     pub destroy_work: super::workqueue::work_struct,
     pub s_sync_lock: super::sync::mutex,
@@ -6549,9 +7899,13 @@ pub struct super_block {
     pub s_pending_errors: super::sync::refcount_t,
 }
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 impl Default for super_block {
@@ -6592,35 +7946,6 @@ impl Default for super_operations {
         unsafe { core::mem::zeroed() }
     }
 }
-#[repr(C, packed(8))]
-#[cfg(feature = "types")]
-#[derive(Clone, Copy)]
-pub struct swait_queue {
-    pub task: *mut task_struct,
-    pub task_list: super::types::list_head,
-}
-#[cfg(feature = "types")]
-impl Default for swait_queue {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-#[repr(C, packed(8))]
-#[cfg(all(feature = "sync", feature = "types"))]
-#[derive(Clone, Copy)]
-pub struct swait_queue_head {
-    pub lock: super::sync::raw_spinlock_t,
-    pub task_list: super::types::list_head,
-}
-#[cfg(all(feature = "sync", feature = "types"))]
-impl Default for swait_queue_head {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-pub type task_call_f = Option<
-    unsafe extern "system" fn(param0: *const task_struct, param1: *const core::ffi::c_void) -> i32,
->;
 #[repr(C, packed(8))]
 #[derive(Clone, Copy)]
 pub struct task_struct {
@@ -6678,41 +8003,33 @@ impl Default for upid {
         unsafe { core::mem::zeroed() }
     }
 }
-#[repr(C, packed(8))]
-#[derive(Clone, Copy)]
-pub struct user_struct {
-    pub _reserved: [u64; 1],
-}
-impl Default for user_struct {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
 #[repr(C, packed(1))]
+#[cfg(feature = "types")]
 #[derive(Clone, Copy)]
 pub struct uuid_t {
-    pub _reserved: [u8; 16],
+    pub b: [super::types::__u8; 16],
 }
+#[cfg(feature = "types")]
 impl Default for uuid_t {
     fn default() -> Self {
         unsafe { core::mem::zeroed() }
     }
 }
 #[repr(C, packed(4))]
-#[derive(Clone, Copy)]
+#[cfg(feature = "types")]
+#[derive(Clone, Copy, Default)]
 pub struct vfsgid_t {
-    pub _reserved: [u32; 1],
-}
-impl Default for vfsgid_t {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
+    pub val: super::types::gid_t,
 }
 #[repr(C, packed(8))]
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 #[derive(Clone, Copy)]
@@ -6723,9 +8040,13 @@ pub struct vfsmount {
     pub mnt_idmap: *mut core::ffi::c_void,
 }
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 impl Default for vfsmount {
@@ -6734,195 +8055,11 @@ impl Default for vfsmount {
     }
 }
 #[repr(C, packed(4))]
-#[derive(Clone, Copy)]
+#[cfg(feature = "types")]
+#[derive(Clone, Copy, Default)]
 pub struct vfsuid_t {
-    pub _reserved: [u32; 1],
-}
-impl Default for vfsuid_t {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-#[repr(C, packed(8))]
-#[derive(Clone, Copy)]
-pub struct vm_area_desc {
-    pub _reserved: [u64; 24],
-}
-impl Default for vm_area_desc {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-#[repr(C, packed(8))]
-#[derive(Clone, Copy)]
-pub struct vm_area_struct {
-    pub _reserved: [u64; 24],
-}
-impl Default for vm_area_struct {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-pub type wait_bit_action_f =
-    Option<unsafe extern "system" fn(param0: *const wait_bit_key, param1: i32) -> i32>;
-#[repr(C, packed(8))]
-#[derive(Clone, Copy)]
-pub struct wait_bit_key {
-    pub flags: *mut u64,
-    pub bit_nr: i32,
-    pub timeout: u64,
-}
-impl Default for wait_bit_key {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-#[repr(C, packed(8))]
-#[cfg(feature = "pagemap")]
-#[derive(Clone, Copy, Default)]
-pub struct wait_bit_queue_entry {
-    pub key: wait_bit_key,
-    pub wq_entry: super::pagemap::wait_queue_entry,
-}
-#[repr(C)]
-#[cfg(feature = "pagemap")]
-#[derive(Clone, Copy, Default)]
-pub struct wait_queue_entry_t {
-    pub Value: super::pagemap::wait_queue_entry,
-}
-#[cfg(feature = "pagemap")]
-pub type wait_queue_func_t = Option<
-    unsafe extern "system" fn(
-        param0: *const super::pagemap::wait_queue_entry,
-        param1: u32,
-        param2: i32,
-        param3: *const core::ffi::c_void,
-    ) -> i32,
->;
-#[repr(C, packed(8))]
-#[cfg(all(feature = "sync", feature = "types"))]
-#[derive(Clone, Copy)]
-pub struct wait_queue_head {
-    pub lock: super::sync::spinlock_t,
-    pub head: super::types::list_head,
-}
-#[cfg(all(feature = "sync", feature = "types"))]
-impl Default for wait_queue_head {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-#[repr(C)]
-#[cfg(all(feature = "sync", feature = "types"))]
-#[derive(Clone, Copy)]
-pub struct wait_queue_head_t {
-    pub Value: wait_queue_head,
-}
-#[cfg(all(feature = "sync", feature = "types"))]
-impl Default for wait_queue_head_t {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
+    pub val: super::types::uid_t,
 }
 #[cfg(all(feature = "types", feature = "workqueue"))]
 pub type work_func_t =
     Option<unsafe extern "system" fn(param0: *const super::workqueue::work_struct)>;
-pub const wr_append: u32 = 7u32;
-pub const wr_exact_fit: u32 = 3u32;
-pub const wr_invalid: u32 = 0u32;
-pub const wr_new_root: u32 = 1u32;
-pub const wr_node_store: u32 = 8u32;
-pub const wr_rebalance: u32 = 6u32;
-pub const wr_slot_store: u32 = 9u32;
-pub const wr_spanning_store: u32 = 4u32;
-pub const wr_split_store: u32 = 5u32;
-pub const wr_store_root: u32 = 2u32;
-#[repr(C, packed(4))]
-#[derive(Clone, Copy, Default)]
-pub struct xa_limit {
-    pub max: u32,
-    pub min: u32,
-}
-pub type xa_lock_type = u32;
-pub type xa_mark_t = u32;
-#[repr(C, packed(8))]
-#[cfg(all(feature = "sync", feature = "types"))]
-#[derive(Clone, Copy)]
-pub struct xa_node {
-    pub shift: u8,
-    pub offset: u8,
-    pub count: u8,
-    pub nr_values: u8,
-    pub parent: *mut xa_node,
-    pub array: *mut xarray,
-    pub xa_node__anon_0: xa_node__anon_0,
-    pub slots: [*mut core::ffi::c_void; 64],
-    pub xa_node__anon_1: xa_node__anon_1,
-}
-#[cfg(all(feature = "sync", feature = "types"))]
-impl Default for xa_node {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-#[repr(C, packed(8))]
-#[cfg(feature = "types")]
-#[derive(Clone, Copy)]
-pub union xa_node__anon_0 {
-    pub private_list: super::types::list_head,
-    pub callback_head: super::types::callback_head,
-}
-#[cfg(feature = "types")]
-impl Default for xa_node__anon_0 {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-#[repr(C, packed(8))]
-#[derive(Clone, Copy)]
-pub union xa_node__anon_1 {
-    pub tags: [[u64; 1]; 1],
-    pub marks: [[u64; 1]; 1],
-}
-impl Default for xa_node__anon_1 {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-#[repr(C, packed(8))]
-#[cfg(all(feature = "sync", feature = "types"))]
-#[derive(Clone, Copy)]
-pub struct xa_state {
-    pub xa: *mut xarray,
-    pub xa_index: u64,
-    pub xa_shift: u8,
-    pub xa_sibs: u8,
-    pub xa_offset: u8,
-    pub xa_pad: u8,
-    pub xa_node: *mut xa_node,
-    pub xa_alloc: *mut xa_node,
-    pub xa_update: xa_update_node_t,
-    pub xa_lru: *mut list_lru,
-}
-#[cfg(all(feature = "sync", feature = "types"))]
-impl Default for xa_state {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-#[cfg(all(feature = "sync", feature = "types"))]
-pub type xa_update_node_t = Option<unsafe extern "system" fn(param0: *const xa_node)>;
-#[repr(C, packed(8))]
-#[cfg(all(feature = "sync", feature = "types"))]
-#[derive(Clone, Copy)]
-pub struct xarray {
-    pub xa_lock: super::sync::spinlock_t,
-    pub xa_flags: super::types::gfp_t,
-    pub xa_head: *mut core::ffi::c_void,
-}
-#[cfg(all(feature = "sync", feature = "types"))]
-impl Default for xarray {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}

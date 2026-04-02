@@ -11,49 +11,69 @@
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn __cmsg_nxthdr(__ctl : *mut core::ffi::c_void, __size : super::types:: __kernel_size_t, __cmsg : *mut cmsghdr) -> *mut cmsghdr);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn __copy_msghdr(kmsg : *mut msghdr, umsg : *mut user_msghdr, save_addr : *mut *mut sockaddr) -> i32);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn __import_iovec(r#type : i32, uvec : *const iovec, nr_segs : u32, fast_segs : u32, iovp : *mut *mut iovec, i : *mut iov_iter, compat : bool) -> super::types:: ssize_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn __sock_create(net : *mut core::ffi::c_void, family : i32, r#type : i32, proto : i32, res : *mut *mut socket, kern : i32) -> i32);
 windows_link::link!("kernel" "C" fn __sys_accept4(fd : i32, upeer_sockaddr : *mut sockaddr, upeer_addrlen : *mut i32, flags : i32) -> i32);
 windows_link::link!("kernel" "C" fn __sys_bind(fd : i32, umyaddr : *mut sockaddr, addrlen : i32) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn __sys_bind_socket(sock : *mut socket, address : *mut __kernel_sockaddr_storage, addrlen : i32) -> i32);
 windows_link::link!("kernel" "C" fn __sys_connect(fd : i32, uservaddr : *mut sockaddr, addrlen : i32) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn __sys_connect_file(file : *mut super::fs:: file, addr : *mut __kernel_sockaddr_storage, addrlen : i32, file_flags : i32) -> i32);
 windows_link::link!("kernel" "C" fn __sys_getsockname(fd : i32, usockaddr : *mut sockaddr, usockaddr_len : *mut i32, peer : i32) -> i32);
 windows_link::link!("kernel" "C" fn __sys_listen(fd : i32, backlog : i32) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn __sys_listen_socket(sock : *mut socket, backlog : i32) -> i32);
@@ -64,10 +84,14 @@ windows_link::link!("kernel" "C" fn __sys_recvmmsg(fd : i32, mmsg : *mut mmsghdr
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn __sys_recvmsg(fd : i32, msg : *mut user_msghdr, flags : u32, forbid_cmsg_compat : bool) -> i64);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn __sys_recvmsg_sock(sock : *mut socket, msg : *mut msghdr, umsg : *mut user_msghdr, uaddr : *mut sockaddr, flags : u32) -> i64);
@@ -76,10 +100,14 @@ windows_link::link!("kernel" "C" fn __sys_sendmmsg(fd : i32, mmsg : *mut mmsghdr
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn __sys_sendmsg(fd : i32, msg : *mut user_msghdr, flags : u32, forbid_cmsg_compat : bool) -> i64);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn __sys_sendmsg_sock(sock : *mut socket, msg : *mut msghdr, flags : u32) -> i64);
@@ -87,411 +115,546 @@ windows_link::link!("kernel" "C" fn __sys_sendmsg_sock(sock : *mut socket, msg :
 windows_link::link!("kernel" "C" fn __sys_sendto(fd : i32, buff : *mut core::ffi::c_void, len : super::types:: size_t, flags : u32, addr : *mut sockaddr, addr_len : i32) -> i32);
 windows_link::link!("kernel" "C" fn __sys_shutdown(fd : i32, how : i32) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn __sys_shutdown_sock(sock : *mut socket, how : i32) -> i32);
 windows_link::link!("kernel" "C" fn __sys_socket(family : i32, r#type : i32, protocol : i32) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn __sys_socket_file(family : i32, r#type : i32, protocol : i32) -> *mut super::fs:: file);
 windows_link::link!("kernel" "C" fn __sys_socketpair(family : i32, r#type : i32, protocol : i32, usockvec : *mut i32) -> i32);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn _copy_from_iter(addr : *mut core::ffi::c_void, bytes : super::types:: size_t, i : *mut iov_iter) -> super::types:: size_t);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn _copy_from_iter_flushcache(addr : *mut core::ffi::c_void, bytes : super::types:: size_t, i : *mut iov_iter) -> super::types:: size_t);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn _copy_from_iter_nocache(addr : *mut core::ffi::c_void, bytes : super::types:: size_t, i : *mut iov_iter) -> super::types:: size_t);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn _copy_mc_to_iter(addr : *const core::ffi::c_void, bytes : super::types:: size_t, i : *mut iov_iter) -> super::types:: size_t);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn _copy_to_iter(addr : *const core::ffi::c_void, bytes : super::types:: size_t, i : *mut iov_iter) -> super::types:: size_t);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn cmsg_nxthdr(__msg : *mut msghdr, __cmsg : *mut cmsghdr) -> *mut cmsghdr);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn copy_folio_from_iter(folio : *mut super::fs:: folio, offset : super::types:: size_t, bytes : super::types:: size_t, i : *mut iov_iter) -> super::types:: size_t);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn copy_folio_from_iter_atomic(folio : *mut super::fs:: folio, offset : super::types:: size_t, bytes : super::types:: size_t, i : *mut iov_iter) -> super::types:: size_t);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn copy_folio_to_iter(folio : *mut super::fs:: folio, offset : super::types:: size_t, bytes : super::types:: size_t, i : *mut iov_iter) -> super::types:: size_t);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(
+    feature = "ds",
+    feature = "mm_types",
+    feature = "sync",
+    feature = "types"
+))]
+windows_link::link!("kernel" "C" fn copy_folio_from_iter(folio : *mut super::mm_types:: folio, offset : super::types:: size_t, bytes : super::types:: size_t, i : *mut iov_iter) -> super::types:: size_t);
+#[cfg(all(
+    feature = "ds",
+    feature = "mm_types",
+    feature = "sync",
+    feature = "types"
+))]
+windows_link::link!("kernel" "C" fn copy_folio_from_iter_atomic(folio : *mut super::mm_types:: folio, offset : super::types:: size_t, bytes : super::types:: size_t, i : *mut iov_iter) -> super::types:: size_t);
+#[cfg(all(
+    feature = "ds",
+    feature = "mm_types",
+    feature = "sync",
+    feature = "types"
+))]
+windows_link::link!("kernel" "C" fn copy_folio_to_iter(folio : *mut super::mm_types:: folio, offset : super::types:: size_t, bytes : super::types:: size_t, i : *mut iov_iter) -> super::types:: size_t);
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn copy_from_iter(addr : *mut core::ffi::c_void, bytes : super::types:: size_t, i : *mut iov_iter) -> super::types:: size_t);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn copy_from_iter_full(addr : *mut core::ffi::c_void, bytes : super::types:: size_t, i : *mut iov_iter) -> bool);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn copy_from_iter_full_nocache(addr : *mut core::ffi::c_void, bytes : super::types:: size_t, i : *mut iov_iter) -> bool);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn copy_from_iter_nocache(addr : *mut core::ffi::c_void, bytes : super::types:: size_t, i : *mut iov_iter) -> super::types:: size_t);
 #[cfg(all(
-    feature = "fs",
-    feature = "pagemap",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types"
 ))]
-windows_link::link!("kernel" "C" fn copy_page_from_iter(page : *mut super::pagemap:: page, offset : super::types:: size_t, bytes : super::types:: size_t, i : *mut iov_iter) -> super::types:: size_t);
+windows_link::link!("kernel" "C" fn copy_page_from_iter(page : *mut super::mm_types:: page, offset : super::types:: size_t, bytes : super::types:: size_t, i : *mut iov_iter) -> super::types:: size_t);
 #[cfg(all(
-    feature = "fs",
-    feature = "pagemap",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types"
 ))]
-windows_link::link!("kernel" "C" fn copy_page_to_iter(page : *mut super::pagemap:: page, offset : super::types:: size_t, bytes : super::types:: size_t, i : *mut iov_iter) -> super::types:: size_t);
+windows_link::link!("kernel" "C" fn copy_page_to_iter(page : *mut super::mm_types:: page, offset : super::types:: size_t, bytes : super::types:: size_t, i : *mut iov_iter) -> super::types:: size_t);
 #[cfg(all(
-    feature = "fs",
-    feature = "pagemap",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types"
 ))]
-windows_link::link!("kernel" "C" fn copy_page_to_iter_nofault(page : *mut super::pagemap:: page, offset : u32, bytes : super::types:: size_t, i : *mut iov_iter) -> super::types:: size_t);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+windows_link::link!("kernel" "C" fn copy_page_to_iter_nofault(page : *mut super::mm_types:: page, offset : u32, bytes : super::types:: size_t, i : *mut iov_iter) -> super::types:: size_t);
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn copy_to_iter(addr : *const core::ffi::c_void, bytes : super::types:: size_t, i : *mut iov_iter) -> super::types:: size_t);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn copy_to_iter_full(addr : *const core::ffi::c_void, bytes : super::types:: size_t, i : *mut iov_iter) -> bool);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn do_accept(file : *mut super::fs:: file, arg : *mut core::ffi::c_void, upeer_sockaddr : *mut sockaddr, upeer_addrlen : *mut i32, flags : i32) -> *mut super::fs:: file);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn do_getsockname(sock : *mut socket, peer : i32, usockaddr : *mut sockaddr, usockaddr_len : *mut i32) -> i32);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn dup_iter(new : *mut iov_iter, old : *mut iov_iter, flags : super::types:: gfp_t) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn extract_iter_to_sg(iter : *mut iov_iter, len : super::types:: size_t, sgtable : *mut core::ffi::c_void, sg_max : u32, extraction_flags : iov_iter_extraction_t) -> super::types:: ssize_t);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn fault_in_iov_iter_readable(i : *const iov_iter, bytes : super::types:: size_t) -> super::types:: size_t);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn fault_in_iov_iter_writeable(i : *const iov_iter, bytes : super::types:: size_t) -> super::types:: size_t);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn import_iovec(r#type : i32, uvec : *const iovec, nr_segs : u32, fast_segs : u32, iovp : *mut *mut iovec, i : *mut iov_iter) -> super::types:: ssize_t);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn import_ubuf(r#type : i32, buf : *mut core::ffi::c_void, len : super::types:: size_t, i : *mut iov_iter) -> i32);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn iov_iter_advance(i : *mut iov_iter, bytes : super::types:: size_t));
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn iov_iter_alignment(i : *const iov_iter) -> u64);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn iov_iter_bvec(i : *mut iov_iter, direction : u32, bvec : *const core::ffi::c_void, nr_segs : u64, count : super::types:: size_t));
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn iov_iter_count(i : *const iov_iter) -> super::types:: size_t);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn iov_iter_discard(i : *mut iov_iter, direction : u32, count : super::types:: size_t));
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn iov_iter_extract_bvecs(iter : *mut iov_iter, bv : *mut core::ffi::c_void, max_size : super::types:: size_t, nr_vecs : *mut u16, max_vecs : u16, extraction_flags : iov_iter_extraction_t) -> super::types:: ssize_t);
 #[cfg(all(
-    feature = "fs",
-    feature = "pagemap",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types"
 ))]
-windows_link::link!("kernel" "C" fn iov_iter_extract_pages(i : *mut iov_iter, pages : *mut *mut *mut super::pagemap:: page, maxsize : super::types:: size_t, maxpages : u32, extraction_flags : iov_iter_extraction_t, offset0 : *mut super::types:: size_t) -> super::types:: ssize_t);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+windows_link::link!("kernel" "C" fn iov_iter_extract_pages(i : *mut iov_iter, pages : *mut *mut *mut super::mm_types:: page, maxsize : super::types:: size_t, maxpages : u32, extraction_flags : iov_iter_extraction_t, offset0 : *mut super::types:: size_t) -> super::types:: ssize_t);
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn iov_iter_extract_will_pin(iter : *const iov_iter) -> bool);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn iov_iter_folio_queue(i : *mut iov_iter, direction : u32, folioq : *const core::ffi::c_void, first_slot : u32, offset : u32, count : super::types:: size_t));
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn iov_iter_gap_alignment(i : *const iov_iter) -> u64);
 #[cfg(all(
-    feature = "fs",
-    feature = "pagemap",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types"
 ))]
-windows_link::link!("kernel" "C" fn iov_iter_get_pages2(i : *mut iov_iter, pages : *mut *mut super::pagemap:: page, maxsize : super::types:: size_t, maxpages : u32, start : *mut super::types:: size_t) -> super::types:: ssize_t);
+windows_link::link!("kernel" "C" fn iov_iter_get_pages2(i : *mut iov_iter, pages : *mut *mut super::mm_types:: page, maxsize : super::types:: size_t, maxpages : u32, start : *mut super::types:: size_t) -> super::types:: ssize_t);
 #[cfg(all(
-    feature = "fs",
-    feature = "pagemap",
+    feature = "ds",
+    feature = "mm_types",
     feature = "sync",
     feature = "types"
 ))]
-windows_link::link!("kernel" "C" fn iov_iter_get_pages_alloc2(i : *mut iov_iter, pages : *mut *mut *mut super::pagemap:: page, maxsize : super::types:: size_t, start : *mut super::types:: size_t) -> super::types:: ssize_t);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+windows_link::link!("kernel" "C" fn iov_iter_get_pages_alloc2(i : *mut iov_iter, pages : *mut *mut *mut super::mm_types:: page, maxsize : super::types:: size_t, start : *mut super::types:: size_t) -> super::types:: ssize_t);
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn iov_iter_init(i : *mut iov_iter, direction : u32, iov : *const iovec, nr_segs : u64, count : super::types:: size_t));
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn iov_iter_is_bvec(i : *const iov_iter) -> bool);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn iov_iter_is_discard(i : *const iov_iter) -> bool);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn iov_iter_is_folioq(i : *const iov_iter) -> bool);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn iov_iter_is_kvec(i : *const iov_iter) -> bool);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn iov_iter_is_xarray(i : *const iov_iter) -> bool);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn iov_iter_kvec(i : *mut iov_iter, direction : u32, kvec : *const kvec, nr_segs : u64, count : super::types:: size_t));
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn iov_iter_npages(i : *const iov_iter, maxpages : i32) -> i32);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn iov_iter_npages_cap(i : *mut iov_iter, maxpages : i32, max_bytes : super::types:: size_t) -> i32);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn iov_iter_reexpand(i : *mut iov_iter, count : super::types:: size_t));
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn iov_iter_restore(i : *mut iov_iter, state : *mut iov_iter_state));
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn iov_iter_revert(i : *mut iov_iter, bytes : super::types:: size_t));
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn iov_iter_rw(i : *const iov_iter) -> u8);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn iov_iter_save_state(iter : *mut iov_iter, state : *mut iov_iter_state));
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn iov_iter_single_seg_count(i : *const iov_iter) -> super::types:: size_t);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn iov_iter_truncate(i : *mut iov_iter, count : u64));
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn iov_iter_type(i : *const iov_iter) -> iter_type);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn iov_iter_ubuf(i : *mut iov_iter, direction : u32, buf : *mut core::ffi::c_void, count : super::types:: size_t));
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn iov_iter_xarray(i : *mut iov_iter, direction : u32, xarray : *mut super::fs:: xarray, start : super::types:: loff_t, count : super::types:: size_t));
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
+windows_link::link!("kernel" "C" fn iov_iter_xarray(i : *mut iov_iter, direction : u32, xarray : *mut super::ds:: xarray, start : super::types:: loff_t, count : super::types:: size_t));
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn iov_iter_zero(bytes : super::types:: size_t, param1 : *mut iov_iter) -> super::types:: size_t);
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn iov_length(iov : *const iovec, nr_segs : u64) -> super::types:: size_t);
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn iovec_from_user(uvector : *const iovec, nr_segs : u64, fast_segs : u64, fast_iov : *mut iovec, compat : bool) -> *mut iovec);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn iter_iov(iter : *const iov_iter) -> *mut iovec);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn iter_iov_len(i : *const iov_iter) -> super::types:: size_t);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn iter_is_iovec(i : *const iov_iter) -> bool);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn iter_is_ubuf(i : *const iov_iter) -> bool);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn kernel_accept(sock : *mut socket, newsock : *mut *mut socket, flags : i32) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn kernel_bind(sock : *mut socket, addr : *mut sockaddr_unsized, addrlen : i32) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn kernel_connect(sock : *mut socket, addr : *mut sockaddr_unsized, addrlen : i32, flags : i32) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn kernel_getpeername(sock : *mut socket, addr : *mut sockaddr) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn kernel_getsockname(sock : *mut socket, addr : *mut sockaddr) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn kernel_listen(sock : *mut socket, backlog : i32) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn kernel_recvmsg(sock : *mut socket, msg : *mut msghdr, vec : *mut kvec, num : super::types:: size_t, len : super::types:: size_t, flags : i32) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn kernel_sendmsg(sock : *mut socket, msg : *mut msghdr, vec : *mut kvec, num : super::types:: size_t, len : super::types:: size_t) -> i32);
 windows_link::link!("kernel" "C" fn kernel_sock_ip_overhead(sk : *mut core::ffi::c_void) -> u32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn kernel_sock_shutdown(sock : *mut socket, how : sock_shutdown_cmd) -> i32);
 windows_link::link!("kernel" "C" fn move_addr_to_kernel(uaddr : *mut core::ffi::c_void, ulen : i32, kaddr : *mut __kernel_sockaddr_storage) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn msg_data_left(msg : *const msghdr) -> super::types:: size_t);
 windows_link::link!("kernel" "C" fn net_ratelimit() -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn put_cmsg(param0 : *mut msghdr, level : i32, r#type : i32, len : i32, data : *mut core::ffi::c_void) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn put_cmsg_notrunc(msg : *mut msghdr, level : i32, r#type : i32, len : i32, data : *mut core::ffi::c_void) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn put_cmsg_scm_timestamping(msg : *mut msghdr, tss : *mut scm_timestamping_internal));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn put_cmsg_scm_timestamping64(msg : *mut msghdr, tss : *mut scm_timestamping_internal));
-#[cfg(feature = "pagemap")]
-windows_link::link!("kernel" "C" fn sendpage_ok(page : *mut super::pagemap:: page) -> bool);
-#[cfg(all(feature = "pagemap", feature = "types"))]
-windows_link::link!("kernel" "C" fn sendpages_ok(page : *mut super::pagemap:: page, len : super::types:: size_t, offset : super::types:: size_t) -> bool);
+#[cfg(all(feature = "ds", feature = "mm_types", feature = "types"))]
+windows_link::link!("kernel" "C" fn sendpage_ok(page : *mut super::mm_types:: page) -> bool);
+#[cfg(all(feature = "ds", feature = "mm_types", feature = "types"))]
+windows_link::link!("kernel" "C" fn sendpages_ok(page : *mut super::mm_types:: page, len : super::types:: size_t, offset : super::types:: size_t) -> bool);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn sock_alloc() -> *mut socket);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn sock_alloc_file(sock : *mut socket, flags : i32, dname : *const i8) -> *mut super::fs:: file);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn sock_create(family : i32, r#type : i32, proto : i32, res : *mut *mut socket) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn sock_create_kern(net : *mut core::ffi::c_void, family : i32, r#type : i32, proto : i32, res : *mut *mut socket) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn sock_create_lite(family : i32, r#type : i32, proto : i32, res : *mut *mut socket) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn sock_from_file(file : *mut super::fs:: file) -> *mut socket);
 windows_link::link!("kernel" "C" fn sock_is_registered(family : i32) -> bool);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn sock_recvmsg(sock : *mut socket, msg : *mut msghdr, flags : i32) -> i32);
 windows_link::link!("kernel" "C" fn sock_register(fam : *const net_proto_family) -> i32);
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn sock_release(sock : *mut socket));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn sock_sendmsg(sock : *mut socket, msg : *mut msghdr) -> i32);
 windows_link::link!("kernel" "C" fn sock_unregister(family : i32));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn sock_wake_async(sk_wq : *mut socket_wq, how : i32, band : i32) -> i32);
 windows_link::link!("kernel" "C" fn socket_seq_show(seq : *mut core::ffi::c_void));
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn sockfd_lookup(fd : i32, err : *mut i32) -> *mut socket);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn user_backed_iter(i : *const iov_iter) -> bool);
 pub const AF_ALG: i32 = 38i32;
 pub const AF_APPLETALK: i32 = 5i32;
@@ -677,7 +840,42 @@ pub const SYS_SOCKETPAIR: i32 = 8i32;
 pub const UIO_FASTIOV: i32 = 8i32;
 pub const UIO_MAXIOV: i32 = 1024i32;
 pub const _K_SS_MAXSIZE: i32 = 128i32;
+#[repr(C, packed(8))]
+#[cfg(feature = "types")]
+#[derive(Clone, Copy, Default)]
+pub struct __kernel_itimerspec {
+    pub it_interval: __kernel_timespec,
+    pub it_value: __kernel_timespec,
+}
+#[repr(C, packed(8))]
+#[cfg(feature = "types")]
+#[derive(Clone, Copy, Default)]
+pub struct __kernel_old_itimerval {
+    pub it_interval: __kernel_old_timeval,
+    pub it_value: __kernel_old_timeval,
+}
+#[repr(C, packed(8))]
+#[cfg(feature = "types")]
+#[derive(Clone, Copy, Default)]
+pub struct __kernel_old_timespec {
+    pub tv_sec: super::types::__kernel_old_time_t,
+    pub tv_nsec: i64,
+}
+#[repr(C, packed(8))]
+#[cfg(feature = "types")]
+#[derive(Clone, Copy, Default)]
+pub struct __kernel_old_timeval {
+    pub tv_sec: super::types::__kernel_long_t,
+    pub tv_usec: super::types::__kernel_long_t,
+}
 pub type __kernel_sa_family_t = u16;
+#[repr(C, packed(8))]
+#[cfg(feature = "types")]
+#[derive(Clone, Copy, Default)]
+pub struct __kernel_sock_timeval {
+    pub tv_sec: super::types::__s64,
+    pub tv_usec: super::types::__s64,
+}
 #[repr(C, packed(8))]
 #[derive(Clone, Copy)]
 pub struct __kernel_sockaddr_storage {
@@ -711,14 +909,11 @@ impl Default for __kernel_sockaddr_storage__anon_0__anon_0 {
     }
 }
 #[repr(C, packed(8))]
-#[derive(Clone, Copy)]
+#[cfg(feature = "types")]
+#[derive(Clone, Copy, Default)]
 pub struct __kernel_timespec {
-    pub _reserved: [u64; 2],
-}
-impl Default for __kernel_timespec {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
+    pub tv_sec: super::types::__kernel_time64_t,
+    pub tv_nsec: i64,
 }
 #[repr(C, packed(8))]
 #[cfg(feature = "types")]
@@ -746,7 +941,7 @@ pub struct dmabuf_token {
     pub token_count: super::types::__u32,
 }
 #[repr(C, packed(8))]
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 #[derive(Clone, Copy)]
 pub struct iov_iter {
     pub iter_type: u8,
@@ -756,50 +951,50 @@ pub struct iov_iter {
     pub iov_iter__anon_0: iov_iter__anon_0,
     pub iov_iter__anon_1: iov_iter__anon_1,
 }
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 impl Default for iov_iter {
     fn default() -> Self {
         unsafe { core::mem::zeroed() }
     }
 }
 #[repr(C, packed(8))]
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 #[derive(Clone, Copy)]
 pub union iov_iter__anon_0 {
     pub __ubuf_iovec: iovec,
     pub iov_iter__anon_0__anon_0: iov_iter__anon_0__anon_0,
 }
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 impl Default for iov_iter__anon_0 {
     fn default() -> Self {
         unsafe { core::mem::zeroed() }
     }
 }
 #[repr(C, packed(8))]
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 #[derive(Clone, Copy)]
 pub struct iov_iter__anon_0__anon_0 {
     pub iov_iter__anon_0__anon_0__anon_0: iov_iter__anon_0__anon_0__anon_0,
     pub count: super::types::size_t,
 }
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 impl Default for iov_iter__anon_0__anon_0 {
     fn default() -> Self {
         unsafe { core::mem::zeroed() }
     }
 }
 #[repr(C, packed(8))]
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 #[derive(Clone, Copy)]
 pub union iov_iter__anon_0__anon_0__anon_0 {
     pub __iov: *mut iovec,
     pub kvec: *mut kvec,
     pub bvec: *mut core::ffi::c_void,
     pub folioq: *mut core::ffi::c_void,
-    pub xarray: *mut super::fs::xarray,
+    pub xarray: *mut super::ds::xarray,
     pub ubuf: *mut core::ffi::c_void,
 }
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 impl Default for iov_iter__anon_0__anon_0__anon_0 {
     fn default() -> Self {
         unsafe { core::mem::zeroed() }
@@ -870,10 +1065,14 @@ pub struct mmsghdr {
 }
 #[repr(C, packed(8))]
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 #[derive(Clone, Copy)]
@@ -891,10 +1090,14 @@ pub struct msghdr {
     pub sg_from_iter: *mut isize,
 }
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 impl Default for msghdr {
@@ -925,15 +1128,18 @@ impl Default for net_proto_family {
         unsafe { core::mem::zeroed() }
     }
 }
+pub type old_time32_t = i32;
 #[repr(C, packed(4))]
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Default)]
 pub struct old_timespec32 {
-    pub _reserved: [u32; 2],
+    pub tv_sec: old_time32_t,
+    pub tv_nsec: i32,
 }
-impl Default for old_timespec32 {
-    fn default() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
+#[repr(C, packed(4))]
+#[derive(Clone, Copy, Default)]
+pub struct old_timeval32 {
+    pub tv_sec: old_time32_t,
+    pub tv_usec: i32,
 }
 #[repr(C, packed(8))]
 #[derive(Clone, Copy)]
@@ -1051,10 +1257,14 @@ impl Default for sockaddr_unsized {
 }
 #[repr(C, packed(64))]
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 #[derive(Clone, Copy)]
@@ -1069,10 +1279,14 @@ pub struct socket {
     pub wq: socket_wq,
 }
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 impl Default for socket {
@@ -1084,25 +1298,33 @@ pub type socket_flags = u32;
 pub type socket_state = u32;
 #[repr(C, packed(64))]
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 #[derive(Clone, Copy)]
 pub struct socket_wq {
-    pub wait: super::fs::wait_queue_head_t,
+    pub wait: super::wait::wait_queue_head_t,
     pub fasync_list: *mut super::fs::fasync_struct,
     pub flags: u64,
     pub rcu: super::types::callback_head,
     pub _padding: [u8; 8],
 }
 #[cfg(all(
+    feature = "cred",
     feature = "dcache",
+    feature = "ds",
     feature = "fs",
+    feature = "mm_types",
     feature = "sync",
     feature = "types",
+    feature = "wait",
     feature = "workqueue"
 ))]
 impl Default for socket_wq {
@@ -1119,7 +1341,7 @@ pub struct ucred {
     pub gid: super::types::__u32,
 }
 #[repr(C, packed(8))]
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 #[derive(Clone, Copy)]
 pub struct uio_meta {
     pub flags: uio_meta_flags_t,
@@ -1127,7 +1349,7 @@ pub struct uio_meta {
     pub seed: u64,
     pub iter: iov_iter,
 }
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "ds", feature = "sync", feature = "types"))]
 impl Default for uio_meta {
     fn default() -> Self {
         unsafe { core::mem::zeroed() }

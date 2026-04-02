@@ -9,145 +9,145 @@
 )]
 
 windows_link::link!("kernel" "C" fn INIT_HLIST_BL_NODE(h : *mut hlist_bl_node));
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn __d_drop(dentry : *mut dentry));
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn __d_entry_type(dentry : *const dentry) -> u32);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn __d_lookup_unhash_wake(dentry : *mut dentry));
 windows_link::link!("kernel" "C" fn __d_path(param0 : *const core::ffi::c_void, param1 : *const core::ffi::c_void, param2 : *mut i8, param3 : i32) -> *mut i8);
 windows_link::link!("kernel" "C" fn __hlist_bl_del(n : *mut hlist_bl_node));
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn cant_mount(dentry : *const dentry) -> i32);
 windows_link::link!("kernel" "C" fn d_absolute_path(param0 : *const core::ffi::c_void, param1 : *mut i8, param2 : i32) -> *mut i8);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_add(param0 : *mut dentry, param1 : *mut core::ffi::c_void));
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_add_ci(param0 : *mut dentry, param1 : *mut core::ffi::c_void, param2 : *mut qstr) -> *mut dentry);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_alloc(param0 : *mut dentry, param1 : *const qstr) -> *mut dentry);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_alloc_anon(param0 : *mut core::ffi::c_void) -> *mut dentry);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
-windows_link::link!("kernel" "C" fn d_alloc_parallel(param0 : *mut dentry, param1 : *const qstr, param2 : *mut super::fs:: wait_queue_head_t) -> *mut dentry);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
+windows_link::link!("kernel" "C" fn d_alloc_parallel(param0 : *mut dentry, param1 : *const qstr, param2 : *mut super::wait:: wait_queue_head_t) -> *mut dentry);
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_ancestor(param0 : *mut dentry, param1 : *mut dentry) -> *mut dentry);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_backing_inode(upper : *const dentry) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_can_lookup(dentry : *const dentry) -> bool);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_count(dentry : *const dentry) -> u32);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_delete(param0 : *mut dentry));
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_dispose_if_unused(param0 : *mut dentry, param1 : *mut super::types:: list_head));
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_drop(dentry : *mut dentry));
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_exchange(param0 : *mut dentry, param1 : *mut dentry));
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_find_alias(param0 : *mut core::ffi::c_void) -> *mut dentry);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_find_alias_rcu(param0 : *mut core::ffi::c_void) -> *mut dentry);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_find_any_alias(inode : *mut core::ffi::c_void) -> *mut dentry);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_first_child(dentry : *const dentry) -> *mut dentry);
 windows_link::link!("kernel" "C" fn d_flags_negative(flags : u32) -> bool);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_in_lookup(dentry : *const dentry) -> i32);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_inode(dentry : *const dentry) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_inode_rcu(dentry : *const dentry) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_instantiate(param0 : *mut dentry, param1 : *mut core::ffi::c_void));
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_instantiate_new(param0 : *mut dentry, param1 : *mut core::ffi::c_void));
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_invalidate(param0 : *mut dentry));
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_is_autodir(dentry : *const dentry) -> bool);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_is_dir(dentry : *const dentry) -> bool);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_is_file(dentry : *const dentry) -> bool);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_is_miss(dentry : *const dentry) -> bool);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_is_negative(dentry : *const dentry) -> bool);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_is_positive(dentry : *const dentry) -> bool);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_is_reg(dentry : *const dentry) -> bool);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_is_special(dentry : *const dentry) -> bool);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_is_symlink(dentry : *const dentry) -> bool);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_is_whiteout(dentry : *const dentry) -> bool);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_lookup(param0 : *const dentry, param1 : *const qstr) -> *mut dentry);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_lookup_done(dentry : *mut dentry));
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_make_discardable(dentry : *mut dentry));
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_make_persistent(param0 : *mut dentry, param1 : *mut core::ffi::c_void) -> *mut dentry);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_make_root(param0 : *mut core::ffi::c_void) -> *mut dentry);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_managed(dentry : *const dentry) -> bool);
 windows_link::link!("kernel" "C" fn d_mark_tmpfile(param0 : *mut core::ffi::c_void, param1 : *mut core::ffi::c_void));
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_mountpoint(dentry : *const dentry) -> bool);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_move(param0 : *mut dentry, param1 : *mut dentry));
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_next_sibling(dentry : *const dentry) -> *mut dentry);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_obtain_alias(param0 : *mut core::ffi::c_void) -> *mut dentry);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_obtain_root(param0 : *mut core::ffi::c_void) -> *mut dentry);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_parent_ino(dentry : *mut dentry) -> super::types:: ino_t);
 windows_link::link!("kernel" "C" fn d_path(param0 : *const core::ffi::c_void, param1 : *mut i8, param2 : i32) -> *mut i8);
 windows_link::link!("kernel" "C" fn d_prune_aliases(param0 : *mut core::ffi::c_void));
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_real(dentry : *mut dentry, r#type : d_real_type) -> *mut dentry);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_real_inode(dentry : *const dentry) -> *mut core::ffi::c_void);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_really_is_negative(dentry : *const dentry) -> bool);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_really_is_positive(dentry : *const dentry) -> bool);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_rehash(param0 : *mut dentry));
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_same_name(dentry : *const dentry, parent : *const dentry, name : *const qstr) -> bool);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_splice_alias(param0 : *mut core::ffi::c_void, param1 : *mut dentry) -> *mut dentry);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_splice_alias_ops(param0 : *mut core::ffi::c_void, param1 : *mut dentry, param2 : *const dentry_operations) -> *mut dentry);
 windows_link::link!("kernel" "C" fn d_tmpfile(param0 : *mut core::ffi::c_void, param1 : *mut core::ffi::c_void));
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_unhashed(dentry : *const dentry) -> i32);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn d_unlinked(dentry : *const dentry) -> i32);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn dentry_path(param0 : *const dentry, param1 : *mut i8, param2 : i32) -> *mut i8);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn dentry_path_raw(param0 : *const dentry, param1 : *mut i8, param2 : i32) -> *mut i8);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn dget(dentry : *mut dentry) -> *mut dentry);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn dget_dlock(dentry : *mut dentry) -> *mut dentry);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn dget_parent(dentry : *mut dentry) -> *mut dentry);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn dont_mount(dentry : *mut dentry));
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn dput(param0 : *mut dentry));
 windows_link::link!("kernel" "C" fn hlist_bl_add_before(n : *mut hlist_bl_node, next : *mut hlist_bl_node));
 windows_link::link!("kernel" "C" fn hlist_bl_add_behind(n : *mut hlist_bl_node, prev : *mut hlist_bl_node));
@@ -164,14 +164,14 @@ windows_link::link!("kernel" "C" fn hlist_bl_unlock(b : *mut hlist_bl_head));
 windows_link::link!("kernel" "C" fn path_has_submounts(param0 : *const core::ffi::c_void) -> i32);
 windows_link::link!("kernel" "C" fn release_dentry_name_snapshot(param0 : *mut name_snapshot));
 windows_link::link!("kernel" "C" fn set_default_d_op(param0 : *mut core::ffi::c_void, param1 : *const dentry_operations));
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn shrink_dcache_parent(param0 : *mut dentry));
 windows_link::link!("kernel" "C" fn shrink_dcache_sb(param0 : *mut core::ffi::c_void));
 #[cfg(feature = "types")]
 windows_link::link!("kernel" "C" fn shrink_dentry_list(param0 : *mut super::types:: list_head));
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn simple_positive(dentry : *const dentry) -> i32);
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn take_dentry_name_snapshot(param0 : *mut name_snapshot, param1 : *mut dentry));
 windows_link::link!("kernel" "C" fn vfs_pressure_ratio(val : u64) -> u64);
 pub const DCACHE_AUTODIR_TYPE: u32 = 1572864u32;
@@ -214,11 +214,11 @@ pub const D_REAL_METADATA: u32 = 1u32;
 pub const LIST_BL_LOCKMASK: i32 = 1i32;
 pub type d_real_type = u32;
 #[repr(C, packed(8))]
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 #[derive(Clone, Copy)]
 pub struct dentry {
     pub d_flags: u32,
-    pub d_seq: seqcount_spinlock,
+    pub d_seq: seqcount_spinlock_t,
     pub d_hash: hlist_bl_node,
     pub d_parent: *mut dentry,
     pub dentry__anon_0: dentry__anon_0,
@@ -234,7 +234,7 @@ pub struct dentry {
     pub d_children: super::types::hlist_head,
     pub d_u: dentry_d_u,
 }
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 impl Default for dentry {
     fn default() -> Self {
         unsafe { core::mem::zeroed() }
@@ -252,13 +252,13 @@ impl Default for dentry__anon_0 {
     }
 }
 #[repr(C, packed(8))]
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 #[derive(Clone, Copy)]
 pub union dentry__anon_1 {
     pub d_lru: super::types::list_head,
-    pub d_wait: *mut super::fs::wait_queue_head_t,
+    pub d_wait: *mut super::wait::wait_queue_head_t,
 }
-#[cfg(all(feature = "fs", feature = "sync", feature = "types"))]
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
 impl Default for dentry__anon_1 {
     fn default() -> Self {
         unsafe { core::mem::zeroed() }
@@ -366,11 +366,76 @@ pub struct qstr__anon_0__anon_0 {
     pub len: u32,
 }
 #[repr(C, packed(4))]
-#[derive(Clone, Copy)]
-pub struct seqcount_spinlock {
-    pub _reserved: [u32; 1],
+#[derive(Clone, Copy, Default)]
+pub struct seqcount {
+    pub sequence: u32,
 }
-impl Default for seqcount_spinlock {
+#[repr(C, packed(4))]
+#[derive(Clone, Copy, Default)]
+pub struct seqcount_mutex {
+    pub seqcount: seqcount_t,
+}
+#[repr(C)]
+#[derive(Clone, Copy, Default)]
+pub struct seqcount_mutex_t {
+    pub Value: seqcount_mutex,
+}
+#[repr(C, packed(4))]
+#[derive(Clone, Copy, Default)]
+pub struct seqcount_raw_spinlock {
+    pub seqcount: seqcount_t,
+}
+#[repr(C)]
+#[derive(Clone, Copy, Default)]
+pub struct seqcount_raw_spinlock_t {
+    pub Value: seqcount_raw_spinlock,
+}
+#[repr(C, packed(4))]
+#[derive(Clone, Copy, Default)]
+pub struct seqcount_rwlock {
+    pub seqcount: seqcount_t,
+}
+#[repr(C)]
+#[derive(Clone, Copy, Default)]
+pub struct seqcount_rwlock_t {
+    pub Value: seqcount_rwlock,
+}
+#[repr(C, packed(4))]
+#[derive(Clone, Copy, Default)]
+pub struct seqcount_spinlock {
+    pub seqcount: seqcount_t,
+}
+#[repr(C)]
+#[derive(Clone, Copy, Default)]
+pub struct seqcount_spinlock_t {
+    pub Value: seqcount_spinlock,
+}
+#[repr(C)]
+#[derive(Clone, Copy, Default)]
+pub struct seqcount_t {
+    pub Value: seqcount,
+}
+#[repr(C, packed(4))]
+#[cfg(all(feature = "sync", feature = "types"))]
+#[derive(Clone, Copy)]
+pub struct seqlock {
+    pub seqcount: seqcount_spinlock_t,
+    pub lock: super::sync::spinlock_t,
+}
+#[cfg(all(feature = "sync", feature = "types"))]
+impl Default for seqlock {
+    fn default() -> Self {
+        unsafe { core::mem::zeroed() }
+    }
+}
+#[repr(C)]
+#[cfg(all(feature = "sync", feature = "types"))]
+#[derive(Clone, Copy)]
+pub struct seqlock_t {
+    pub Value: seqlock,
+}
+#[cfg(all(feature = "sync", feature = "types"))]
+impl Default for seqlock_t {
     fn default() -> Self {
         unsafe { core::mem::zeroed() }
     }

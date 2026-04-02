@@ -6,7 +6,7 @@ use core::ptr;
 
 use crate::error::Error;
 use crate::types::{AlwaysRefCounted, Opaque, ScopeGuard};
-use rko_sys::rko::{fs as bindings_fs, helpers as bindings_h, pagemap as bindings_pg};
+use rko_sys::rko::{helpers as bindings_h, mm_types as mm_b, pagemap as bindings_pg};
 
 type Result<T = ()> = core::result::Result<T, Error>;
 
@@ -17,7 +17,7 @@ type Result<T = ()> = core::result::Result<T, Error>;
 /// Instances are always ref-counted: a call to `folio_get` ensures
 /// the allocation remains valid until the matching `folio_put`.
 #[repr(transparent)]
-pub struct Folio(Opaque<bindings_fs::folio>);
+pub struct Folio(Opaque<mm_b::folio>);
 
 // SAFETY: The type invariants guarantee that `Folio` is always ref-counted.
 unsafe impl AlwaysRefCounted for Folio {
@@ -63,7 +63,7 @@ impl LockedFolio<'_> {
     /// The folio must be valid, locked, and the caller transfers unlock
     /// responsibility. The returned `LockedFolio` must not outlive the
     /// refcount that keeps the folio alive.
-    pub(crate) unsafe fn from_raw(folio: *mut bindings_fs::folio) -> Self {
+    pub(crate) unsafe fn from_raw(folio: *mut mm_b::folio) -> Self {
         // SAFETY: Caller guarantees the pointer is valid and locked.
         unsafe { Self(&*folio.cast()) }
     }

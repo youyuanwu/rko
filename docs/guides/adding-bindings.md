@@ -38,7 +38,7 @@ types, functions, and constants into a Rust module.
 [[partition]]
 namespace = "rko.net"       # becomes rko-sys/src/rko/net/mod.rs
 library = "kernel"
-headers = ["linux/net.h"]   # entry point header
+headers = ["linux/net.h"]   # headers clang parses
 traverse = [                # headers whose types to extract
   "linux/net.h",
   "linux/socket.h",
@@ -46,13 +46,33 @@ traverse = [                # headers whose types to extract
 ]
 ```
 
-**headers** — the header(s) clang parses. Functions declared here are
-extracted.
+**headers** — the header(s) clang actually parses. Only types and
+functions **visible to clang** after parsing these headers can be
+extracted. If a type is defined in a header that isn't `#include`d
+(directly or transitively) by any header in `headers`, clang never
+sees it and bnd-winmd cannot extract it.
 
-**traverse** — which headers' types/constants to include in output.
-Start minimal, expand as needed. Types from headers NOT in traverse
-but referenced by traversed types will be resolved from other
-partitions or must be injected.
+**traverse** — which of the parsed headers' types/constants to
+include in the output. Types from headers NOT in traverse but
+referenced by traversed types will be resolved from other partitions
+or must be injected.
+
+**Critical**: a header in `traverse` but NOT reachable from `headers`
+has no effect. Always ensure traverse headers are either:
+1. Listed in `headers`, OR
+2. Transitively `#include`d by a header in `headers`
+
+Example of the common mistake:
+
+```toml
+# WRONG — completion.h is not #included by wait.h
+headers = ["linux/wait.h"]
+traverse = ["linux/wait.h", "linux/completion.h"]  # completion types won't be extracted!
+
+# CORRECT — add completion.h to headers too
+headers = ["linux/wait.h", "linux/completion.h"]
+traverse = ["linux/wait.h", "linux/completion.h"]
+```
 
 ### 2. Run the generator
 
@@ -106,6 +126,30 @@ In generated code this appears as `super::fs::file`,
 already defined (or injected) in another partition like `rko.fs`, you
 do NOT need to inject it again in your new partition. bnd-winmd
 will resolve it automatically.
+
+**Type ownership rule**: when multiple partitions traverse the same
+header, the type goes to the **first partition** (in `rko.toml` order)
+that traverses it. Use this to control where types live:
+
+```toml
+# mm_types partition is listed BEFORE fs partition, so folio, page,
+# vm_area_struct etc. are owned by rko.mm_types, not rko.fs.
+[[partition]]
+namespace = "rko.mm_types"     # owns folio, page, vm_area_struct
+headers = ["linux/mm_types.h"]
+traverse = ["linux/mm_types.h", ...]
+
+[[partition]]
+namespace = "rko.fs"           # references super::mm_types::folio
+headers = ["linux/fs.h"]
+traverse = ["linux/fs.h", ...]
+```
+
+**Splitting a large partition**: if a partition like `rko.fs` is too
+large (9000+ lines), create smaller partitions BEFORE it for logically
+distinct header groups. Types from the earlier partitions are resolved
+cross-partition by the later ones. The rko.fs partition was split into
+`rko.wait`, `rko.mm_types`, `rko.cred`, `rko.ds` this way.
 
 Check existing partitions before adding inject_types:
 
@@ -199,6 +243,46 @@ If the count is 0, the inject_type is dead — remove it.
 
 Kernel inline functions and macros can't be called directly from Rust.
 Wrap them in C helper functions.
+
+**Before adding a helper**, check if bnd-winmd already generated the
+binding — some functions that look inline are actually exported:
+
+```sh
+# Check if the function already exists in generated bindings
+grep 'fn inode_lock_shared' rko-sys/src/rko/fs/mod.rs
+
+# Check if the kernel actually exports it (needed for kbuild linking)
+grep 'inode_lock_shared' linux_bin/Module.symvers
+```
+
+If the function exists in the generated bindings AND in Module.symvers,
+you don't need a helper — use it directly from the partition.
+
+### When a helper IS needed
+
+- The function is `static inline` in the kernel header (not exported)
+- The function is a C macro (e.g., `dir_emit`, `container_of`)
+- The function exists in bindings but is NOT in Module.symvers
+
+### Parameter type issues
+
+If a helper parameter uses a struct type that isn't in any partition
+(e.g., `struct block_device`), use `void *` in the helper declaration
+and cast inside the implementation:
+
+```c
+// helpers.h — use void* for opaque types
+unsigned long long rust_helper_bdev_nr_sectors(void *bdev);
+
+// helpers.c — cast to the real type
+unsigned long long rust_helper_bdev_nr_sectors(void *bdev)
+{
+    return bdev_nr_sectors((struct block_device *)bdev);
+}
+```
+
+This avoids needing to add the type's header to the helpers partition's
+traverse list, which would cascade into more unresolved types.
 
 ### 1. Declare in helpers.h
 
@@ -305,3 +389,117 @@ without a matching feature in `rko-sys/Cargo.toml`. Check which
 **Missing C helper include** — `helpers.h` must `#include` the header
 that declares the types used in helper signatures. `helpers.c` must
 `#include` the header that defines the inline function being wrapped.
+
+**Traverse header not in headers** — The most common cause of
+"unresolved type" errors when splitting partitions. If a header is in
+`traverse` but not reachable from `headers` via `#include`, clang
+never parses it and its types are invisible. Fix: add the header to
+`headers` as well.
+
+**Type moved after partition split** — When you split a large
+partition, types move to the new partition. All `rko-core` code
+referencing `rko_sys::rko::OLD::type` must be updated to
+`rko_sys::rko::NEW::type`. Use:
+
+```sh
+cargo check -p rko-core 2>&1 | grep 'cannot find'
+```
+
+**Injecting a type that exists in another partition** — If bnd reports
+a type as unresolved but you know it's in another partition, the issue
+is likely that the other partition's `headers` field doesn't include
+the header defining the type. Fix the `headers` list rather than
+adding an inject_type.
+
+## Checking kernel symbol availability
+
+Not all functions in the generated bindings are actually exported by
+the kernel. The linker resolves symbols at `kbuild` time (not `cargo
+check` time), so a binding can compile fine but fail during module
+linking.
+
+### Check Module.symvers
+
+```sh
+# Is the function exported?
+grep 'my_function' linux_bin/Module.symvers
+
+# List all exported symbols matching a pattern
+grep 'read.*folio' linux_bin/Module.symvers
+```
+
+If a function is NOT in Module.symvers, you cannot call it from a
+module. Options:
+
+1. **Use a C helper** that wraps a different (exported) function with
+   equivalent behavior
+2. **Use an alternative API** — e.g., `read_cache_folio` (exported)
+   instead of `read_mapping_folio` (not exported)
+3. **Enable the kernel config** that exports the symbol — e.g.,
+   `CONFIG_IOMAP` for iomap functions
+
+### Diagnosing kbuild link errors
+
+If `cmake --build . --target <name>_ko` fails with:
+
+```
+ERROR: modpost: "some_function" [my_module.ko] undefined!
+```
+
+This means `some_function` is referenced in the Rust code but not
+exported by the kernel. Common causes:
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| Function in rko-sys bindings but not in Module.symvers | bnd-winmd extracted the declaration but the kernel doesn't export it | Use an alternative API or add a C helper |
+| Function in rko-core but not used by the sample | Dead code in a `pub` module still gets linked into the staticlib | Make the module private or `#[cfg]`-gate it |
+| Function in a C helper but helper.c include is wrong | helpers.c compiles but the inline expands to a call to an unexported function | Check the inline's implementation for further calls |
+
+**Tip**: After adding a new rko-sys partition, always check which of
+its symbols are actually exported before using them:
+
+```sh
+# How many of the generated functions are exported?
+grep 'fn ' rko-sys/src/rko/NEW_PARTITION/mod.rs \
+  | sed 's/.*fn \([a-zA-Z_]*\).*/\1/' \
+  | while read f; do grep -q "$f" linux_bin/Module.symvers && echo "✅ $f" || echo "❌ $f"; done \
+  | head -20
+```
+
+## Wiring bindings into rko-core
+
+After adding bindings to rko-sys, wire them into rko-core:
+
+### 1. Enable the rko-sys feature in rko-core
+
+If your new partition needs to be used by rko-core, add the feature
+to `rko-core/Cargo.toml`:
+
+```toml
+[dependencies]
+rko-sys = { path = "../rko-sys", features = ["my_partition"] }
+```
+
+In practice, rko-sys uses `default` features which include all
+partitions, so this step is often unnecessary.
+
+### 2. Import and wrap in rko-core
+
+Create a safe wrapper module in `rko-core/src/` that imports the
+raw bindings and provides a safe Rust API:
+
+```rust
+use rko_sys::rko::my_partition as bindings;
+```
+
+### 3. Verify the full stack
+
+```sh
+cargo check -p rko-sys                      # bindings compile
+cargo check -p rko-core                     # safe wrappers compile
+cd samples && cargo check -p my_sample      # sample compiles
+cd build && cmake --build . --target my_sample_ko  # kbuild links
+```
+
+The last step is critical — it's the only one that checks symbol
+availability against the actual kernel.
