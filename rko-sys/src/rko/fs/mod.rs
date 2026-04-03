@@ -6108,6 +6108,7 @@ pub const SB_I_NODEV: i32 = 4i32;
 pub const SB_I_NOEXEC: i32 = 2i32;
 pub const SB_I_NOIDMAP: i32 = 8192i32;
 pub const SB_I_NOUMASK: i32 = 4096i32;
+pub const SB_I_NO_DATA_INTEGRITY: i32 = 32768i32;
 pub const SB_I_PERSB_BDI: i32 = 512i32;
 pub const SB_I_RETIRED: i32 = 2048i32;
 pub const SB_I_SKIP_SYNC: i32 = 256i32;

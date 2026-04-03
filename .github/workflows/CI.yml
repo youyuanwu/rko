@@ -21,14 +21,18 @@ jobs:
       with:
         version: "v0.10.0"
 
+    - name: Read rust version from rust-toolchain.toml
+      id: rust-version
+      run: echo "version=$(grep '^channel' rust-toolchain.toml | sed 's/.*"\(.*\)"/\1/')" >> "$GITHUB_OUTPUT"
+
     - name: Install rust stable
       uses: dtolnay/rust-toolchain@stable
       with:
-        toolchain: 1.94.0
+        toolchain: ${{ steps.rust-version.outputs.version }}
         components: rustfmt, clippy, rust-src
 
     - name: Set rust version
-      run: rustup override set 1.94.0
+      run: rustup override set ${{ steps.rust-version.outputs.version }}
 
     - uses: taiki-e/install-action@v2
       with:
@@ -43,7 +47,7 @@ jobs:
       run: |
         git clone --branch ${{ env.TAG }} --depth 1 https://github.com/torvalds/linux.git ./linux
       env:
-        TAG: v7.0-rc5
+        TAG: v7.0-rc6
 
     - name: Configure cmake
       run: cmake -S . -B build -DENABLE_KVM=OFF

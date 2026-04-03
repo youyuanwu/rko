@@ -1035,18 +1035,6 @@ windows_link::link!("kernel" "C" fn mapping_min_folio_order(mapping : *const sup
     feature = "wait",
     feature = "workqueue"
 ))]
-windows_link::link!("kernel" "C" fn mapping_no_data_integrity(mapping : *const super::fs:: address_space) -> bool);
-#[cfg(all(
-    feature = "cred",
-    feature = "dcache",
-    feature = "ds",
-    feature = "fs",
-    feature = "mm_types",
-    feature = "sync",
-    feature = "types",
-    feature = "wait",
-    feature = "workqueue"
-))]
 windows_link::link!("kernel" "C" fn mapping_read_folio_gfp(param0 : *mut super::fs:: address_space, index : u64, flags : super::types:: gfp_t) -> *mut super::mm_types:: folio);
 #[cfg(all(
     feature = "cred",
@@ -1156,18 +1144,6 @@ windows_link::link!("kernel" "C" fn mapping_set_inaccessible(mapping : *mut supe
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn mapping_set_large_folios(mapping : *mut super::fs:: address_space));
-#[cfg(all(
-    feature = "cred",
-    feature = "dcache",
-    feature = "ds",
-    feature = "fs",
-    feature = "mm_types",
-    feature = "sync",
-    feature = "types",
-    feature = "wait",
-    feature = "workqueue"
-))]
-windows_link::link!("kernel" "C" fn mapping_set_no_data_integrity(mapping : *mut super::fs:: address_space));
 #[cfg(all(
     feature = "cred",
     feature = "dcache",
@@ -1604,7 +1580,6 @@ pub const AS_FOLIO_ORDER_MIN: u32 = 16u32;
 pub const AS_INACCESSIBLE: u32 = 8u32;
 pub const AS_KERNEL_FILE: u32 = 10u32;
 pub const AS_MM_ALL_LOCKS: u32 = 2u32;
-pub const AS_NO_DATA_INTEGRITY: u32 = 11u32;
 pub const AS_NO_WRITEBACK_TAGS: u32 = 5u32;
 pub const AS_RELEASE_ALWAYS: u32 = 6u32;
 pub const AS_STABLE_WRITES: u32 = 7u32;
