@@ -417,3 +417,40 @@ void rust_helper_iomap_bio_readahead(struct readahead_control *rac,
 {
 	iomap_bio_readahead(rac, ops);
 }
+
+// memalloc helpers — inline in linux/sched/mm.h
+#include <linux/sched/mm.h>
+
+unsigned int rust_helper_memalloc_nofs_save(void)
+{
+	return memalloc_nofs_save();
+}
+
+void rust_helper_memalloc_nofs_restore(unsigned int flags)
+{
+	memalloc_nofs_restore(flags);
+}
+
+// Userspace copy helpers — copy_to_user/copy_from_user are macros/inlines.
+#include <linux/uaccess.h>
+
+unsigned long rust_helper_copy_to_user(void __user *to, const void *from,
+				       unsigned long n)
+{
+	return copy_to_user(to, from, n);
+}
+
+unsigned long rust_helper_copy_from_user(void *to, const void __user *from,
+					 unsigned long n)
+{
+	return copy_from_user(to, from, n);
+}
+
+// set_delayed_call — inline in linux/delayed_call.h
+#include <linux/delayed_call.h>
+
+void rust_helper_set_delayed_call(struct delayed_call *call,
+				  void (*fn)(void *), void *arg)
+{
+	set_delayed_call(call, fn, arg);
+}

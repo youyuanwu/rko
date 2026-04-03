@@ -31,6 +31,14 @@ impl MappedFolio {
         // SAFETY: The folio is valid and mapped for `len` bytes.
         unsafe { core::slice::from_raw_parts(self.data.add(self.offset_in_folio), self.len) }
     }
+
+    /// Returns a new MappedFolio with length capped to `max_len`.
+    fn cap(mut self, max_len: usize) -> Self {
+        if max_len < self.len {
+            self.len = max_len;
+        }
+        self
+    }
 }
 
 impl Drop for MappedFolio {
@@ -153,5 +161,83 @@ impl Mapper {
         }
 
         Ok(None)
+    }
+
+    /// Returns a range-bounded view of this mapper.
+    ///
+    /// The returned `BoundedMapper` restricts reads to `[offset, offset+len)`.
+    /// Useful for safely iterating inode data regions without accidentally
+    /// reading beyond bounds.
+    pub fn bounded(&self, offset: Offset, len: Offset) -> BoundedMapper<'_> {
+        BoundedMapper {
+            mapper: self,
+            offset,
+            len,
+        }
+    }
+}
+
+/// A range-bounded view of a [`Mapper`].
+///
+/// Restricts reads to a specific byte range. Created via [`Mapper::bounded`].
+pub struct BoundedMapper<'a> {
+    mapper: &'a Mapper,
+    offset: Offset,
+    len: Offset,
+}
+
+impl<'a> BoundedMapper<'a> {
+    /// Returns the remaining length in bytes.
+    pub fn len(&self) -> Offset {
+        self.len
+    }
+
+    /// Returns true if no bytes remain.
+    pub fn is_empty(&self) -> bool {
+        self.len <= 0
+    }
+
+    /// Splits this bounded mapper at `mid`, returning the prefix.
+    ///
+    /// After the call, `self` covers `[offset+mid, offset+len)` and the
+    /// returned value covers `[offset, offset+mid)`.
+    pub fn split_at(&mut self, mid: Offset) -> BoundedMapper<'a> {
+        let mid = mid.min(self.len).max(0);
+        let prefix = BoundedMapper {
+            mapper: self.mapper,
+            offset: self.offset,
+            len: mid,
+        };
+        self.offset += mid;
+        self.len -= mid;
+        prefix
+    }
+
+    /// Caps the length to at most `max_len`.
+    pub fn cap_len(&mut self, max_len: Offset) {
+        if max_len < self.len {
+            self.len = max_len.max(0);
+        }
+    }
+
+    /// Read a folio from the bounded range at relative `offset`.
+    pub fn mapped_folio(&self, rel_offset: Offset) -> Result<MappedFolio> {
+        if rel_offset < 0 || rel_offset >= self.len {
+            return Err(Error::EINVAL);
+        }
+        let abs = self.offset + rel_offset;
+        let mapped = self.mapper.mapped_folio(abs)?;
+        // Cap the returned data to not exceed our bounds.
+        let max_len = (self.len - rel_offset) as usize;
+        Ok(mapped.cap(max_len))
+    }
+
+    /// Iterate over the bounded range, one page at a time.
+    pub fn for_each_page<U>(
+        &self,
+        mut cb: impl FnMut(&[u8]) -> Result<Option<U>>,
+    ) -> Result<Option<U>> {
+        self.mapper
+            .for_each_page(self.offset, self.len, |data| cb(data))
     }
 }

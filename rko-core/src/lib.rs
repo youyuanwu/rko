@@ -10,6 +10,7 @@
 pub mod alloc;
 pub mod error;
 pub mod fs;
+pub mod iov;
 pub mod kasync;
 pub mod module;
 pub mod net;
@@ -18,9 +19,22 @@ pub mod printk;
 pub mod revocable;
 pub mod sync;
 pub mod task;
+pub mod time;
 pub mod types;
 pub mod unsafe_list;
+pub mod user;
 pub mod workqueue;
+
+/// Re-export proc macros from `rko-macros`.
+pub use rko_macros::{FromBytes, vtable};
+
+/// Re-export pin-init macros and traits for in-place initialization.
+pub mod pin_init {
+    pub use pinned_init::{
+        Init, PinInit, init, init_from_closure, pin_init, pin_init_from_closure, try_init,
+        try_pin_init,
+    };
+}
 
 /// Produces a pointer to an object from a pointer to one of its fields.
 ///

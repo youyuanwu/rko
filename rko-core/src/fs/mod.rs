@@ -17,12 +17,13 @@ pub mod vtable;
 pub use dentry::{DEntry, Root, Unhashed};
 pub use dir::{DirEmitter, DirEntryType, Ino, Offset, Whence};
 pub use file::File;
-pub use folio::{Folio, LockedFolio, PageCache};
+pub use folio::{Folio, FolioMap, LockedFolio, PageCache};
 pub use inode::{
-    AopsOps, FileOps, INode, INodeOps, INodeParams, INodeType, NewINode, ReadSem, Time,
+    AopsOps, FileOps, GetLinkResult, INode, INodeOps, INodeParams, INodeType, NewINode, ReadSem,
+    Time,
 };
 pub use inode::{S_IFBLK, S_IFCHR, S_IFDIR, S_IFIFO, S_IFLNK, S_IFREG, S_IFSOCK};
-pub use mapper::{MappedFolio, Mapper};
+pub use mapper::{BoundedMapper, MappedFolio, Mapper};
 pub use registration::Registration;
 pub use sb::{BlockDevice, SuperBlock, SuperParams};
 
@@ -43,6 +44,7 @@ type Result<T = ()> = core::result::Result<T, Error>;
 /// `type FileSystem = Self`.
 ///
 /// See `docs/design/features/fs.md` for the full design.
+#[crate::vtable]
 pub trait FileSystem: Sized + Send + Sync + 'static
 where
     Self: inode::Operations<FileSystem = Self>,
@@ -50,7 +52,7 @@ where
 {
     /// Per-superblock data. Stored in `s_fs_info` and automatically
     /// dropped when the superblock is destroyed.
-    type Data: ForeignOwnable + Send + Sync;
+    type Data: ForeignOwnable + sb::DataInner + Send + Sync;
 
     /// Per-inode user data.
     type INodeData: Send + Sync;
@@ -105,9 +107,10 @@ where
     /// Called by `statfs(2)`. Fill in the `Stat` struct with filesystem
     /// metadata (magic, block size, block count, etc.).
     ///
-    /// Default: delegates to `simple_statfs`.
+    /// Default: not overridden — `simple_statfs` is used automatically
+    /// when `HAS_STATFS` is false (via `#[vtable]`).
     fn statfs(_dentry: &DEntry<Self>) -> Result<Stat> {
-        Err(Error::ENOSYS) // triggers fallback to simple_statfs
+        Err(Error::ENOSYS)
     }
 }
 
@@ -165,15 +168,11 @@ macro_rules! module_fs {
         impl $crate::module::Module for __FsModule {
             fn init() -> ::core::result::Result<Self, $crate::error::Error> {
                 $crate::pr_info!("module loaded\n");
-                let mut reg = $crate::alloc::KBox::new(
-                    $crate::fs::Registration::new_for::<$type>()?,
+                let reg = $crate::alloc::KBox::pin_init(
+                    $crate::fs::Registration::pin_init::<$type>(),
                     $crate::alloc::Flags::GFP_KERNEL,
-                )
-                .map_err(|_| $crate::error::Error::ENOMEM)?;
-                // SAFETY: KBox is heap-allocated and stable.
-                unsafe { ::core::pin::Pin::new_unchecked(&mut *reg).register()? };
-                let pinned = $crate::alloc::KBox::into_pin(reg);
-                Ok(__FsModule { _reg: pinned })
+                )?;
+                Ok(__FsModule { _reg: reg })
             }
 
             fn exit(&self) {

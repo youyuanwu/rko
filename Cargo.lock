@@ -336,7 +336,17 @@ version = "0.1.0"
 dependencies = [
  "bitflags",
  "pinned-init",
+ "rko-macros",
  "rko-sys",
+]
+
+[[package]]
+name = "rko-macros"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]

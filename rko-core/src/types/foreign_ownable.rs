@@ -18,6 +18,15 @@ use core::ffi::c_void;
 /// - `from_foreign` is only called once per `into_foreign` call.
 /// - `borrow` does not take ownership.
 pub unsafe trait ForeignOwnable: Sized + Send {
+    /// The type returned by [`borrow`](Self::borrow).
+    ///
+    /// For `KBox<T>`: `Borrowed<'a> = &'a T`.
+    /// For `CString`: `Borrowed<'a> = &'a CStr`.
+    /// For `()`: `Borrowed<'a> = ()`.
+    type Borrowed<'a>
+    where
+        Self: 'a;
+
     /// Converts the object into a raw pointer.
     ///
     /// The caller is responsible for eventually calling `from_foreign`
@@ -37,20 +46,20 @@ pub unsafe trait ForeignOwnable: Sized + Send {
     /// # Safety
     ///
     /// `ptr` must have been produced by `into_foreign` and not yet
-    /// reclaimed. The returned reference must not outlive the foreign
+    /// reclaimed. The returned borrow must not outlive the foreign
     /// storage.
-    unsafe fn borrow<'a>(ptr: *const c_void) -> &'a Self;
+    unsafe fn borrow<'a>(ptr: *const c_void) -> Self::Borrowed<'a>;
 }
 
 // SAFETY: `()` has no data — all conversions are trivial.
 unsafe impl ForeignOwnable for () {
+    type Borrowed<'a> = ();
+
     fn into_foreign(self) -> *const c_void {
         core::ptr::null()
     }
 
     unsafe fn from_foreign(_ptr: *const c_void) -> Self {}
 
-    unsafe fn borrow<'a>(_ptr: *const c_void) -> &'a Self {
-        &()
-    }
+    unsafe fn borrow<'a>(_ptr: *const c_void) -> Self::Borrowed<'a> {}
 }

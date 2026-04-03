@@ -1,12 +1,13 @@
 [workspace]
 resolver = "2"
 
-members = ["rko-sys", "rko-sys-gen", "rko-core"]
+members = ["rko-sys", "rko-sys-gen", "rko-core", "rko-macros"]
 exclude = ["samples"]
 
 [workspace.dependencies]
 rko-sys = { path = "rko-sys" }
 rko-core = { path = "rko-core" }
+rko-macros = { path = "rko-macros" }
 bitflags = "2"
 # bnd-winmd = { path = "../rs/bnd/bnd-winmd" }
 bnd-winmd = "0.0.7"

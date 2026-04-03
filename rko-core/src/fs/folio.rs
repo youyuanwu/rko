@@ -64,6 +64,71 @@ impl<S> Folio<S> {
         // SAFETY: Valid folio via shared reference.
         unsafe { bindings_h::rust_helper_flush_dcache_folio(self.0.get()) }
     }
+
+    /// Maps a region of the folio into kernel virtual address space.
+    ///
+    /// Returns a [`FolioMap`] RAII guard that provides a byte slice.
+    /// The mapping is automatically unmapped when the guard is dropped.
+    ///
+    /// `offset` is relative to the start of the folio.
+    pub fn map(&self, offset: usize) -> Result<FolioMap<'_>> {
+        let folio_size = self.size();
+        if offset >= folio_size {
+            return Err(Error::EINVAL);
+        }
+        let ptr = unsafe { bindings_h::rust_helper_kmap_local_folio(self.0.get(), offset as u64) };
+        if ptr.is_null() {
+            return Err(Error::ENOMEM);
+        }
+        let len = core::cmp::min(super::PAGE_SIZE, folio_size - offset);
+        Ok(FolioMap {
+            ptr,
+            len,
+            _folio: PhantomData,
+        })
+    }
+}
+
+/// RAII guard for a mapped folio page.
+///
+/// Provides `data()` to access the mapped bytes. The mapping is
+/// automatically released (via `kunmap_local`) on drop.
+pub struct FolioMap<'a> {
+    ptr: *mut core::ffi::c_void,
+    len: usize,
+    _folio: PhantomData<&'a ()>,
+}
+
+impl FolioMap<'_> {
+    /// Returns the mapped data as a byte slice.
+    pub fn data(&self) -> &[u8] {
+        // SAFETY: kmap_local_folio returned a valid pointer for `len` bytes.
+        unsafe { core::slice::from_raw_parts(self.ptr.cast(), self.len) }
+    }
+
+    /// Returns the mapped data as a mutable byte slice.
+    pub fn data_mut(&mut self) -> &mut [u8] {
+        // SAFETY: kmap_local_folio returned a valid pointer for `len` bytes.
+        // We have &mut self so exclusive access is guaranteed.
+        unsafe { core::slice::from_raw_parts_mut(self.ptr.cast(), self.len) }
+    }
+
+    /// Returns the length of the mapped region in bytes.
+    pub fn len(&self) -> usize {
+        self.len
+    }
+
+    /// Returns true if the mapped region is empty.
+    pub fn is_empty(&self) -> bool {
+        self.len == 0
+    }
+}
+
+impl Drop for FolioMap<'_> {
+    fn drop(&mut self) {
+        // SAFETY: ptr was returned by kmap_local_folio.
+        unsafe { bindings_h::rust_helper_kunmap_local(self.ptr.cast()) };
+    }
 }
 
 impl<T: super::FileSystem> Folio<PageCache<T>> {

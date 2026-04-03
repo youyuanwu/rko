@@ -7,10 +7,9 @@ use core::mem::{align_of, size_of};
 use core::pin::Pin;
 use core::ptr;
 
+use crate::alloc::MemCache;
 use crate::error::Error;
-use rko_sys::rko::{
-    fs as bindings, fs_context as fc_bindings, gfp as gfp_b, helpers as bindings_h, slab as slab_b,
-};
+use rko_sys::rko::{fs as bindings, fs_context as fc_bindings};
 
 use super::FileSystem;
 use super::inode::INodeWithData;
@@ -18,26 +17,22 @@ use super::vtable;
 
 type Result<T = ()> = core::result::Result<T, Error>;
 
-/// SLAB flags for inode cache.
-const SLAB_RECLAIM_ACCOUNT: u64 = 1u64 << slab_b::_SLAB_RECLAIM_ACCOUNT;
-
-/// GFP_KERNEL = __GFP_RECLAIM | __GFP_IO | __GFP_FS
-///            = (DIRECT_RECLAIM | KSWAPD_RECLAIM) | IO | FS
-pub(crate) const GFP_KERNEL: u32 = (1 << gfp_b::___GFP_DIRECT_RECLAIM_BIT)
-    | (1 << gfp_b::___GFP_KSWAPD_RECLAIM_BIT)
-    | (1 << gfp_b::___GFP_IO_BIT)
-    | (1 << gfp_b::___GFP_FS_BIT);
+/// GFP_KERNEL via the alloc Flags.
+pub(crate) const GFP_KERNEL: u32 = crate::alloc::Flags::GFP_KERNEL.bits();
 
 /// RAII filesystem registration.
 ///
 /// Holds the `file_system_type`, `fs_context_operations`, and the inode
 /// slab cache. Must be pinned because the kernel retains pointers.
+///
+/// `#[repr(C)]` guarantees `fs_type` is at offset 0 — required because
+/// `alloc_inode_callback` casts `sb->s_type` (a pointer to `fs_type`)
+/// directly to `*const Registration`.
+#[repr(C)]
 pub struct Registration {
-    // IMPORTANT: fs_type must be the first field so that
-    // `fc->fs_type` can be cast directly to `*const Registration`.
-    fs_type: bindings::file_system_type,
+    pub(crate) fs_type: bindings::file_system_type,
     ctx_ops: fc_bindings::fs_context_operations,
-    inode_cache: *mut c_void,
+    inode_cache: Option<MemCache>,
     registered: bool,
 }
 
@@ -56,21 +51,19 @@ impl Registration {
 
         // Create inode slab cache if INodeData is non-ZST.
         let inode_cache = if size_of::<T::INodeData>() != 0 {
+            // SAFETY: inode_init_once_callback correctly calls inode_init_once
+            // on the embedded inode field of INodeWithData<T::INodeData>.
             let cache = unsafe {
-                bindings_h::rust_helper_kmem_cache_create(
-                    T::NAME.as_ptr().cast(),
-                    size_of::<INodeWithData<T::INodeData>>() as u32,
-                    align_of::<INodeWithData<T::INodeData>>() as u32,
-                    SLAB_RECLAIM_ACCOUNT,
-                    inode_init_once_callback::<T> as *mut isize,
-                )
+                MemCache::try_new_with_ctor(
+                    T::NAME,
+                    size_of::<INodeWithData<T::INodeData>>(),
+                    align_of::<INodeWithData<T::INodeData>>(),
+                    inode_init_once_callback::<T>,
+                )?
             };
-            if cache.is_null() {
-                return Err(Error::ENOMEM);
-            }
-            cache
+            Some(cache)
         } else {
-            ptr::null_mut()
+            None
         };
 
         Ok(Self {
@@ -79,6 +72,41 @@ impl Registration {
             inode_cache,
             registered: false,
         })
+    }
+
+    /// Returns a [`PinInit`] that creates and registers a filesystem in one step.
+    ///
+    /// This combines [`new_for`](Self::new_for) and [`register`](Self::register)
+    /// into a single pin-initializer suitable for use with `KBox::pin_init`.
+    ///
+    /// # Example
+    ///
+    /// ```ignore
+    /// let reg = KBox::pin_init(Registration::pin_init::<MyFs>(), GFP_KERNEL)?;
+    /// ```
+    pub fn pin_init<T: FileSystem>() -> impl pinned_init::PinInit<Self, Error> {
+        // SAFETY: We fully initialize the Registration in place:
+        // 1. Write all fields via new_for()
+        // 2. Set init_fs_context (requires stable address → must be pinned)
+        // 3. Call register_filesystem (retains pointer → must not move)
+        unsafe {
+            pinned_init::pin_init_from_closure(move |slot: *mut Self| {
+                // Initialize all fields in place.
+                let reg = Self::new_for::<T>()?;
+                slot.write(reg);
+
+                // Now that we're at a stable address, wire and register.
+                (*slot).fs_type.init_fs_context = init_fs_context_trampoline as *mut isize;
+                let ret = bindings::register_filesystem(&mut (*slot).fs_type);
+                if ret != 0 {
+                    // Drop the partially-initialized Registration.
+                    core::ptr::drop_in_place(slot);
+                    return Err(Error::new(ret));
+                }
+                (*slot).registered = true;
+                Ok(())
+            })
+        }
     }
 
     /// Registers the filesystem with the kernel.
@@ -105,7 +133,10 @@ impl Registration {
 
     /// Returns the inode slab cache pointer.
     pub(crate) fn inode_cache(&self) -> *mut c_void {
-        self.inode_cache
+        match &self.inode_cache {
+            Some(cache) => cache.as_ptr(),
+            None => ptr::null_mut(),
+        }
     }
 }
 
@@ -121,11 +152,12 @@ unsafe extern "C" fn inode_init_once_callback<T: FileSystem>(ptr: *mut c_void) {
 
 /// `init_fs_context` callback.
 ///
-/// Recovers the `Registration` from `fc->fs_type` (first field),
+/// Recovers the `Registration` from `fc->fs_type` via `container_of`,
 /// then sets `fc->ops`.
 unsafe extern "C" fn init_fs_context_trampoline(fc: *mut fc_bindings::fs_context) -> i32 {
     let fs_type_ptr = unsafe { (*fc).fs_type };
-    let reg = fs_type_ptr as *const Registration;
+    // SAFETY: fs_type_ptr points to the fs_type field of a Registration.
+    let reg = unsafe { crate::container_of!(fs_type_ptr, Registration, fs_type) };
     unsafe {
         (*fc).ops = (*reg).ctx_ops_ptr();
     }
@@ -137,9 +169,7 @@ impl Drop for Registration {
         if self.registered {
             unsafe { bindings::unregister_filesystem(&mut self.fs_type) };
         }
-        if !self.inode_cache.is_null() {
-            unsafe { slab_b::kmem_cache_destroy(self.inode_cache) };
-        }
+        // MemCache::drop handles kmem_cache_destroy automatically.
     }
 }
 

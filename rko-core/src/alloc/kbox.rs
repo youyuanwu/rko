@@ -93,6 +93,83 @@ impl<T, A: Allocator> Box<T, A> {
     }
 }
 
+impl<A: Allocator> Box<[u8], A> {
+    /// Allocate a boxed byte slice initialized from `data`.
+    pub fn new_slice(data: &[u8], flags: Flags) -> Result<Self, AllocError> {
+        let mut b = Self::new_zeroed_bytes(data.len(), flags)?;
+        b.copy_from_slice(data);
+        Ok(b)
+    }
+
+    /// Allocate a zero-initialized boxed byte slice of `len` bytes.
+    pub fn new_zeroed_bytes(len: usize, flags: Flags) -> Result<Self, AllocError> {
+        let layout = Layout::from_size_align(len, 1).map_err(|_| AllocError)?;
+        let raw = unsafe { A::realloc(None, layout, Layout::new::<()>(), flags)? };
+        let data_ptr = raw.as_ptr() as *mut u8;
+        // Zero-initialize.
+        unsafe { core::ptr::write_bytes(data_ptr, 0, len) };
+        let slice_ptr = core::ptr::slice_from_raw_parts_mut(data_ptr, len);
+        let nn = unsafe { NonNull::new_unchecked(slice_ptr) };
+        Ok(Box {
+            ptr: nn,
+            _alloc: PhantomData,
+        })
+    }
+}
+
+impl<T: Copy, A: Allocator> Box<[T], A> {
+    /// Allocate a boxed slice initialized by copying from `data`.
+    pub fn new_slice_copy(data: &[T], flags: Flags) -> Result<Self, AllocError> {
+        let mut b = Self::new_zeroed_slice(data.len(), flags)?;
+        b.copy_from_slice(data);
+        Ok(b)
+    }
+
+    /// Allocate a zero-initialized boxed slice of `len` elements.
+    pub fn new_zeroed_slice(len: usize, flags: Flags) -> Result<Self, AllocError> {
+        let layout = super::layout::array_layout::<T>(len)?;
+        let raw = unsafe { A::realloc(None, layout, Layout::new::<()>(), flags)? };
+        let data_ptr = raw.as_ptr() as *mut T;
+        unsafe { core::ptr::write_bytes(data_ptr, 0, len) };
+        let slice_ptr = core::ptr::slice_from_raw_parts_mut(data_ptr, len);
+        let nn = unsafe { NonNull::new_unchecked(slice_ptr) };
+        Ok(Box {
+            ptr: nn,
+            _alloc: PhantomData,
+        })
+    }
+}
+
+impl<T, A: Allocator> Box<[core::mem::MaybeUninit<T>], A> {
+    /// Allocate a boxed slice of uninitialized elements.
+    ///
+    /// Each element is `MaybeUninit<T>` — the caller must initialize
+    /// all elements before calling [`assume_init`](Self::assume_init).
+    pub fn new_uninit_slice(len: usize, flags: Flags) -> Result<Self, AllocError> {
+        let layout = super::layout::array_layout::<core::mem::MaybeUninit<T>>(len)?;
+        let raw = unsafe { A::realloc(None, layout, Layout::new::<()>(), flags)? };
+        let data_ptr = raw.as_ptr() as *mut core::mem::MaybeUninit<T>;
+        let slice_ptr = core::ptr::slice_from_raw_parts_mut(data_ptr, len);
+        let nn = unsafe { NonNull::new_unchecked(slice_ptr) };
+        Ok(Box {
+            ptr: nn,
+            _alloc: PhantomData,
+        })
+    }
+
+    /// Converts to `Box<[T]>` assuming all elements are initialized.
+    ///
+    /// # Safety
+    ///
+    /// Every element must have been initialized.
+    pub unsafe fn assume_init(self) -> Box<[T], A> {
+        let raw = Box::into_raw(self);
+        // SAFETY: MaybeUninit<T> and T have the same layout.
+        let init_ptr = raw.as_ptr() as *mut [T];
+        unsafe { Box::from_raw(NonNull::new_unchecked(init_ptr)) }
+    }
+}
+
 impl<T: ?Sized, A: Allocator> Deref for Box<T, A> {
     type Target = T;
     fn deref(&self) -> &T {
@@ -120,7 +197,12 @@ unsafe impl<T: ?Sized + Send, A: Allocator> Send for Box<T, A> {}
 unsafe impl<T: ?Sized + Sync, A: Allocator> Sync for Box<T, A> {}
 
 // SAFETY: into_foreign/from_foreign correctly transfer ownership via raw pointer.
-unsafe impl<T: Send, A: Allocator> crate::types::ForeignOwnable for Box<T, A> {
+unsafe impl<T: Send, A: Allocator + 'static> crate::types::ForeignOwnable for Box<T, A> {
+    type Borrowed<'a>
+        = &'a T
+    where
+        T: 'a;
+
     fn into_foreign(self) -> *const core::ffi::c_void {
         Box::into_raw(self).as_ptr().cast()
     }
@@ -129,12 +211,8 @@ unsafe impl<T: Send, A: Allocator> crate::types::ForeignOwnable for Box<T, A> {
         unsafe { Box::from_raw(NonNull::new_unchecked(ptr.cast_mut().cast())) }
     }
 
-    unsafe fn borrow<'a>(ptr: *const core::ffi::c_void) -> &'a Self {
-        // NOTE: This reinterprets the *const T as *const Box<T>.
-        // Box is { ptr: NonNull<T>, _alloc: PhantomData } — not actually
-        // at the address we have. Use SuperBlock::data() for typed access
-        // instead of calling this directly.
-        // TODO: Return a guard type instead of &Self.
-        unsafe { &*((&raw const ptr).cast::<Self>()) }
+    unsafe fn borrow<'a>(ptr: *const core::ffi::c_void) -> Self::Borrowed<'a> {
+        // SAFETY: ptr was produced by into_foreign (Box::into_raw → *const T).
+        unsafe { &*ptr.cast::<T>() }
     }
 }

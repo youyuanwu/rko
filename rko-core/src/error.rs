@@ -36,6 +36,7 @@ impl Error {
     pub const ENAMETOOLONG: Self = Error::new(rko_sys::rko::err::ENAMETOOLONG);
     pub const EDOM: Self = Error::new(rko_sys::rko::err::EDOM);
     pub const EISDIR: Self = Error::new(rko_sys::rko::err::EISDIR);
+    pub const EFAULT: Self = Error::new(rko_sys::rko::err::EFAULT);
 
     /// Create an `Error` from a raw negative errno returned by a kernel function.
     ///

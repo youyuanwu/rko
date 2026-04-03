@@ -108,6 +108,7 @@ impl<'a> Map<'a> {
 /// Implement `begin()` to map file offsets to block device addresses.
 /// The kernel calls this during read/write I/O to determine where
 /// data lives on disk.
+#[crate::vtable]
 pub trait Operations {
     /// The filesystem type this iomap is for.
     type FileSystem: super::FileSystem;
@@ -179,20 +180,63 @@ unsafe extern "C" fn iomap_aops_read_folio<T: Operations>(
     _file: *mut fs_b::file,
     folio: *mut core::ffi::c_void,
 ) -> i32 {
-    // Reconstruct the iomap_ops pointer from the static RoAops.
-    // SAFETY: The user must store RoAops<T> in a static and pass its
-    // aops via set_aops(). This function is only wired when that static exists.
-    // We generate a fresh iomap_ops on the stack (same function pointers).
     let ops = iomap_ops::<T>();
     unsafe { bindings_h::rust_helper_iomap_bio_read_folio(folio.cast(), &ops) };
     0
+}
+
+/// C trampoline for iomap-backed `address_space_operations::readahead`.
+///
+/// Calls `iomap_readahead(rac, &IOMAP_OPS)` for bulk pre-fetching of
+/// file data. The kernel calls this instead of `read_folio` when it
+/// can batch multiple pages into one I/O request.
+unsafe extern "C" fn iomap_aops_readahead<T: Operations>(rac: *mut core::ffi::c_void) {
+    let ops = iomap_ops::<T>();
+    unsafe { bindings_h::rust_helper_iomap_bio_readahead(rac.cast(), &ops) };
+}
+
+/// C trampoline for iomap-backed `address_space_operations::bmap`.
+///
+/// Maps a file block number to a disk sector number via iomap.
+unsafe extern "C" fn iomap_aops_bmap<T: Operations>(
+    mapping: *mut fs_b::address_space,
+    block: u64,
+) -> u64 {
+    let ops = iomap_ops::<T>();
+    unsafe { bindings::iomap_bmap(mapping, block, &ops) }
+}
+
+/// `address_space_operations::invalidate_folio` → `iomap_invalidate_folio`.
+///
+/// Called when a folio is being removed from the page cache.
+unsafe extern "C" fn iomap_invalidate_folio_trampoline(
+    folio: *mut core::ffi::c_void,
+    offset: usize,
+    len: usize,
+) {
+    unsafe { bindings::iomap_invalidate_folio(folio.cast(), offset as u64, len as u64) };
+}
+
+/// `address_space_operations::release_folio` → `iomap_release_folio`.
+///
+/// Called when the kernel wants to free a folio. Returns true if the
+/// folio can be freed.
+unsafe extern "C" fn iomap_release_folio_trampoline(
+    folio: *mut core::ffi::c_void,
+    gfp: u32,
+) -> bool {
+    unsafe { bindings::iomap_release_folio(folio.cast(), gfp) }
 }
 
 /// Returns a static `iomap_ops` vtable for type `T`.
 pub const fn iomap_ops<T: Operations>() -> bindings::iomap_ops {
     bindings::iomap_ops {
         iomap_begin: iomap_begin_trampoline::<T> as *mut isize,
-        iomap_end: iomap_end_trampoline::<T> as *mut isize,
+        iomap_end: if T::HAS_END {
+            iomap_end_trampoline::<T> as *mut isize
+        } else {
+            core::ptr::null_mut()
+        },
     }
 }
 
@@ -208,6 +252,10 @@ pub const fn ro_aops<T: Operations>() -> RoAops<T> {
         ops: iomap_ops::<T>(),
         aops: fs_b::address_space_operations {
             read_folio: iomap_aops_read_folio::<T> as *mut isize,
+            readahead: iomap_aops_readahead::<T> as *mut isize,
+            bmap: iomap_aops_bmap::<T> as *mut isize,
+            invalidate_folio: iomap_invalidate_folio_trampoline as *mut isize,
+            release_folio: iomap_release_folio_trampoline as *mut isize,
             ..const_default_aops()
         },
         _marker: PhantomData,

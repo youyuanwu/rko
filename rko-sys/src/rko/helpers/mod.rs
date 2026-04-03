@@ -33,6 +33,8 @@ windows_link::link!("kernel" "C" fn rust_helper___wake_up(wq_head : *mut super::
 ))]
 windows_link::link!("kernel" "C" fn rust_helper_alloc_inode_sb(sb : *mut super::fs:: super_block, cache : *mut core::ffi::c_void, gfp : super::types:: gfp_t) -> *mut core::ffi::c_void);
 windows_link::link!("kernel" "C" fn rust_helper_bdev_nr_sectors(bdev : *mut core::ffi::c_void) -> u64);
+windows_link::link!("kernel" "C" fn rust_helper_copy_from_user(to : *mut core::ffi::c_void, from : *const core::ffi::c_void, n : u64) -> u64);
+windows_link::link!("kernel" "C" fn rust_helper_copy_to_user(to : *mut core::ffi::c_void, from : *const core::ffi::c_void, n : u64) -> u64);
 #[cfg(all(
     feature = "dcache",
     feature = "sync",
@@ -213,6 +215,8 @@ windows_link::link!("kernel" "C" fn rust_helper_lockdep_unregister_key(key : *mu
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn rust_helper_mapping_set_large_folios(mapping : *mut super::fs:: address_space));
+windows_link::link!("kernel" "C" fn rust_helper_memalloc_nofs_restore(flags : u32));
+windows_link::link!("kernel" "C" fn rust_helper_memalloc_nofs_save() -> u32);
 #[cfg(all(feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn rust_helper_mutex_is_locked(lock : *mut super::sync:: mutex) -> bool);
 #[cfg(all(feature = "sync", feature = "types"))]
@@ -265,6 +269,8 @@ windows_link::link!("kernel" "C" fn rust_helper_sb_min_blocksize(sb : *mut super
 ))]
 windows_link::link!("kernel" "C" fn rust_helper_sb_set_blocksize(sb : *mut super::fs:: super_block, size : i32) -> i32);
 windows_link::link!("kernel" "C" fn rust_helper_schedule());
+#[cfg(feature = "fs")]
+windows_link::link!("kernel" "C" fn rust_helper_set_delayed_call(call : *mut super::fs:: delayed_call, r#fn : *mut isize, arg : *mut core::ffi::c_void));
 #[cfg(all(
     feature = "cred",
     feature = "dcache",

@@ -13,6 +13,23 @@ use super::inode::{INode, NewINode};
 
 type Result<T = ()> = core::result::Result<T, Error>;
 
+/// Extracts the inner type from a `ForeignOwnable` wrapper.
+///
+/// For `KBox<D>`: `Inner = D`. For `()`: `Inner = ()`.
+/// Used by `SuperBlock::sb_data()` to return the correct type.
+pub trait DataInner {
+    /// The inner type stored behind the foreign pointer.
+    type Inner;
+}
+
+impl DataInner for () {
+    type Inner = ();
+}
+
+impl<T, A: crate::alloc::Allocator> DataInner for crate::alloc::Box<T, A> {
+    type Inner = T;
+}
+
 /// I_NEW flag — set on freshly-allocated inodes from `iget_locked`.
 const I_NEW: u32 = 1;
 
@@ -145,18 +162,31 @@ impl<T: super::FileSystem> SuperBlock<T, Ready> {
 
     /// Returns the per-superblock data stored in `s_fs_info`.
     ///
-    /// For `Data = KBox<T>`, `into_foreign` returns a `*const T`,
-    /// so this returns `&T`.
+    /// The returned reference type depends on `T::Data`:
+    /// - For `KBox<D>`: returns `&D` (the inner heap-allocated value)
+    /// - For `()`: returns `&()`
     ///
     /// # Safety
     ///
-    /// The caller must specify the correct concrete type `D`.
     /// Only valid after `fill_super` has completed and before `kill_sb`.
+    /// The caller must ensure `D` matches the actual inner type of `T::Data`.
     pub unsafe fn data<D>(&self) -> &D {
         let ptr = unsafe { (*self.0.get()).s_fs_info };
         // SAFETY: s_fs_info was set from ForeignOwnable::into_foreign in
         // fill_super_callback. The caller specifies the concrete inner type D.
         unsafe { &*ptr.cast::<D>() }
+    }
+
+    /// Returns a typed reference to the per-superblock data.
+    ///
+    /// The type is derived from `T::Data` automatically via `DataInner`.
+    /// For `Data = KBox<D>`, returns `&D`. For `Data = ()`, returns `&()`.
+    ///
+    /// # Safety
+    ///
+    /// Only valid after `fill_super` has completed and before `kill_sb`.
+    pub unsafe fn sb_data(&self) -> &<T::Data as DataInner>::Inner {
+        unsafe { self.data() }
     }
 
     /// Retrieves the filesystem-private data from `s_fs_info`.

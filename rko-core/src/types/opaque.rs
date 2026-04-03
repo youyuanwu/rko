@@ -66,4 +66,20 @@ impl<T> Opaque<T> {
             )
         }
     }
+
+    /// Create a fallible pin-initializer from an FFI initialization function.
+    ///
+    /// Like [`ffi_init`](Self::ffi_init), but the closure may return an error.
+    // UPSTREAM_REF: linux/rust/kernel/types.rs Opaque::try_ffi_init
+    pub fn try_ffi_init<E>(
+        init_fn: impl FnOnce(*mut T) -> Result<(), E>,
+    ) -> impl pinned_init::PinInit<Self, E> {
+        // SAFETY: `init_fn` is responsible for fully initializing the T on Ok.
+        // On Err, the MaybeUninit wrapper ensures nothing is dropped.
+        unsafe {
+            pinned_init::pin_init_from_closure::<_, E>(move |slot: *mut Self| {
+                init_fn(Self::raw_get(slot))
+            })
+        }
+    }
 }

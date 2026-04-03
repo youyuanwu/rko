@@ -10,3 +10,4 @@ rko-sys = { workspace = true, features = [
 ] }
 bitflags.workspace = true
 pinned-init.workspace = true
+rko-macros.workspace = true

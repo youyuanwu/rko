@@ -30,6 +30,7 @@ pub unsafe trait Lockable<L> {
 /// automatically releases the lock on drop.
 pub struct Locked<'a, T: Lockable<L> + ?Sized, L> {
     inner: &'a T,
+    owns_lock: bool,
     _lock: PhantomData<L>,
 }
 
@@ -39,6 +40,24 @@ impl<'a, T: Lockable<L> + ?Sized, L> Locked<'a, T, L> {
         inner.raw_lock();
         Self {
             inner,
+            owns_lock: true,
+            _lock: PhantomData,
+        }
+    }
+
+    /// Create a proof that `inner` is already locked.
+    ///
+    /// The lock is NOT released on drop — the caller (e.g., the kernel
+    /// VFS) is responsible for unlocking.
+    ///
+    /// # Safety
+    ///
+    /// The lock must currently be held and must remain held for the
+    /// lifetime `'a`.
+    pub unsafe fn borrowed(inner: &'a T) -> Self {
+        Self {
+            inner,
+            owns_lock: false,
             _lock: PhantomData,
         }
     }
@@ -53,7 +72,9 @@ impl<T: Lockable<L> + ?Sized, L> Deref for Locked<'_, T, L> {
 
 impl<T: Lockable<L> + ?Sized, L> Drop for Locked<'_, T, L> {
     fn drop(&mut self) {
-        // SAFETY: We acquired the lock in `new`.
-        unsafe { self.inner.unlock() };
+        if self.owns_lock {
+            // SAFETY: We acquired the lock in `new`.
+            unsafe { self.inner.unlock() };
+        }
     }
 }

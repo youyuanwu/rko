@@ -137,6 +137,13 @@ impl<T: super::FileSystem> INodeOps<T> {
         )
     }
 
+    /// Custom symlink inode operations with `get_link` callback.
+    ///
+    /// Only meaningful when `T` implements `inode::Operations::get_link`.
+    pub fn custom_symlink(tables: &super::vtable::Tables<T>) -> Self {
+        Self(tables.symlink_inode_ops(), PhantomData)
+    }
+
     pub(crate) fn as_ptr(&self) -> *const bindings::inode_operations {
         self.0
     }
@@ -367,13 +374,9 @@ pub enum INodeType {
 }
 
 /// Time specification for inode timestamps.
-#[derive(Copy, Clone)]
-pub struct Time {
-    /// Seconds since the Unix epoch.
-    pub secs: u64,
-    /// Nanoseconds within the second.
-    pub nsecs: u32,
-}
+///
+/// Re-exported from [`crate::time::Time`].
+pub use crate::time::Time;
 
 /// Parameters for initializing a new inode.
 pub struct INodeParams<T> {
@@ -405,17 +408,44 @@ pub struct INodeParams<T> {
 ///
 /// Implement this trait on your filesystem type to provide custom
 /// `lookup` behavior.
+#[crate::vtable]
 pub trait Operations: Sized + Send + Sync + 'static {
     /// The filesystem type these operations belong to.
     type FileSystem: super::FileSystem;
 
     /// Look up a child inode by name in a directory.
     ///
-    /// Use `dentry.name()` to get the name being looked up.
-    /// Call `dentry.splice_alias(Some(inode))` to bind a found inode,
-    /// or `dentry.splice_alias(None)` for a negative dentry.
+    /// The `parent` inode is locked with `i_rwsem` in shared mode
+    /// (guaranteed by the VFS). Use `dentry.name()` to get the name
+    /// being looked up. Call `dentry.splice_alias(Some(inode))` to bind
+    /// a found inode, or `dentry.splice_alias(None)` for a negative dentry.
     fn lookup(
-        parent: &INode<Self::FileSystem>,
+        parent: &crate::types::Locked<'_, INode<Self::FileSystem>, ReadSem>,
         dentry: super::Unhashed<'_, Self::FileSystem>,
     ) -> super::Result<Option<crate::types::ARef<super::DEntry<Self::FileSystem>>>>;
+
+    /// Resolve a symlink target.
+    ///
+    /// Return `Ok(GetLinkResult::Borrowed(cstr))` for inline targets (e.g.,
+    /// `i_link` points to static or inode-lifetime data). Return
+    /// `Ok(GetLinkResult::Owned(cstring))` for heap-allocated targets that
+    /// need cleanup — the framework automatically registers a `delayed_call`
+    /// to drop the `CString` when the kernel is done with it.
+    ///
+    /// Default: not overridden — kernel uses `i_link` directly (for
+    /// inline symlinks set via `INodeType::Lnk(Some(target))`).
+    fn get_link(
+        _dentry: Option<&super::DEntry<Self::FileSystem>>,
+        _inode: &INode<Self::FileSystem>,
+    ) -> super::Result<GetLinkResult> {
+        Err(crate::error::Error::EINVAL)
+    }
+}
+
+/// Result of [`Operations::get_link`].
+pub enum GetLinkResult {
+    /// Heap-allocated target — will be freed via `delayed_call`.
+    Owned(crate::types::CString),
+    /// Borrowed target — must live as long as the inode.
+    Borrowed(&'static core::ffi::CStr),
 }

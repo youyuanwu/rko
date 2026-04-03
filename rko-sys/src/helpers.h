@@ -164,4 +164,20 @@ void rust_helper_iomap_bio_read_folio(struct folio *folio,
 void rust_helper_iomap_bio_readahead(struct readahead_control *rac,
                                      const struct iomap_ops *ops);
 
+/* ── memalloc helpers ──────────────────────────────────────────────── */
+#include <linux/sched/mm.h>
+unsigned int rust_helper_memalloc_nofs_save(void);
+void rust_helper_memalloc_nofs_restore(unsigned int flags);
+
+/* ── userspace copy helpers ────────────────────────────────────────── */
+#include <linux/uaccess.h>
+unsigned long rust_helper_copy_to_user(void *to, const void *from,
+                                       unsigned long n);
+unsigned long rust_helper_copy_from_user(void *to, const void *from,
+                                          unsigned long n);
+
+/* ── delayed_call helper ──────────────────────────────────────────── */
+void rust_helper_set_delayed_call(struct delayed_call *call,
+                                  void (*fn)(void *), void *arg);
+
 #endif /* _RKO_HELPERS_H */

@@ -59,7 +59,7 @@ static TABLES: fs::vtable::Tables<TarFs> = fs::vtable::Tables::new();
 impl TarFs {
     /// Load an inode from the inode table.
     fn iget(sb: &SuperBlock<Self>, ino: u64) -> Result<ARef<INode<Self>>, Error> {
-        let data: &TarFsData = unsafe { sb.data() };
+        let data: &TarFsData = unsafe { sb.sb_data() };
 
         // Validate inode number.
         if ino == 0 || ino > data.inode_count {
@@ -135,6 +135,7 @@ impl TarFs {
     }
 }
 
+#[rko_core::vtable]
 impl fs::FileSystem for TarFs {
     type Data = KBox<TarFsData>;
     type INodeData = InodeData;
@@ -218,7 +219,7 @@ impl fs::FileSystem for TarFs {
     ) -> Result<(), Error> {
         // Read file content from the block device.
         let sb: &SuperBlock<Self> = unsafe { SuperBlock::from_raw(inode.super_block()) };
-        let data: &TarFsData = unsafe { sb.data() };
+        let data: &TarFsData = unsafe { sb.sb_data() };
         let inode_data = unsafe { inode.data() };
 
         let folio_offset = folio.pos() as u64;
@@ -273,7 +274,7 @@ impl fs::FileSystem for TarFs {
 
     fn statfs(dentry: &DEntry<Self>) -> Result<Stat, Error> {
         let sb = dentry.super_block();
-        let data: &TarFsData = unsafe { sb.data() };
+        let data: &TarFsData = unsafe { sb.sb_data() };
         Ok(Stat {
             magic: TARFS_MAGIC as usize,
             namelen: 255,
@@ -284,15 +285,16 @@ impl fs::FileSystem for TarFs {
     }
 }
 
+#[rko_core::vtable]
 impl fs::inode::Operations for TarFs {
     type FileSystem = Self;
 
     fn lookup(
-        parent: &INode<Self>,
+        parent: &rko_core::types::Locked<'_, INode<Self>, fs::inode::ReadSem>,
         dentry: Unhashed<'_, Self>,
     ) -> Result<Option<ARef<DEntry<Self>>>, Error> {
         let sb = unsafe { SuperBlock::from_raw(parent.super_block()) };
-        let data: &TarFsData = unsafe { sb.data() };
+        let data: &TarFsData = unsafe { sb.sb_data() };
         let name = dentry.name();
         let parent_data = unsafe { parent.data() };
 
@@ -319,16 +321,17 @@ impl fs::inode::Operations for TarFs {
     }
 }
 
+#[rko_core::vtable]
 impl fs::file::Operations for TarFs {
     type FileSystem = Self;
 
     fn read_dir(
         _file: &fs::File<Self>,
-        inode: &INode<Self>,
+        inode: &rko_core::types::Locked<'_, INode<Self>, fs::inode::ReadSem>,
         emitter: &mut DirEmitter,
     ) -> Result<(), Error> {
         let sb: &SuperBlock<Self> = unsafe { SuperBlock::from_raw(inode.super_block()) };
-        let data: &TarFsData = unsafe { sb.data() };
+        let data: &TarFsData = unsafe { sb.sb_data() };
         let inode_data = unsafe { inode.data() };
         let pos = emitter.pos();
 

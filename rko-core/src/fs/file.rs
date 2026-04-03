@@ -97,17 +97,70 @@ pub mod flags {
 ///
 /// Implement this trait on your filesystem type to provide custom
 /// `read_dir` behavior.
+#[crate::vtable]
 pub trait Operations: Sized + Send + Sync + 'static {
     /// The filesystem type these operations belong to.
     type FileSystem: super::FileSystem;
 
     /// Iterate directory entries.
     ///
-    /// Use `emitter.pos()` for the current position and `emitter.emit()`
-    /// for each entry. `emit` returns `false` when the buffer is full.
+    /// The `inode` is locked with `i_rwsem` in shared mode (guaranteed
+    /// by the VFS `iterate_shared` contract). Use `emitter.pos()` for
+    /// the current position and `emitter.emit()` for each entry.
     fn read_dir(
         file: &File<Self::FileSystem>,
-        inode: &super::INode<Self::FileSystem>,
+        inode: &crate::types::Locked<'_, super::INode<Self::FileSystem>, super::inode::ReadSem>,
         emitter: &mut super::DirEmitter,
     ) -> super::Result<()>;
+
+    /// Custom seek implementation.
+    ///
+    /// Override to provide custom seek behavior (e.g., SEEK_DATA/SEEK_HOLE
+    /// for sparse files). Default: `generic_file_llseek` (kernel-provided).
+    fn seek(
+        _file: &File<Self::FileSystem>,
+        _offset: super::Offset,
+        _whence: super::Whence,
+    ) -> super::Result<super::Offset> {
+        Err(crate::error::Error::EINVAL)
+    }
+
+    /// Read data from a file into a userspace buffer.
+    ///
+    /// Override to provide custom read logic (e.g., pseudo-files that
+    /// generate content on the fly). Write data to `buffer` using
+    /// [`Writer::write`](crate::user::Writer::write) and update
+    /// `*offset` to reflect the new file position.
+    ///
+    /// Returns the number of bytes written to `buffer`.
+    ///
+    /// Default: not overridden — `generic_file_read_iter` is used
+    /// (reads from the page cache via `read_folio`).
+    fn read(
+        _file: &File<Self::FileSystem>,
+        _buffer: &mut crate::user::Writer,
+        _offset: &mut super::Offset,
+    ) -> super::Result<usize> {
+        Err(crate::error::Error::EINVAL)
+    }
+
+    /// Read data from a file using scatter-gather I/O.
+    ///
+    /// Modern alternative to [`read`](Self::read). Receives an
+    /// [`IoVecIter`](crate::iov::IoVecIter) that supports scatter-gather
+    /// buffers, splice, and async I/O. Write data to `iter` using
+    /// [`IoVecIter::write`](crate::iov::IoVecIter::write).
+    ///
+    /// `offset` is the file position to read from.
+    /// Returns the number of bytes written to the iterator.
+    ///
+    /// Default: not overridden — `generic_file_read_iter` is used.
+    /// Takes priority over [`read`](Self::read) when both are implemented.
+    fn read_iter(
+        _file: &File<Self::FileSystem>,
+        _iter: &mut crate::iov::IoVecIter,
+        _offset: super::Offset,
+    ) -> super::Result<usize> {
+        Err(crate::error::Error::EINVAL)
+    }
 }

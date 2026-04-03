@@ -7,10 +7,12 @@ mod allocator;
 mod kbox;
 mod kvec;
 mod layout;
+mod memcache;
 
 pub use allocator::Kmalloc;
-pub use kbox::KBox;
+pub use kbox::{Box, KBox};
 pub use kvec::{KVec, Vec};
+pub use memcache::MemCache;
 
 use core::ptr::NonNull;
 
@@ -59,6 +61,41 @@ bitflags::bitflags! {
         const GFP_NOFS      = Self::__GFP_RECLAIM.bits() | Self::__GFP_IO.bits();
         const GFP_ATOMIC    = Self::__GFP_HIGH.bits() | Self::__GFP_KSWAPD_RECLAIM.bits();
         const GFP_NOWAIT    = Self::__GFP_KSWAPD_RECLAIM.bits();
+    }
+}
+
+/// RAII guard that sets the `PF_MEMALLOC_NOFS` flag on the current task.
+///
+/// While this guard is alive, all allocations (including those inside
+/// the kernel) avoid filesystem recursion — equivalent to `GFP_NOFS`.
+/// This is stronger than passing `GFP_NOFS` to individual allocations
+/// because it also covers implicit allocations by the kernel.
+///
+/// # Example
+///
+/// ```ignore
+/// {
+///     let _nofs = rko_core::alloc::NoFsGuard::new();
+///     // All allocations in this scope use GFP_NOFS semantics.
+///     some_function_that_allocates();
+/// } // PF_MEMALLOC_NOFS restored here
+/// ```
+pub struct NoFsGuard {
+    saved: u32,
+}
+
+impl NoFsGuard {
+    /// Enter a no-FS allocation context.
+    #[allow(clippy::new_without_default)]
+    pub fn new() -> Self {
+        let saved = unsafe { rko_sys::rko::helpers::rust_helper_memalloc_nofs_save() };
+        Self { saved }
+    }
+}
+
+impl Drop for NoFsGuard {
+    fn drop(&mut self) {
+        unsafe { rko_sys::rko::helpers::rust_helper_memalloc_nofs_restore(self.saved) };
     }
 }
 

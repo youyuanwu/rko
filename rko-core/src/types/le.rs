@@ -75,6 +75,42 @@ impl LeInt for u64 {
     }
 }
 
+impl LeInt for i8 {
+    fn from_le(val: Self) -> Self {
+        val
+    }
+    fn to_le(val: Self) -> Self {
+        val
+    }
+}
+
+impl LeInt for i16 {
+    fn from_le(val: Self) -> Self {
+        i16::from_le(val)
+    }
+    fn to_le(val: Self) -> Self {
+        i16::to_le(val)
+    }
+}
+
+impl LeInt for i32 {
+    fn from_le(val: Self) -> Self {
+        i32::from_le(val)
+    }
+    fn to_le(val: Self) -> Self {
+        i32::to_le(val)
+    }
+}
+
+impl LeInt for i64 {
+    fn from_le(val: Self) -> Self {
+        i64::from_le(val)
+    }
+    fn to_le(val: Self) -> Self {
+        i64::to_le(val)
+    }
+}
+
 /// Trait for types that can be safely read from a byte slice.
 ///
 /// # Safety

@@ -51,7 +51,7 @@ static IOMAP_AOPS: iomap::RoAops<Ext2Fs> = iomap::ro_aops::<Ext2Fs>();
 
 impl Ext2Fs {
     fn iget(sb: &SuperBlock<Self>, ino: u32) -> Result<ARef<INode<Self>>> {
-        let s = unsafe { sb.data::<Ext2Fs>() };
+        let s = unsafe { sb.sb_data() };
         if (ino != EXT2_ROOT_INO && ino < s.first_ino) || ino > s.inode_count {
             return Err(Error::ENOENT);
         }
@@ -214,7 +214,7 @@ impl Ext2Fs {
 
     fn offset_to_block(inode: &INode<Self>, block: Offset) -> Result<u64> {
         let sb = unsafe { SuperBlock::<Self>::from_raw(inode.super_block()) };
-        let s = unsafe { sb.data::<Ext2Fs>() };
+        let s = unsafe { sb.sb_data() };
         let idata = unsafe { inode.data() };
 
         let mut indices = [0u32; 4];
@@ -253,6 +253,7 @@ impl Ext2Fs {
     }
 }
 
+#[rko_core::vtable]
 impl fs::FileSystem for Ext2Fs {
     type Data = rko_core::alloc::KBox<Ext2Fs>;
     type INodeData = INodeData;
@@ -324,9 +325,11 @@ impl fs::FileSystem for Ext2Fs {
 
         let group_count = (blocks_count - s.first_data_block.value() - 1) / blocks_per_group + 1;
 
-        // Read group descriptors.
+        // Read group descriptors under NoFsGuard — all allocations in this
+        // scope avoid filesystem recursion (equivalent to GFP_NOFS).
+        let _nofs = rko_core::alloc::NoFsGuard::new();
         let mut groups = KVec::new();
-        groups.reserve(group_count as usize, Flags::GFP_NOFS)?;
+        groups.reserve(group_count as usize, Flags::GFP_KERNEL)?;
 
         let mut remain = group_count;
         let mut gd_offset = (SB_OFFSET / Offset::from(block_size) + 1) * Offset::from(block_size);
@@ -334,7 +337,7 @@ impl fs::FileSystem for Ext2Fs {
             let b = mapper.mapped_folio(gd_offset)?;
             let slice = Group::from_bytes_to_slice(b.data()).ok_or(Error::EIO)?;
             for g in slice {
-                groups.push(*g, Flags::GFP_NOFS)?;
+                groups.push(*g, Flags::GFP_KERNEL)?;
                 remain -= 1;
                 if remain == 0 {
                     break;
@@ -378,15 +381,16 @@ impl fs::FileSystem for Ext2Fs {
     }
 }
 
+#[rko_core::vtable]
 impl fs::inode::Operations for Ext2Fs {
     type FileSystem = Self;
 
     fn lookup(
-        parent: &INode<Self>,
+        parent: &rko_core::types::Locked<'_, INode<Self>, fs::inode::ReadSem>,
         dentry: Unhashed<'_, Self>,
     ) -> Result<Option<ARef<DEntry<Self>>>> {
         let sb = unsafe { SuperBlock::<Self>::from_raw(parent.super_block()) };
-        let s = unsafe { sb.data::<Ext2Fs>() };
+        let s = unsafe { sb.sb_data() };
 
         // Walk the directory blocks looking for a matching entry.
         let dir_size = parent.size();
@@ -431,12 +435,17 @@ impl fs::inode::Operations for Ext2Fs {
     }
 }
 
+#[rko_core::vtable]
 impl fs::file::Operations for Ext2Fs {
     type FileSystem = Self;
 
-    fn read_dir(_file: &File<Self>, inode: &INode<Self>, emitter: &mut DirEmitter) -> Result<()> {
+    fn read_dir(
+        _file: &File<Self>,
+        inode: &rko_core::types::Locked<'_, INode<Self>, fs::inode::ReadSem>,
+        emitter: &mut DirEmitter,
+    ) -> Result<()> {
         let sb = unsafe { SuperBlock::<Self>::from_raw(inode.super_block()) };
-        let s = unsafe { sb.data::<Ext2Fs>() };
+        let s = unsafe { sb.sb_data() };
 
         let dir_size = inode.size();
         let mut pos = emitter.pos();
@@ -503,6 +512,7 @@ impl fs::file::Operations for Ext2Fs {
     }
 }
 
+#[rko_core::vtable]
 impl iomap::Operations for Ext2Fs {
     type FileSystem = Self;
 
@@ -524,7 +534,7 @@ impl iomap::Operations for Ext2Fs {
         }
 
         let sb = unsafe { SuperBlock::<Self>::from_raw(inode.super_block()) };
-        let s = unsafe { sb.data::<Ext2Fs>() };
+        let s = unsafe { sb.sb_data() };
         let block_size = s.block_size as Offset;
         let block = pos / block_size;
 
