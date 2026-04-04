@@ -149,6 +149,11 @@ impl<T: Executor> AutoStopHandle<T> {
         self.executor.as_arc_borrow()
     }
 
+    /// Get a clone of the `Arc` to the underlying executor.
+    pub fn executor_arc(&self) -> Arc<T> {
+        self.executor.clone()
+    }
+
     /// Explicitly stop the executor (also called on drop).
     pub fn stop(&self) {
         self.executor.stop();

@@ -11,12 +11,16 @@ use rko_core::prelude::*;
 
 mod tests {
     pub mod arc;
+    pub mod async_echo;
+    pub mod completion;
     pub mod error;
+    pub mod executor;
     pub mod ktime;
     pub mod kvec;
     pub mod memcache;
     pub mod refcount;
     pub mod revocable;
+    pub mod workqueue;
     // unsafe_list: skipped — List::new() sentinel writes fault in module
     // rodata. Needs heap allocation or writable static to work in .ko context.
 }
@@ -26,12 +30,16 @@ struct KunitTests;
 impl Module for KunitTests {
     fn init() -> Result<Self, Error> {
         tests::kvec::kvec_tests::run()?;
+        tests::completion::completion_tests::run()?;
         tests::error::error_tests::run()?;
         tests::ktime::ktime_tests::run()?;
         tests::arc::arc_tests::run()?;
         tests::revocable::revocable_tests::run()?;
         tests::refcount::refcount_tests::run()?;
         tests::memcache::memcache_tests::run()?;
+        tests::async_echo::async_echo_tests::run()?;
+        tests::workqueue::workqueue_tests::run()?;
+        tests::executor::executor_tests::run()?;
         pr_info!("TEST OK\n");
         Ok(KunitTests)
     }

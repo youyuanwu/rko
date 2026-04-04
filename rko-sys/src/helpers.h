@@ -181,13 +181,16 @@ void rust_helper_set_delayed_call(struct delayed_call *call,
                                   void (*fn)(void *), void *arg);
 
 /* ── KUnit helpers ─────────────────────────────────────────────────── */
-/*
- * Forward-declare struct kunit so these declarations compile without
- * pulling in <kunit/test.h> (which requires CONFIG_KUNIT for the full
- * definition). bnd-winmd generates opaque *mut c_void for the pointer.
- */
 struct kunit;
 struct kunit *rust_helper_kunit_get_current_test(void);
 void rust_helper_kunit_mark_failed(void *test);
+
+/* ── Completion helpers ────────────────────────────────────────────── */
+#include <linux/completion.h>
+void rust_helper_init_completion(struct completion *x);
+void rust_helper_complete(struct completion *x);
+void rust_helper_wait_for_completion(struct completion *x);
+unsigned long rust_helper_wait_for_completion_timeout(
+    struct completion *x, unsigned long timeout);
 
 #endif /* _RKO_HELPERS_H */

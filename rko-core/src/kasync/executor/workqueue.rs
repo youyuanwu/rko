@@ -291,3 +291,77 @@ impl Executor for WorkqueueExecutor {
         }
     }
 }
+
+impl WorkqueueExecutor {
+    /// Run a future to completion, blocking the calling thread.
+    ///
+    /// Spawns the future on the workqueue and sleeps via the kernel's
+    /// `struct completion` until the future completes. Returns the
+    /// future's output.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the future does not complete within 30 seconds.
+    pub fn block_on<T: Send + 'static>(
+        self: &Arc<Self>,
+        future: impl Future<Output = T> + Send + 'static,
+    ) -> Result<T, Error> {
+        use core::cell::UnsafeCell;
+        use core::sync::atomic::{AtomicBool, Ordering};
+
+        struct ResultCell<T> {
+            done: AtomicBool,
+            value: UnsafeCell<Option<T>>,
+        }
+        // SAFETY: Access is serialized: task writes, then signals;
+        // caller reads only after signal.
+        unsafe impl<T: Send> Send for ResultCell<T> {}
+        unsafe impl<T: Send> Sync for ResultCell<T> {}
+
+        let result = Arc::new(
+            ResultCell {
+                done: AtomicBool::new(false),
+                value: UnsafeCell::new(None),
+            },
+            crate::alloc::Flags::GFP_KERNEL,
+        )
+        .map_err(|_| Error::ENOMEM)?;
+        let result_task = result.clone();
+
+        let mut comp_mem = core::mem::MaybeUninit::<crate::sync::Completion>::uninit();
+        // SAFETY: comp_mem is valid stack memory, properly aligned.
+        unsafe { crate::sync::Completion::init(comp_mem.as_mut_ptr()) };
+
+        struct CompPtr(*mut crate::sync::Completion);
+        unsafe impl Send for CompPtr {}
+        impl CompPtr {
+            unsafe fn complete(&self) {
+                unsafe { (*self.0).complete() }
+            }
+        }
+        let comp_ptr = CompPtr(comp_mem.as_mut_ptr());
+
+        let borrow = self.as_arc_borrow();
+        borrow.spawn_inner(async move {
+            let val = future.await;
+            // SAFETY: No concurrent readers — caller is blocked.
+            unsafe { *result_task.value.get() = Some(val) };
+            result_task.done.store(true, Ordering::Release);
+            // SAFETY: comp_ptr points to the caller's stack, alive
+            // because the caller is blocked on it.
+            unsafe { comp_ptr.complete() };
+        })?;
+
+        // Block until future completes (30s timeout ≈ 30*HZ jiffies).
+        let comp = unsafe { comp_mem.assume_init_mut() };
+        comp.wait_timeout(30_000);
+
+        if !result.done.load(Ordering::Acquire) {
+            return Err(Error::EBUSY);
+        }
+
+        // SAFETY: Task completed and stored the value; no more writers.
+        let val = unsafe { (*result.value.get()).take() };
+        val.ok_or(Error::EINVAL)
+    }
+}

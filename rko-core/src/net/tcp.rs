@@ -149,6 +149,83 @@ impl TcpStream {
         self.sock
     }
 
+    /// Wrap an existing raw socket pointer into a `TcpStream`.
+    ///
+    /// # Safety
+    ///
+    /// `sock` must be a valid, connected kernel socket. Ownership is
+    /// transferred — the socket will be released on drop.
+    pub(crate) unsafe fn from_raw(sock: *mut rko_sys::rko::net::socket) -> Self {
+        Self { sock }
+    }
+
+    /// Create a new TCP stream and connect to `addr`.
+    pub fn connect(ns: &Namespace, addr: &SocketAddr) -> Result<Self, Error> {
+        let sock = Self::create_and_connect(ns, addr, 0)?;
+        Ok(TcpStream { sock })
+    }
+
+    /// Start a non-blocking connect on an existing socket.
+    ///
+    /// Returns `Ok(())` if connected immediately, or `Err(EAGAIN)` if
+    /// the connection is in progress (poll `POLLOUT` for completion).
+    pub(crate) fn connect_nonblock(
+        sock: *mut rko_sys::rko::net::socket,
+        addr: &SocketAddr,
+    ) -> Result<(), Error> {
+        let ret = Self::kernel_connect_raw(sock, addr, O_NONBLOCK);
+        match ret {
+            0 => Ok(()),
+            e if e == -rko_sys::rko::err::EINPROGRESS || e == -rko_sys::rko::err::EALREADY => {
+                Err(Error::from_errno(-rko_sys::rko::err::EAGAIN))
+            }
+            e => Err(Error::from_errno(e)),
+        }
+    }
+
+    /// Create a socket and call `kernel_connect` with the given flags.
+    /// Returns the raw socket on success, releases it on error.
+    fn create_and_connect(
+        ns: &Namespace,
+        addr: &SocketAddr,
+        flags: i32,
+    ) -> Result<*mut rko_sys::rko::net::socket, Error> {
+        let mut sock: *mut rko_sys::rko::net::socket = ptr::null_mut();
+        let ret = unsafe {
+            rko_sys::rko::net::sock_create_kern(
+                ns.as_ptr(),
+                addr.family(),
+                SOCK_STREAM,
+                IPPROTO_TCP,
+                &mut sock,
+            )
+        };
+        check_err(ret)?;
+
+        let ret = Self::kernel_connect_raw(sock, addr, flags);
+        if ret < 0 {
+            unsafe { rko_sys::rko::net::sock_release(sock) };
+            return Err(Error::from_errno(ret));
+        }
+        Ok(sock)
+    }
+
+    fn kernel_connect_raw(
+        sock: *mut rko_sys::rko::net::socket,
+        addr: &SocketAddr,
+        flags: i32,
+    ) -> i32 {
+        let (mut storage, addrlen) = addr.to_raw();
+        unsafe {
+            rko_sys::rko::net::kernel_connect(
+                sock,
+                &mut storage as *mut SockaddrStorage as *mut rko_sys::rko::net::sockaddr_unsized,
+                addrlen,
+                flags,
+            )
+        }
+    }
+
     /// Read data from the stream into `buf`.
     ///
     /// Returns the number of bytes read, or an error. Returns `Ok(0)` at

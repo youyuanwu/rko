@@ -33,6 +33,8 @@ windows_link::link!("kernel" "C" fn rust_helper___wake_up(wq_head : *mut super::
 ))]
 windows_link::link!("kernel" "C" fn rust_helper_alloc_inode_sb(sb : *mut super::fs:: super_block, cache : *mut core::ffi::c_void, gfp : super::types:: gfp_t) -> *mut core::ffi::c_void);
 windows_link::link!("kernel" "C" fn rust_helper_bdev_nr_sectors(bdev : *mut core::ffi::c_void) -> u64);
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
+windows_link::link!("kernel" "C" fn rust_helper_complete(x : *mut super::wait:: completion));
 windows_link::link!("kernel" "C" fn rust_helper_copy_from_user(to : *mut core::ffi::c_void, from : *const core::ffi::c_void, n : u64) -> u64);
 windows_link::link!("kernel" "C" fn rust_helper_copy_to_user(to : *mut core::ffi::c_void, from : *const core::ffi::c_void, n : u64) -> u64);
 #[cfg(all(
@@ -121,6 +123,8 @@ windows_link::link!("kernel" "C" fn rust_helper_i_gid_write(inode : *mut super::
     feature = "workqueue"
 ))]
 windows_link::link!("kernel" "C" fn rust_helper_i_uid_write(inode : *mut super::fs:: inode, uid : u32));
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
+windows_link::link!("kernel" "C" fn rust_helper_init_completion(x : *mut super::wait:: completion));
 #[cfg(all(feature = "types", feature = "wait"))]
 windows_link::link!("kernel" "C" fn rust_helper_init_waitqueue_func_entry(wq_entry : *mut super::wait:: wait_queue_entry, func : super::wait:: wait_queue_func_t));
 #[cfg(all(feature = "fs", feature = "types", feature = "workqueue"))]
@@ -297,4 +301,8 @@ windows_link::link!("kernel" "C" fn rust_helper_spin_lock(lock : *mut super::syn
 windows_link::link!("kernel" "C" fn rust_helper_spin_trylock(lock : *mut super::sync:: spinlock_t) -> i32);
 #[cfg(all(feature = "sync", feature = "types"))]
 windows_link::link!("kernel" "C" fn rust_helper_spin_unlock(lock : *mut super::sync:: spinlock_t));
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
+windows_link::link!("kernel" "C" fn rust_helper_wait_for_completion(x : *mut super::wait:: completion));
+#[cfg(all(feature = "sync", feature = "types", feature = "wait"))]
+windows_link::link!("kernel" "C" fn rust_helper_wait_for_completion_timeout(x : *mut super::wait:: completion, timeout : u64) -> u64);
 pub const RKO_MINORMASK: u32 = 1048575u32;

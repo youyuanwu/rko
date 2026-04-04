@@ -170,6 +170,12 @@ Toolchain pinned in `rust-toolchain.toml` (1.94.0).
 - **`Namespace::current()`** — task namespace instead of `init_net`
 - **`UnsafePinned` migration** — eliminate `CallbackState` allocation
 
+## Async testing
+
+`block_on()`, `Completion`, `TcpStream::connect()`, and async
+`TcpStream::connect()` were added to support in-kernel TCP echo tests
+via `#[rko_tests]`. See `docs/design/features/test-framework.md`.
+
 ## Samples
 
 | Sample | Description | Test |
@@ -177,9 +183,11 @@ Toolchain pinned in `rust-toolchain.toml` (1.94.0).
 | `workqueue_test` | Enqueues work item, logs execution | QEMU pass |
 | `tcp_echo` | Sync echo server via WorkItem on workqueue | QEMU pass |
 | `async_echo` | Async echo server with WorkqueueExecutor | QEMU pass |
+| `kunit_tests` | 56 unit + integration tests including async TCP echo | QEMU pass |
 
 ## References
 
 - Upstream patch: `docs/patches/netdev0x17.diff`
 - Bindings guide: `docs/guides/adding-bindings.md`
 - Kernel Rust crate: `linux/rust/kernel/` (sync, workqueue, task)
+- Test framework: `docs/design/features/test-framework.md`

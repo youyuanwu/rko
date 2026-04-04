@@ -71,9 +71,16 @@ check() {
     fi
 }
 echo "=== TEST: insmod ${MODULE}.ko ==="
+
+# Run pre-insmod setup from test.sh if it defines setup_pre_insmod().
+# Otherwise it will run after insmod as before.
+if [ "$HAS_TEST" = "1" ]; then
+    /etc/test_custom.sh pre 2>/dev/null || true
+fi
+
 insmod /lib/modules/${MODULE}.ko
 
-# Run custom test script if present
+# Run custom test script if present (post-insmod phase)
 if [ "$HAS_TEST" = "1" ]; then
     echo "=== TEST: running test.sh ==="
     /etc/test_custom.sh > /tmp/test.log 2>&1 || true

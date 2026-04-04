@@ -4,6 +4,7 @@
 // UPSTREAM_REF: linux/rust/kernel/sync.rs, linux/rust/kernel/sync/
 
 mod arc;
+pub mod completion;
 pub mod condvar;
 pub mod lock;
 pub mod nowaitlock;
@@ -11,6 +12,7 @@ pub mod rcu;
 mod refcount;
 
 pub use arc::{Arc, ArcBorrow, UniqueArc};
+pub use completion::Completion;
 pub use condvar::CondVar;
 pub use lock::mutex::{Mutex, MutexGuard, new_mutex};
 pub use lock::spinlock::{SpinLock, SpinLockGuard, new_spinlock};

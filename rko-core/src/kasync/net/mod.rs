@@ -325,7 +325,7 @@ impl TcpListener {
 
 /// An async TCP stream wrapping [`crate::net::TcpStream`].
 ///
-/// Provides `read()`, `write()`, and `write_all()` as `Future`s.
+/// Provides `connect()`, `read()`, `write()`, and `write_all()` as `Future`s.
 pub struct TcpStream {
     /// The underlying synchronous stream.
     inner: crate::net::TcpStream,
@@ -335,6 +335,59 @@ impl TcpStream {
     /// Create a new async `TcpStream` from a synchronous one.
     pub fn new(stream: crate::net::TcpStream) -> Self {
         Self { inner: stream }
+    }
+
+    /// Connect to `addr` asynchronously using non-blocking connect.
+    pub async fn connect(
+        ns: &crate::net::Namespace,
+        addr: &crate::net::SocketAddr,
+    ) -> Result<Self, Error> {
+        // SendSock wraps a raw socket pointer to make the future Send.
+        struct SendSock(*mut rko_sys::rko::net::socket);
+        unsafe impl Send for SendSock {}
+        impl SendSock {
+            fn connect_nonblock(&self, addr: &crate::net::SocketAddr) -> Result<(), Error> {
+                crate::net::TcpStream::connect_nonblock(self.0, addr)
+            }
+        }
+
+        // Create the socket synchronously.
+        let ss = {
+            let mut sock: *mut rko_sys::rko::net::socket = core::ptr::null_mut();
+            let ret = unsafe {
+                rko_sys::rko::net::sock_create_kern(
+                    ns.as_ptr(),
+                    addr.family(),
+                    crate::net::SOCK_STREAM,
+                    crate::net::IPPROTO_TCP,
+                    &mut sock,
+                )
+            };
+            if ret < 0 {
+                return Err(Error::from_errno(ret));
+            }
+            SendSock(sock)
+        };
+
+        // Non-blocking connect: SocketFuture polls POLLOUT.
+        // ss is moved into the closure; we save the pointer in another
+        // SendSock for post-await cleanup (raw ptrs are !Send).
+        let cleanup = SendSock(ss.0);
+        let addr = *addr;
+        let result = SocketFuture::new(cleanup.0, rko_sys::rko::poll::POLLOUT as u32, move || {
+            ss.connect_nonblock(&addr)
+        })
+        .await;
+
+        match result {
+            Ok(()) => Ok(Self {
+                inner: unsafe { crate::net::TcpStream::from_raw(cleanup.0) },
+            }),
+            Err(e) => {
+                unsafe { rko_sys::rko::net::sock_release(cleanup.0) };
+                Err(e)
+            }
+        }
     }
 
     /// Read data asynchronously.

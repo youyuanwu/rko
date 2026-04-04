@@ -473,3 +473,28 @@ void rust_helper_kunit_mark_failed(void *test)
 	kunit_set_failure((struct kunit *)test);
 #endif
 }
+
+// Completion helpers
+
+#include <linux/completion.h>
+
+void rust_helper_init_completion(struct completion *x)
+{
+	init_completion(x);
+}
+
+void rust_helper_complete(struct completion *x)
+{
+	complete(x);
+}
+
+void rust_helper_wait_for_completion(struct completion *x)
+{
+	wait_for_completion(x);
+}
+
+unsigned long rust_helper_wait_for_completion_timeout(struct completion *x,
+						      unsigned long timeout)
+{
+	return wait_for_completion_timeout(x, timeout);
+}
