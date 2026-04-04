@@ -454,3 +454,22 @@ void rust_helper_set_delayed_call(struct delayed_call *call,
 {
 	set_delayed_call(call, fn, arg);
 }
+
+// KUnit helpers
+
+#include <kunit/test-bug.h>
+#ifdef CONFIG_KUNIT
+#include <kunit/test.h>
+#endif
+
+struct kunit *rust_helper_kunit_get_current_test(void)
+{
+	return kunit_get_current_test();
+}
+
+void rust_helper_kunit_mark_failed(void *test)
+{
+#ifdef CONFIG_KUNIT
+	kunit_set_failure((struct kunit *)test);
+#endif
+}

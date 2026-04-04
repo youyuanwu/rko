@@ -318,12 +318,31 @@ library = "kernel"
 headers = ["uapi/asm-generic/poll.h"]
 traverse = ["uapi/asm-generic/poll.h"]
 
+# ── Partition: kunit test framework ────────────────────────────────
+[[partition]]
+namespace = "rko.kunit"
+library = "kernel"
+headers = ["kunit/test.h"]
+traverse = [
+  "kunit/test.h",
+  "kunit/try-catch.h",
+  "kunit/assert.h",
+]
+
 # ── Injected types ─────────────────────────────────────────────────
 # Types bnd-winmd cannot extract (bitfield enums, anonymous enums) or
 # types we keep opaque to avoid cascading traverse expansion.
 # Sizes obtained from clang sizeof/alignof on x86_64.
 
 # -- Opaque structs (embedded by value — need correct size) --
+
+# kunit: va_format is pointer-only (used in assert format callbacks)
+[[inject_type]]
+namespace = "rko.kunit"
+name = "va_format"
+kind = "struct"
+size = 8
+align = 8
 
 # Defined in linux/uuid.h — u8[16] typedef, not a regular struct
 [[inject_type]]

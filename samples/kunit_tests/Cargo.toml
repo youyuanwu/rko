@@ -1,0 +1,15 @@
+[package]
+name = "kunit_tests"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[lib]
+name = "kunit_tests"
+path = "kunit_tests.rs"
+crate-type = ["staticlib"]
+test = false
+bench = false
+
+[dependencies]
+rko-core.workspace = true

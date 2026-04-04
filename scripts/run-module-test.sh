@@ -104,7 +104,8 @@ timeout --foreground 60 qemu-system-x86_64 \
     -append "console=ttyS0 panic=-1" \
     $KVM_ARGS > "$LOGFILE" 2>&1 || true
 
-cat "$LOGFILE"
+# Show only the test portion of the log (after init starts testing)
+sed -n '/=== TEST: insmod/,$p' "$LOGFILE"
 
 if grep -q "ALL TESTS PASSED" "$LOGFILE"; then
     echo "TEST OK"

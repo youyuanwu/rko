@@ -198,6 +198,8 @@ windows_link::link!("kernel" "C" fn rust_helper_is_bad_inode(inode : *mut super:
 windows_link::link!("kernel" "C" fn rust_helper_kmap_local_folio(folio : *mut super::mm_types:: folio, offset : u64) -> *mut core::ffi::c_void);
 windows_link::link!("kernel" "C" fn rust_helper_kmem_cache_create(name : *const i8, size : u32, align : u32, flags : u64, ctor : *mut isize) -> *mut core::ffi::c_void);
 windows_link::link!("kernel" "C" fn rust_helper_kthread_should_stop() -> i32);
+windows_link::link!("kernel" "C" fn rust_helper_kunit_get_current_test() -> *mut core::ffi::c_void);
+windows_link::link!("kernel" "C" fn rust_helper_kunit_mark_failed(test : *mut core::ffi::c_void));
 windows_link::link!("kernel" "C" fn rust_helper_kunmap_local(vaddr : *const core::ffi::c_void));
 #[cfg(feature = "fs")]
 windows_link::link!("kernel" "C" fn rust_helper_lockdep_register_key(key : *mut super::fs:: lock_class_key));

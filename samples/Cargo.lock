@@ -30,6 +30,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "kunit_tests"
+version = "0.1.0"
+dependencies = [
+ "rko-core",
+]
+
+[[package]]
 name = "kvec_test"
 version = "0.1.0"
 dependencies = [

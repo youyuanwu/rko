@@ -12,6 +12,7 @@ pub mod error;
 pub mod fs;
 pub mod iov;
 pub mod kasync;
+pub mod kunit;
 pub mod module;
 pub mod net;
 pub mod prelude;
@@ -26,7 +27,7 @@ pub mod user;
 pub mod workqueue;
 
 /// Re-export proc macros from `rko-macros`.
-pub use rko_macros::{FromBytes, vtable};
+pub use rko_macros::{FromBytes, rko_tests, vtable};
 
 /// Re-export pin-init macros and traits for in-place initialization.
 pub mod pin_init {

@@ -28,6 +28,8 @@ pub mod helpers;
 pub mod highmem;
 #[cfg(feature = "iomap")]
 pub mod iomap;
+#[cfg(feature = "kunit")]
+pub mod kunit;
 #[cfg(feature = "mm_types")]
 pub mod mm_types;
 #[cfg(feature = "net")]

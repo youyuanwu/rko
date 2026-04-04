@@ -180,4 +180,14 @@ unsigned long rust_helper_copy_from_user(void *to, const void *from,
 void rust_helper_set_delayed_call(struct delayed_call *call,
                                   void (*fn)(void *), void *arg);
 
+/* ── KUnit helpers ─────────────────────────────────────────────────── */
+/*
+ * Forward-declare struct kunit so these declarations compile without
+ * pulling in <kunit/test.h> (which requires CONFIG_KUNIT for the full
+ * definition). bnd-winmd generates opaque *mut c_void for the pointer.
+ */
+struct kunit;
+struct kunit *rust_helper_kunit_get_current_test(void);
+void rust_helper_kunit_mark_failed(void *test);
+
 #endif /* _RKO_HELPERS_H */

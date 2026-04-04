@@ -9,6 +9,7 @@
 use proc_macro::TokenStream;
 
 mod from_bytes;
+mod rko_tests;
 mod vtable;
 
 /// Attribute macro for vtable traits and their implementations.
@@ -60,4 +61,31 @@ pub fn vtable(_attr: TokenStream, item: TokenStream) -> TokenStream {
 #[proc_macro_derive(FromBytes)]
 pub fn derive_from_bytes(item: TokenStream) -> TokenStream {
     from_bytes::derive(item)
+}
+
+/// Attribute macro for in-kernel test modules.
+///
+/// Transforms a module containing `#[test]` functions into a runnable test
+/// suite. Each `#[test]` fn gets structured assertion macros and the module
+/// gains a `pub fn run() -> Result<(), Error>` that executes all tests with
+/// PASS/FAIL output.
+///
+/// ```ignore
+/// #[rko_tests]
+/// mod tests {
+///     #[test]
+///     fn it_works() {
+///         assert_eq!(1 + 1, 2);
+///     }
+/// }
+///
+/// // In module init:
+/// tests::run()?;
+/// ```
+#[proc_macro_attribute]
+pub fn rko_tests(_attr: TokenStream, item: TokenStream) -> TokenStream {
+    use syn::parse_macro_input;
+    rko_tests::rko_tests(parse_macro_input!(item))
+        .unwrap_or_else(|e| e.into_compile_error())
+        .into()
 }

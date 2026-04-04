@@ -7,7 +7,7 @@ edition = "2024"
 windows-link.workspace = true
 
 [features]
-default = ["types", "err", "gfp", "slab", "sync", "wait", "mm_types", "cred", "ds", "fs", "fs_context", "dcache", "pagemap", "highmem", "statfs", "xattr", "iomap", "helpers", "net", "workqueue", "poll"]
+default = ["types", "err", "gfp", "slab", "sync", "wait", "mm_types", "cred", "ds", "fs", "fs_context", "dcache", "pagemap", "highmem", "statfs", "xattr", "iomap", "helpers", "net", "workqueue", "poll", "kunit"]
 Foundation = []
 # generated features
 types = ["Foundation"]
@@ -31,3 +31,4 @@ helpers = ["Foundation"]
 net = ["Foundation", "types", "sync"]
 workqueue = ["Foundation", "sync"]
 poll = ["Foundation"]
+kunit = ["Foundation", "types", "sync"]
