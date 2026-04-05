@@ -16,6 +16,7 @@ impl StatusCode {
     pub const PAYLOAD_TOO_LARGE: Self = Self(413);
     pub const HEADER_TOO_LARGE: Self = Self(431);
     pub const INTERNAL_SERVER_ERROR: Self = Self(500);
+    pub const GATEWAY_TIMEOUT: Self = Self(504);
     pub const SERVICE_UNAVAILABLE: Self = Self(503);
 
     pub const fn from_u16(code: u16) -> Self {

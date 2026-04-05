@@ -16,6 +16,7 @@ mod request;
 mod response;
 mod server;
 mod status;
+pub mod uring;
 mod version;
 mod wire;
 

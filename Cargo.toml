@@ -1,7 +1,7 @@
 [workspace]
 resolver = "2"
 
-members = ["rko-sys", "rko-sys-gen", "rko-core", "rko-macros", "rko-util"]
+members = ["rko-sys", "rko-sys-gen", "rko-core", "rko-macros", "rko-util", "rko-test-uring"]
 exclude = ["samples"]
 
 [workspace.dependencies]

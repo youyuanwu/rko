@@ -40,6 +40,11 @@ for f in "$BUILD_DIR"/*.img "$BUILD_DIR"/*.bin; do
     [ -f "$f" ] && cp "$f" "$WORK/etc/"
 done
 
+# Copy optional test executables from sample build dir
+for f in "$BUILD_DIR"/test_bin/*; do
+    [ -f "$f" ] && [ -x "$f" ] && cp "$f" "$WORK/bin/"
+done
+
 # Write test config sourced by init
 {
     printf 'MODULE=%s\n' "$MODULE"

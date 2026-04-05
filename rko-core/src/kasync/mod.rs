@@ -5,6 +5,7 @@
 
 pub mod executor;
 pub mod net;
+pub mod oneshot;
 
 use core::future::Future;
 use core::pin::Pin;

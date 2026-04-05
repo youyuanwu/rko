@@ -30,6 +30,7 @@ jobs:
       with:
         toolchain: ${{ steps.rust-version.outputs.version }}
         components: rustfmt, clippy, rust-src
+        targets: x86_64-unknown-linux-musl
 
     - name: Set rust version
       run: rustup override set ${{ steps.rust-version.outputs.version }}
@@ -41,7 +42,7 @@ jobs:
     - name: Install LLVM toolchain
       run: |
         sudo apt-get update
-        sudo apt-get install -y clang llvm lld libelf-dev libssl-dev libclang-dev cpio busybox-static qemu-system-x86
+        sudo apt-get install -y clang llvm lld libelf-dev libssl-dev libclang-dev cpio busybox-static qemu-system-x86 musl-tools
 
     - name: Clone linux to /linux dir with commit
       run: |

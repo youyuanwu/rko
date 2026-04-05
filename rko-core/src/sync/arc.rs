@@ -357,3 +357,37 @@ impl<T: ?Sized> From<UniqueArc<T>> for Pin<UniqueArc<T>> {
         unsafe { Pin::new_unchecked(obj) }
     }
 }
+
+// ---------------------------------------------------------------------------
+// ForeignOwnable for Arc<T>
+// ---------------------------------------------------------------------------
+
+// SAFETY: Arc::into_raw produces a stable pointer. Arc::from_raw reconstructs
+// the original Arc (taking ownership of one refcount). borrow uses
+// ManuallyDrop to avoid altering the refcount.
+unsafe impl<T: Send + Sync> crate::types::ForeignOwnable for Arc<T> {
+    type Borrowed<'a>
+        = ArcBorrow<'a, T>
+    where
+        T: 'a;
+
+    fn into_foreign(self) -> *const core::ffi::c_void {
+        Arc::into_raw(self).cast()
+    }
+
+    unsafe fn from_foreign(ptr: *const core::ffi::c_void) -> Self {
+        // SAFETY: ptr was produced by into_foreign (Arc::into_raw).
+        unsafe { Arc::from_raw(ptr.cast()) }
+    }
+
+    unsafe fn borrow<'a>(ptr: *const core::ffi::c_void) -> Self::Borrowed<'a> {
+        // SAFETY: ptr was produced by into_foreign (Arc::into_raw → *const T).
+        // The data pointer points into ArcInner<T>.data. Recover the ArcInner
+        // pointer and create an ArcBorrow directly without touching the refcount.
+        let data_ptr: *const T = ptr.cast();
+        let inner = unsafe { ArcInner::container_of(data_ptr) };
+        // SAFETY: The foreign owner guarantees the ArcInner is alive for 'a
+        // and no mutable references exist.
+        unsafe { ArcBorrow::new(inner) }
+    }
+}

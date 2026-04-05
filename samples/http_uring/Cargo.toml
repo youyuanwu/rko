@@ -1,0 +1,16 @@
+[package]
+name = "http_uring"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[lib]
+name = "http_uring"
+path = "http_uring.rs"
+crate-type = ["staticlib"]
+test = false
+bench = false
+
+[dependencies]
+rko-core.workspace = true
+rko-util.workspace = true

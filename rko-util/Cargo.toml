@@ -5,4 +5,5 @@ edition = "2024"
 
 [dependencies]
 rko-core.workspace = true
+rko-sys.workspace = true
 httparse.workspace = true

@@ -12,14 +12,17 @@ use rko_core::prelude::*;
 mod tests {
     pub mod arc;
     pub mod async_echo;
+    pub mod async_oneshot;
     pub mod completion;
     pub mod error;
     pub mod executor;
+    pub mod foreign_ownable;
     pub mod http;
     pub mod http_integration;
     pub mod ktime;
     pub mod kvec;
     pub mod memcache;
+    pub mod oneshot;
     pub mod refcount;
     pub mod revocable;
     pub mod workqueue;

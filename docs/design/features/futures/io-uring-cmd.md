@@ -1,6 +1,11 @@
 # Feature: Custom io_uring Commands
 
-**Status**: 📋 Design — not yet implemented.
+**Status**: ✅ Implemented — bindings, safe API, miscdevice integration,
+userspace e2e test passing. Filesystem vtable wiring not yet done.
+
+See: `rko-core/src/io_uring.rs`, `rko-core/src/miscdevice.rs`,
+`rko-sys/src/rko/io_uring/`, `rko-sys/src/helpers.{c,h}`,
+`samples/http_uring/`, `rko-test-uring/`.
 
 ## Goal
 
@@ -250,11 +255,16 @@ impl IssueFlags {
 
 ### Completion model
 
+**Critical**: For synchronous completion, return the result directly
+from the `uring_cmd` callback. Do NOT call `io_uring_cmd_done()` —
+the kernel handles CQE posting after the callback returns. Calling
+`io_uring_cmd_done()` causes double cleanup → NULL deref crash.
+
 | Pattern | API | Return from `uring_cmd` |
 |---------|-----|-------------------------|
-| Synchronous | `cmd.done(ret, flags)` | `Ok(())` |
-| Async deferred | `let async_cmd = cmd.defer()` | `Err(Error::EIOCBQUEUED)` |
-| Async task work | `async_cmd.complete_in_task(cb)` | (from deferred path) |
+| **Synchronous** | return result directly | result value (0, positive, or -errno) |
+| Async deferred | `let async_cmd = cmd.defer()` | `-EIOCBQUEUED` |
+| Async complete | `async_cmd.done(ret, flags)` | (from deferred context) |
 | Cancelable | `cmd.mark_cancelable(flags)` | check `flags.is_cancel()` |
 
 The `defer()` → `IoUringCmdAsync` pattern uses Rust's ownership
@@ -473,65 +483,69 @@ io_uring_cqe_seen(&ring, cqe);
 
 ## Implementation Plan
 
-### Phase 1: Bindings and helpers
+### Phase 1: Bindings and helpers ✅ Done
 
-1. Evaluate `io_uring_sqe` / `io_uring_cmd` dependency graph via
-   `rko-sys-gen` test run — decide between new partition and
-   inject_type approach
-2. Add C helpers to `helpers.{c,h}` for `io_uring_cmd_done`,
-   `io_uring_cmd_mark_cancelable`, sqe/pdu access
-3. Regenerate bindings: `cargo run -p rko-sys-gen -- rko-sys-gen/rko.toml`
-4. Add `io_uring` feature to `rko-sys/Cargo.toml`
-5. Verify: `cargo check -p rko-sys --features io_uring`
+- **Partition approach** chosen: `rko.io_uring` traverses `cmd.h` +
+  `io_uring_types.h` + `uapi/io_uring.h`. 6 opaque inject_types cut
+  the cascade (`blk_plug`, `percpu_ref`, `io_big_cqe`, `request`,
+  `tk_offsets`, `task_work_notify_mode`). 2185 lines generated.
+- C helpers added: `rust_helper_io_uring_cmd_done`,
+  `rust_helper_io_uring_sqe_cmd`, `rust_helper_io_uring_cmd_op`,
+  `rust_helper_io_uring_cmd_pdu`.
+- Feature `io_uring` added to `rko-sys/Cargo.toml` with deps:
+  `cred`, `dcache`, `ds`, `fs`, `mm_types`, `sync`, `types`,
+  `wait`, `workqueue`.
 
-### Phase 2: Safe wrappers
+### Phase 2: Safe wrappers ✅ Done
 
-1. Create `rko-core/src/io_uring.rs` with `IoUringCmd`,
-   `IoUringCmdAsync`, `IssueFlags`, `Operations` trait
-2. Add `pub mod io_uring;` to `rko-core/src/lib.rs`
-3. Wire trampoline in `vtable.rs` for filesystem integration
-4. Verify: `cargo check -p rko-core`
+- `rko-core/src/io_uring.rs` (~170 lines): `IoUringCmd`,
+  `IoUringCmdAsync`, `IssueFlags`. Ownership-based completion
+  safety (done() consumes self, defer() transfers to async handle).
+- Wired into `miscdevice.rs` vtable (not filesystem vtable yet).
+- `cargo check -p rko-core` clean, zero clippy warnings.
 
-### Phase 3: Sample and test
+### Phase 3: Misc device integration ✅ Done
 
-1. Create `samples/uring_cmd_test/` — misc device that handles
-   a simple ping/echo command
-2. Write QEMU test: userspace C program uses liburing to send
-   commands and verify CQE results
-3. Add to `kunit_tests` if applicable
-4. CMake target: `cmake --build build --target uring_cmd_test_ko_test`
+- `rko-core/src/miscdevice.rs` (~220 lines): `MiscDeviceRegistration`,
+  `MiscDevice` trait with `open` + `release` + `uring_cmd`.
+- Ported from upstream `rust/kernel/miscdevice.rs` (minimal subset).
+- `ForeignOwnable` for `Arc<T>` added to `rko-core/src/sync/arc.rs`.
+- `rko.misc` partition in rko-sys-gen for `struct miscdevice`,
+  `misc_register`, `misc_deregister`, `MISC_DYNAMIC_MINOR`.
+- Sample: `samples/http_uring/` — loads, registers `/dev/rko_http`,
+  dispatches io_uring commands. Tested in QEMU.
 
-### Phase 4: Async completion
+### Phase 4: Filesystem vtable wiring — TODO
 
-1. Implement `defer()` / `IoUringCmdAsync` path
-2. Implement `complete_in_task()` wrapper
-3. Sample: async command that defers completion to a workqueue,
-   then calls `done()` from the work callback
-4. Test cancelation via `IORING_ASYNC_CANCEL`
+1. Wire `uring_cmd` trampoline in `rko-core/src/fs/vtable.rs`
+2. Standalone `io_uring::Operations` trait for filesystem use
+
+### Phase 5: Standalone sample — TODO
+
+1. Create `samples/uring_cmd_test/` — misc device with ping/echo
+2. Userspace liburing test in QEMU
+3. Async completion (`defer` + workqueue `done`) test
 
 ## Open Questions
 
-1. **Partition vs inject**: How large is the `io_uring_sqe` type
-   cascade? Needs empirical test with `rko-sys-gen`. If manageable
-   (< 50 types), a proper partition is cleaner.
+**Resolved**:
 
-2. **Misc device framework**: rko currently only has `module_fs!`
-   for filesystem modules. A `module_misc!` or char device
-   registration framework would be needed for non-filesystem io_uring
-   command handlers. This is separable work.
+1. ✅ **Partition vs inject**: Partition works. 6 inject_types for
+   cascade-cutting. Generates `io_uring_cmd` with correct fields.
 
-3. **`File<T>` typing**: For filesystem-backed io_uring commands,
-   should `IoUringCmd` expose a typed `file()` accessor? This
-   requires the trait to carry a filesystem type parameter, which
-   conflicts with standalone device usage.
+2. ✅ **Misc device framework**: Ported from upstream kernel Rust
+   crate. `MiscDevice` trait with `uring_cmd` support.
 
-4. **`CONFIG_IO_URING`**: The kernel API is gated behind
-   `CONFIG_IO_URING=y`. Need to verify this is enabled in the rko
-   kernel config (`scripts/configure_linux`).
+3. **`File<T>` typing**: Deferred. `IoUringCmd::file()` returns raw
+   `*mut file` for now. Typed accessor needs filesystem type param.
 
-5. **Symbol export**: Verify that `io_uring_cmd_done` and related
-   functions are in `linux_bin/Module.symvers`. If they are inline-only,
-   C helpers are mandatory (not optional).
+4. ✅ **`CONFIG_IO_URING`**: Enabled in `CMakeLists.txt`. Kernel rebuilt.
+
+5. ✅ **Symbol export**: All critical symbols confirmed in Module.symvers:
+   `__io_uring_cmd_done`, `io_uring_mshot_cmd_post_cqe`,
+   `io_uring_cmd_mark_cancelable`, `io_uring_cmd_buffer_select`,
+   `io_uring_cmd_import_fixed`. `io_uring_cmd_done` is inline →
+   C helper wraps it.
 
 ## Future Work
 

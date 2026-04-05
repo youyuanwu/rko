@@ -10,9 +10,11 @@
 pub mod alloc;
 pub mod error;
 pub mod fs;
+pub mod io_uring;
 pub mod iov;
 pub mod kasync;
 pub mod kunit;
+pub mod miscdevice;
 pub mod module;
 pub mod net;
 pub mod prelude;

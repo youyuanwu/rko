@@ -1,0 +1,11 @@
+[package]
+name = "rko-test-uring"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "http_uring_test"
+path = "src/main.rs"
+
+[dependencies]
+io-uring = "0.7"

@@ -193,4 +193,15 @@ void rust_helper_wait_for_completion(struct completion *x);
 unsigned long rust_helper_wait_for_completion_timeout(
     struct completion *x, unsigned long timeout);
 
+/* ── Delayed work helpers ─────────────────────────────────────────── */
+_Bool rust_helper_queue_delayed_work(struct workqueue_struct *wq,
+    struct delayed_work *dwork, unsigned long delay);
+
+/* ── io_uring command helpers ─────────────────────────────────────── */
+#include <linux/io_uring/cmd.h>
+
+/* io_uring_cmd_done is static inline wrapping __io_uring_cmd_done */
+void rust_helper_io_uring_cmd_done(struct io_uring_cmd *cmd,
+    int ret, unsigned int issue_flags);
+
 #endif /* _RKO_HELPERS_H */

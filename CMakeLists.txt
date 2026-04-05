@@ -79,6 +79,11 @@ add_custom_target(configure_linux
   COMMAND scripts/config --set-val CONFIG_INET y --file ${KBIN_ROOT}/.config
   # KUnit test framework (for rko kunit_tests module)
   COMMAND scripts/config --set-val CONFIG_KUNIT y --file ${KBIN_ROOT}/.config
+  # io_uring (for IORING_OP_URING_CMD custom command support)
+  COMMAND scripts/config --set-val CONFIG_IO_URING y --file ${KBIN_ROOT}/.config
+  # Symbolized stack traces for debugging
+  COMMAND scripts/config --set-val CONFIG_KALLSYMS y --file ${KBIN_ROOT}/.config
+  COMMAND scripts/config --set-val CONFIG_KALLSYMS_ALL y --file ${KBIN_ROOT}/.config
   # Resolve dependencies and verify Rust
   COMMAND $(MAKE) LLVM=1 olddefconfig O=${KBIN_ROOT}
   COMMAND $(MAKE) LLVM=1 rustavailable
@@ -121,6 +126,7 @@ add_subdirectory(samples/workqueue_test)
 add_subdirectory(samples/tcp_echo)
 add_subdirectory(samples/async_echo)
 add_subdirectory(samples/kunit_tests)
+add_subdirectory(samples/http_uring)
 
 # Clean all sample build directories
 add_custom_target(clean_samples

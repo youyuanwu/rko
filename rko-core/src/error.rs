@@ -35,6 +35,7 @@ impl Error {
     pub const E2BIG: Self = Error::new(rko_sys::rko::err::E2BIG);
     pub const ENAMETOOLONG: Self = Error::new(rko_sys::rko::err::ENAMETOOLONG);
     pub const EDOM: Self = Error::new(rko_sys::rko::err::EDOM);
+    pub const EAGAIN: Self = Error::new(rko_sys::rko::err::EAGAIN);
     pub const EISDIR: Self = Error::new(rko_sys::rko::err::EISDIR);
     pub const EFAULT: Self = Error::new(rko_sys::rko::err::EFAULT);
 

@@ -8,6 +8,7 @@ pub mod completion;
 pub mod condvar;
 pub mod lock;
 pub mod nowaitlock;
+pub mod oneshot;
 pub mod rcu;
 mod refcount;
 

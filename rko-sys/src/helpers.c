@@ -498,3 +498,22 @@ unsigned long rust_helper_wait_for_completion_timeout(struct completion *x,
 {
 	return wait_for_completion_timeout(x, timeout);
 }
+
+// Delayed work
+
+bool rust_helper_queue_delayed_work(struct workqueue_struct *wq,
+				    struct delayed_work *dwork,
+				    unsigned long delay)
+{
+	return queue_delayed_work(wq, dwork, delay);
+}
+
+// io_uring command helpers
+
+#include <linux/io_uring/cmd.h>
+
+void rust_helper_io_uring_cmd_done(struct io_uring_cmd *cmd,
+				   int ret, unsigned int issue_flags)
+{
+	io_uring_cmd_done(cmd, ret, issue_flags);
+}

@@ -26,10 +26,14 @@ pub mod gfp;
 pub mod helpers;
 #[cfg(feature = "highmem")]
 pub mod highmem;
+#[cfg(feature = "io_uring")]
+pub mod io_uring;
 #[cfg(feature = "iomap")]
 pub mod iomap;
 #[cfg(feature = "kunit")]
 pub mod kunit;
+#[cfg(feature = "misc")]
+pub mod misc;
 #[cfg(feature = "mm_types")]
 pub mod mm_types;
 #[cfg(feature = "net")]

@@ -166,6 +166,19 @@ windows_link::link!("kernel" "C" fn rust_helper_inode_set_flags(inode : *mut sup
 ))]
 windows_link::link!("kernel" "C" fn rust_helper_inode_set_fop(inode : *mut super::fs:: inode, fop : *const super::fs:: file_operations));
 #[cfg(all(
+    feature = "cred",
+    feature = "dcache",
+    feature = "ds",
+    feature = "fs",
+    feature = "io_uring",
+    feature = "mm_types",
+    feature = "sync",
+    feature = "types",
+    feature = "wait",
+    feature = "workqueue"
+))]
+windows_link::link!("kernel" "C" fn rust_helper_io_uring_cmd_done(cmd : *mut super::io_uring:: io_uring_cmd, ret : i32, issue_flags : u32));
+#[cfg(all(
     feature = "ds",
     feature = "iomap",
     feature = "mm_types",
@@ -236,6 +249,8 @@ windows_link::link!("kernel" "C" fn rust_helper_page_symlink_inode_operations() 
 windows_link::link!("kernel" "C" fn rust_helper_put_net(net : *mut core::ffi::c_void));
 #[cfg(feature = "fs")]
 windows_link::link!("kernel" "C" fn rust_helper_put_task_struct(t : *mut super::fs:: task_struct));
+#[cfg(all(feature = "fs", feature = "types", feature = "workqueue"))]
+windows_link::link!("kernel" "C" fn rust_helper_queue_delayed_work(wq : *mut core::ffi::c_void, dwork : *mut super::workqueue:: delayed_work, delay : u64) -> bool);
 windows_link::link!("kernel" "C" fn rust_helper_rcu_read_lock());
 windows_link::link!("kernel" "C" fn rust_helper_rcu_read_unlock());
 #[cfg(all(

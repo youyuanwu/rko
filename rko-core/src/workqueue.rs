@@ -149,11 +149,27 @@ impl Queue {
             })
         }
     }
-}
 
-// ---------------------------------------------------------------------------
-// RawWorkItem
-// ---------------------------------------------------------------------------
+    /// Enqueue a delayed work item.
+    ///
+    /// The work will execute after `delay` jiffies. Returns `true` if
+    /// the work was successfully queued, `false` if it was already pending.
+    ///
+    /// # Safety
+    ///
+    /// `dwork` must point to a valid, initialized `delayed_work` that is
+    /// not currently queued.
+    pub unsafe fn enqueue_delayed(
+        &self,
+        dwork: *mut rko_sys::rko::workqueue::delayed_work,
+        delay_jiffies: u64,
+    ) -> bool {
+        let queue_ptr = self as *const Queue as *mut core::ffi::c_void;
+        unsafe {
+            rko_sys::rko::helpers::rust_helper_queue_delayed_work(queue_ptr, dwork, delay_jiffies)
+        }
+    }
+}
 
 /// A raw work item.
 ///

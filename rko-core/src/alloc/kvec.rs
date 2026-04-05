@@ -89,6 +89,37 @@ impl<T, A: Allocator> Vec<T, A> {
         Some(unsafe { self.ptr.as_ptr().add(self.len).read() })
     }
 
+    /// Removes and returns the element at `index`, shifting all elements
+    /// after it to the left. Panics if `index >= len`.
+    pub fn remove(&mut self, index: usize) -> T {
+        assert!(index < self.len, "index out of bounds");
+        let p = self.ptr.as_ptr();
+        // SAFETY: index < len, so p.add(index) is initialized.
+        let result = unsafe { p.add(index).read() };
+        let count = self.len - index - 1;
+        if count > 0 {
+            // SAFETY: Shift [index+1..len] left by one. Regions may overlap.
+            unsafe { ptr::copy(p.add(index + 1), p.add(index), count) };
+        }
+        self.len -= 1;
+        result
+    }
+
+    /// Removes and returns the element at `index`, replacing it with
+    /// the last element. Does not preserve ordering. Panics if
+    /// `index >= len`.
+    pub fn swap_remove(&mut self, index: usize) -> T {
+        assert!(index < self.len, "index out of bounds");
+        let p = self.ptr.as_ptr();
+        self.len -= 1;
+        if index != self.len {
+            // SAFETY: Both index and self.len are valid initialized positions.
+            unsafe { ptr::swap(p.add(index), p.add(self.len)) };
+        }
+        // SAFETY: Element at self.len is initialized (either original or swapped).
+        unsafe { p.add(self.len).read() }
+    }
+
     /// Returns a slice of the initialized elements.
     pub fn as_slice(&self) -> &[T] {
         // SAFETY: ptr..ptr+len are initialized.

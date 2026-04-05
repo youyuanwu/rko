@@ -108,4 +108,69 @@ pub mod kvec_tests {
         assert_eq!(v.len(), 0);
         assert_eq!(v.capacity(), 0);
     }
+
+    #[test]
+    fn remove_middle() {
+        let mut v = KVec::new();
+        v.push(10i32, Flags::GFP_KERNEL).unwrap();
+        v.push(20, Flags::GFP_KERNEL).unwrap();
+        v.push(30, Flags::GFP_KERNEL).unwrap();
+        v.push(40, Flags::GFP_KERNEL).unwrap();
+        let removed = v.remove(1);
+        assert_eq!(removed, 20);
+        assert_eq!(v.len(), 3);
+        assert_eq!(v[0], 10);
+        assert_eq!(v[1], 30);
+        assert_eq!(v[2], 40);
+    }
+
+    #[test]
+    fn remove_first() {
+        let mut v = KVec::new();
+        v.push(1i32, Flags::GFP_KERNEL).unwrap();
+        v.push(2, Flags::GFP_KERNEL).unwrap();
+        v.push(3, Flags::GFP_KERNEL).unwrap();
+        let removed = v.remove(0);
+        assert_eq!(removed, 1);
+        assert_eq!(v.len(), 2);
+        assert_eq!(v[0], 2);
+        assert_eq!(v[1], 3);
+    }
+
+    #[test]
+    fn remove_last() {
+        let mut v = KVec::new();
+        v.push(1i32, Flags::GFP_KERNEL).unwrap();
+        v.push(2, Flags::GFP_KERNEL).unwrap();
+        let removed = v.remove(1);
+        assert_eq!(removed, 2);
+        assert_eq!(v.len(), 1);
+        assert_eq!(v[0], 1);
+    }
+
+    #[test]
+    fn swap_remove_middle() {
+        let mut v = KVec::new();
+        v.push(10i32, Flags::GFP_KERNEL).unwrap();
+        v.push(20, Flags::GFP_KERNEL).unwrap();
+        v.push(30, Flags::GFP_KERNEL).unwrap();
+        v.push(40, Flags::GFP_KERNEL).unwrap();
+        let removed = v.swap_remove(1);
+        assert_eq!(removed, 20);
+        assert_eq!(v.len(), 3);
+        assert_eq!(v[0], 10);
+        assert_eq!(v[1], 40); // last element moved here
+        assert_eq!(v[2], 30);
+    }
+
+    #[test]
+    fn swap_remove_last() {
+        let mut v = KVec::new();
+        v.push(1i32, Flags::GFP_KERNEL).unwrap();
+        v.push(2, Flags::GFP_KERNEL).unwrap();
+        let removed = v.swap_remove(1);
+        assert_eq!(removed, 2);
+        assert_eq!(v.len(), 1);
+        assert_eq!(v[0], 1);
+    }
 }

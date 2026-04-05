@@ -329,10 +329,92 @@ traverse = [
   "kunit/assert.h",
 ]
 
+# ── Partition: io_uring command support ────────────────────────────
+[[partition]]
+namespace = "rko.io_uring"
+library = "kernel"
+headers = ["linux/io_uring/cmd.h"]
+traverse = [
+  "linux/io_uring/cmd.h",
+  "linux/io_uring_types.h",
+  "uapi/linux/io_uring.h",
+]
+
+# ── Partition: miscdevice support ─────────────────────────────────
+[[partition]]
+namespace = "rko.misc"
+library = "kernel"
+headers = ["linux/miscdevice.h"]
+traverse = [
+  "linux/miscdevice.h",
+]
+
 # ── Injected types ─────────────────────────────────────────────────
 # Types bnd-winmd cannot extract (bitfield enums, anonymous enums) or
 # types we keep opaque to avoid cascading traverse expansion.
 # Sizes obtained from clang sizeof/alignof on x86_64.
+
+# -- misc: opaque types --
+
+# Sysfs attribute group (linux/sysfs.h) — pointer-only in miscdevice
+[[inject_type]]
+namespace = "rko.misc"
+name = "attribute_group"
+kind = "struct"
+size = 48
+align = 8
+
+# -- io_uring: opaque types to cut dependency cascade --
+
+# Block layer plug (linux/blkdev.h) — used by io_submit_state
+[[inject_type]]
+namespace = "rko.io_uring"
+name = "blk_plug"
+kind = "struct"
+size = 32
+align = 8
+
+# Percpu refcount (linux/percpu-refcount.h) — used by io_ring_ctx
+[[inject_type]]
+namespace = "rko.io_uring"
+name = "percpu_ref"
+kind = "struct"
+size = 32
+align = 8
+
+# Extended CQE (linux/io_uring_types.h) — nested in io_kiocb
+[[inject_type]]
+namespace = "rko.io_uring"
+name = "io_big_cqe"
+kind = "struct"
+size = 16
+align = 8
+
+# Block request (linux/blk-mq.h) — param of io_buffer_register_bvec
+[[inject_type]]
+namespace = "rko.io_uring"
+name = "request"
+kind = "struct"
+size = 32
+align = 8
+
+# Timekeeping offsets enum (linux/timekeeping.h) — used by io_ring_ctx
+[[inject_type]]
+namespace = "rko.io_uring"
+name = "tk_offsets"
+kind = "enum"
+size = 4
+align = 4
+underlying = "i32"
+
+# Task work notify mode enum (linux/task_work.h) — used by io_ring_ctx
+[[inject_type]]
+namespace = "rko.io_uring"
+name = "task_work_notify_mode"
+kind = "enum"
+size = 4
+align = 4
+underlying = "i32"
 
 # -- Opaque structs (embedded by value — need correct size) --
 
