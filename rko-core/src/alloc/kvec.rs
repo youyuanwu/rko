@@ -186,6 +186,13 @@ impl<T, A: Allocator> Vec<T, A> {
 }
 
 impl<T: Clone, A: Allocator> Vec<T, A> {
+    /// Create a vector by copying from a slice.
+    pub fn from_slice(data: &[T], flags: Flags) -> Result<Self, AllocError> {
+        let mut v = Self::with_capacity(data.len(), flags)?;
+        v.extend_from_slice(data, flags)?;
+        Ok(v)
+    }
+
     /// Appends all elements from a slice (cloning each).
     pub fn extend_from_slice(&mut self, other: &[T], flags: Flags) -> Result<(), AllocError> {
         self.reserve(other.len(), flags)?;

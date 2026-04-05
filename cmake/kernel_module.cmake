@@ -72,11 +72,14 @@ function(add_kernel_module)
   endif()
 
   # Step 1: cargo build → lib<name>.a
+  # Always re-run cargo — it has its own incremental detection and
+  # is fast (~0.1s) when nothing changed. CMake DEPENDS can't track
+  # transitive Rust source changes across crate boundaries.
   set(CARGO_TARGET_CFG "build.target=\"${KBIN_ROOT}/scripts/target.json\"")
   set(KBUILD_LINE1 "obj-m := ${KM_NAME}.o")
   set(KBUILD_LINE2 "${KM_NAME}-y := ${KBUILD_OBJS}")
-  add_custom_command(
-    OUTPUT ${BUILD_DIR}/lib${KM_NAME}.a
+  set(CARGO_STAMP ${BUILD_DIR}/.cargo_stamp)
+  add_custom_target(${KM_NAME}_cargo
     COMMAND ${CMAKE_COMMAND} -E make_directory ${BUILD_DIR}
     COMMAND sh -c "printf '%s\\n' '${KBUILD_LINE1}' '${KBUILD_LINE2}' > '${BUILD_DIR}/Kbuild'"
     COMMAND ${CMAKE_COMMAND} -E env RUSTC_BOOTSTRAP=1
@@ -87,8 +90,8 @@ function(add_kernel_module)
         -p ${KM_NAME}
         --manifest-path ${SAMPLE_DIR}/Cargo.toml
         --artifact-dir ${BUILD_DIR}
+    COMMAND ${CMAKE_COMMAND} -E touch ${CARGO_STAMP}
     WORKING_DIRECTORY ${SAMPLES_DIR}
-    DEPENDS ${SAMPLE_DIR}/${KM_NAME}.rs ${SAMPLE_DIR}/Cargo.toml
     COMMENT "cargo build ${KM_NAME}"
     USES_TERMINAL
     VERBATIM
@@ -100,7 +103,8 @@ function(add_kernel_module)
     COMMAND ld -r --whole-archive ${BUILD_DIR}/lib${KM_NAME}.a
             ${HELPERS_OBJ}
             -o ${BUILD_DIR}/${KM_NAME}_rust.o
-    DEPENDS ${BUILD_DIR}/lib${KM_NAME}.a helpers_obj
+    DEPENDS ${KM_NAME}_cargo helpers_obj
+            ${BUILD_DIR}/lib${KM_NAME}.a
     COMMENT "ld -r ${KM_NAME} + helpers"
   )
 

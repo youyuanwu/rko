@@ -15,6 +15,8 @@ mod tests {
     pub mod completion;
     pub mod error;
     pub mod executor;
+    pub mod http;
+    pub mod http_integration;
     pub mod ktime;
     pub mod kvec;
     pub mod memcache;
@@ -30,6 +32,7 @@ struct KunitTests;
 impl Module for KunitTests {
     fn init() -> Result<Self, Error> {
         tests::kvec::kvec_tests::run()?;
+        tests::http::http_tests::run()?;
         tests::completion::completion_tests::run()?;
         tests::error::error_tests::run()?;
         tests::ktime::ktime_tests::run()?;
@@ -40,6 +43,7 @@ impl Module for KunitTests {
         tests::async_echo::async_echo_tests::run()?;
         tests::workqueue::workqueue_tests::run()?;
         tests::executor::executor_tests::run()?;
+        tests::http_integration::http_integration_tests::run()?;
         pr_info!("TEST OK\n");
         Ok(KunitTests)
     }

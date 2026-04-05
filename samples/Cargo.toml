@@ -5,6 +5,7 @@ members = ["hello", "kvec_test", "rofs_test", "tarfs", "ext2", "workqueue_test",
 
 [workspace.dependencies]
 rko-core = { path = "../rko-core" }
+rko-util = { path = "../rko-util" }
 
 [profile.dev]
 panic = "abort"

@@ -13,3 +13,4 @@ bench = false
 
 [dependencies]
 rko-core.workspace = true
+rko-util.workspace = true

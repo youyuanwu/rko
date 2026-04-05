@@ -1,17 +1,19 @@
 [workspace]
 resolver = "2"
 
-members = ["rko-sys", "rko-sys-gen", "rko-core", "rko-macros"]
+members = ["rko-sys", "rko-sys-gen", "rko-core", "rko-macros", "rko-util"]
 exclude = ["samples"]
 
 [workspace.dependencies]
 rko-sys = { path = "rko-sys" }
 rko-core = { path = "rko-core" }
+rko-util = { path = "rko-util" }
 rko-macros = { path = "rko-macros" }
 bitflags = "2"
 # bnd-winmd = { path = "../rs/bnd/bnd-winmd" }
 bnd-winmd = "0.0.7"
 pinned-init = { version = "0.0.10", default-features = false }
+httparse = { version = "1.10", default-features = false }
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 windows-bindgen = "0.66"
 windows-link = "0.2"

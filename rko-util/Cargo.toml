@@ -1,0 +1,8 @@
+[package]
+name = "rko-util"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+rko-core.workspace = true
+httparse.workspace = true
