@@ -86,7 +86,7 @@ function(add_kernel_module)
       cargo
         --config ${SAMPLES_DIR}/cargo-kernel.toml
         --config ${CARGO_TARGET_CFG}
-        -Z unstable-options build --release
+        -Z unstable-options -Z json-target-spec build --release
         -p ${KM_NAME}
         --manifest-path ${SAMPLE_DIR}/Cargo.toml
         --artifact-dir ${BUILD_DIR}
