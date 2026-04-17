@@ -48,7 +48,7 @@ jobs:
       run: |
         git clone --branch ${{ env.TAG }} --depth 1 https://github.com/torvalds/linux.git ./linux
       env:
-        TAG: v7.0-rc6
+        TAG: v7.0
 
     - name: Configure cmake
       run: cmake -S . -B build -DENABLE_KVM=OFF
