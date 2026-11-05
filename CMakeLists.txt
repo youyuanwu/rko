@@ -106,7 +106,7 @@ enable_testing()
 
 # Run rko-sys-gen to regenerate rko-sys bindings from kernel headers
 add_custom_target(generate_bindings
-  COMMAND cargo run -p rko-sys-gen
+  COMMAND cargo run --locked -p rko-sys-gen
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
   COMMENT "Generating rko-sys bindings (bnd-winmd → windows-bindgen)"
   USES_TERMINAL
@@ -134,9 +134,9 @@ add_custom_target(clean_samples
 
 add_custom_target(rust_check
   COMMAND cargo fmt
-  COMMAND cargo clippy --all-targets -- -D warnings
+  COMMAND cargo clippy --locked --all-targets -- -D warnings
   COMMAND cd samples && cargo fmt
-  COMMAND cd samples && cargo clippy --all-targets -- -D warnings
+  COMMAND cd samples && cargo clippy --locked --all-targets -- -D warnings
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
   COMMENT "Running cargo check on all Rust code"
   USES_TERMINAL
