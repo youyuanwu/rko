@@ -34,9 +34,9 @@ cmake --build build --target configure_linux --verbose
 cmake --build build --target make_linux --parallel 4 --verbose
 
 # Check Rust code
-cargo check
+cargo check --locked
 cargo fmt --all -- --check
-cargo clippy --all-targets -- -D warnings
+cargo clippy --locked --all-targets -- -D warnings
 
 # Build modules and test in QEMU
 cmake --build build --target all

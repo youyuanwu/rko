@@ -1,6 +1,9 @@
 name: build
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [main]
+  pull_request:
 
 jobs:
   build:
@@ -21,19 +24,16 @@ jobs:
       with:
         version: "v0.10.0"
 
-    - name: Read rust version from rust-toolchain.toml
-      id: rust-version
-      run: echo "version=$(grep '^channel' rust-toolchain.toml | sed 's/.*"\(.*\)"/\1/')" >> "$GITHUB_OUTPUT"
-
-    - name: Install rust stable
-      uses: dtolnay/rust-toolchain@stable
+    - name: Setup Rust toolchain and cache
+      uses: actions-rust-lang/setup-rust-toolchain@v1
       with:
-        toolchain: ${{ steps.rust-version.outputs.version }}
         components: rustfmt, clippy, rust-src
-        targets: x86_64-unknown-linux-musl
-
-    - name: Set rust version
-      run: rustup override set ${{ steps.rust-version.outputs.version }}
+        target: x86_64-unknown-linux-musl
+        # Preserve Cargo's kernel target rustflags.
+        rustflags: ""
+        cache-workspaces: |
+          . -> target
+          samples -> target
 
     - uses: taiki-e/install-action@v2
       with:
@@ -62,13 +62,13 @@ jobs:
         ls -la linux_bin/scripts/
 
     - name: Run cargo check
-      run: cargo check
+      run: cargo check --locked
 
     - name: Run cargo fmt
       run: cargo fmt --all -- --check
     
     - name: Run cargo clippy
-      run: cargo clippy --all-targets -- -D warnings
+      run: cargo clippy --locked --all-targets -- -D warnings
 
     - name: Build all kmods
       run: cmake --build build --target all

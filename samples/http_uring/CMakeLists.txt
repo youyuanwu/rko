@@ -3,7 +3,7 @@ set(SAMPLE_BUILD_DIR ${CMAKE_CURRENT_SOURCE_DIR}/build)
 
 # Build the userspace test binary (static, musl)
 add_custom_target(http_uring_test_bin
-  COMMAND cargo build -p rko-test-uring --release --target x86_64-unknown-linux-musl
+  COMMAND cargo build --locked -p rko-test-uring --release --target x86_64-unknown-linux-musl
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
   COMMENT "Building http_uring_test (musl static)"
 )
