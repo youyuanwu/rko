@@ -17,20 +17,34 @@ linking. CMake orchestrates the two phases.
 
 ## Quick Start
 
-**Prerequisites:** Linux kernel built with `CONFIG_RUST=y` and `LLVM=1`, Rust 1.93.0+ with `rust-src`, CMake, QEMU, busybox.
+Requires x86_64 Linux, rustup, and the system dependencies listed in
+[CI](.github/workflows/CI.yml). Run from the repository root; rustup selects
+the pinned toolchain automatically.
 
 ```sh
-# Symlink kernel source and build output
-ln -s /path/to/linux linux
-ln -s /path/to/linux-build linux_bin
+# Tools and kernel source
+rustup component add rust-src rustfmt clippy
+rustup target add x86_64-unknown-linux-musl
+cargo install --locked bindgen-cli
+git submodule update --init --depth 1 linux
 
-# Build all kernel modules
-cmake -B build
-cmake --build build
+# Configure and build the kernel
+cmake -S . -B build -DENABLE_KVM=OFF
+cmake --build build --target configure_linux --verbose
+cmake --build build --target make_linux --parallel 4 --verbose
 
-# Test in QEMU
-ctest --test-dir build
+# Check Rust code
+cargo check
+cargo fmt --all -- --check
+cargo clippy --all-targets -- -D warnings
+
+# Build modules and test in QEMU
+cmake --build build --target all
+ctest --test-dir build --verbose
 ```
+
+Kernel output goes to `linux_bin/`; modules to `samples/<name>/build/<name>.ko`.
+Use `--parallel 1` on memory-constrained hosts.
 
 ## Samples
 

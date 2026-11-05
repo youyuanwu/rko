@@ -160,7 +160,7 @@ Set in `.cargo/config.toml` and `samples/cargo-kernel.toml`.
 **Not adopted**: `unsafe_pinned` (API unstable), `ptr_metadata`
 (not needed), `allocator_api` (not needed).
 
-Toolchain pinned in `rust-toolchain.toml` (1.94.0).
+Toolchain pinned in [rust-toolchain.toml](../../../rust-toolchain.toml).
 
 ## Future Work
 

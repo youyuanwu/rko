@@ -15,11 +15,9 @@ endif()
 
 
 # Check that the kernel source directory exists
-# Manually create a symlink: 
-# ln -s ../linux linux
+# Initialize the source and symlink build output:
+# git submodule update --init --depth 1 linux
 # ln -s ../linux_bin linux_bin
-# Or manually unlink: 
-# unlink ./linux
 if(NOT EXISTS ${KDIR_ROOT}/Makefile)
   message(FATAL_ERROR "Kernel source directory not found: ${KDIR_ROOT}")
 endif()
