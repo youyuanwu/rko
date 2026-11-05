@@ -8,7 +8,7 @@
 use core::cmp;
 
 use crate::error::Error;
-use rko_sys::rko::{fs as bindings, helpers as bindings_h, mm_types as mm_b, pagemap as pagemap_b};
+use rko_sys as bindings;
 
 use super::{Offset, PAGE_SIZE};
 
@@ -19,7 +19,7 @@ type Result<T = ()> = core::result::Result<T, Error>;
 /// Holds a folio reference and provides access to its data. The folio
 /// is released (put) on drop.
 pub struct MappedFolio {
-    folio: *mut mm_b::folio,
+    folio: *mut bindings::folio,
     data: *const u8,
     offset_in_folio: usize,
     len: usize,
@@ -45,8 +45,8 @@ impl Drop for MappedFolio {
     fn drop(&mut self) {
         // Unmap and release the folio.
         unsafe {
-            bindings_h::rust_helper_kunmap_local(self.data as *const _);
-            bindings_h::rust_helper_folio_put(self.folio);
+            bindings::rust_helper_kunmap_local(self.data as *const _);
+            bindings::rust_helper_folio_put(self.folio);
         }
     }
 }
@@ -68,7 +68,7 @@ unsafe impl Sync for Mapper {}
 impl Mapper {
     /// Create a Mapper from a typed SuperBlock reference (any state).
     pub fn new<T: super::FileSystem, S>(sb: &super::sb::SuperBlock<T, S>) -> Self {
-        let mapping = unsafe { bindings_h::rust_helper_sb_bdev_mapping(sb.as_ptr()) };
+        let mapping = unsafe { bindings::rust_helper_sb_bdev_mapping(sb.as_ptr()) };
         Self { mapping }
     }
 
@@ -80,7 +80,7 @@ impl Mapper {
     /// and `s_bdev` must be valid.
     pub unsafe fn from_sb(sb: *mut bindings::super_block) -> Self {
         // Get the block device's address_space directly via bd_mapping.
-        let mapping = unsafe { bindings_h::rust_helper_sb_bdev_mapping(sb) };
+        let mapping = unsafe { bindings::rust_helper_sb_bdev_mapping(sb) };
         Self { mapping }
     }
 
@@ -100,18 +100,18 @@ impl Mapper {
         // Read the folio from the page cache (triggers I/O if not cached).
         // Use read_cache_folio with NULL filler (uses default readpage).
         let folio = unsafe {
-            pagemap_b::read_cache_folio(
+            bindings::read_cache_folio(
                 self.mapping,
                 page_index,
-                core::ptr::null_mut(), // NULL filler = use default aops
+                None,                  // NULL filler = use default aops
                 core::ptr::null_mut(), // no file context
             )
         };
 
         // Check for IS_ERR first (ERR_PTR is non-null).
-        if unsafe { bindings_h::rust_helper_IS_ERR(folio.cast()) } {
+        if unsafe { bindings::rust_helper_IS_ERR(folio.cast()) } {
             return Err(Error::new(
-                unsafe { bindings_h::rust_helper_PTR_ERR(folio.cast()) } as i32,
+                unsafe { bindings::rust_helper_PTR_ERR(folio.cast()) } as i32,
             ));
         }
 
@@ -119,7 +119,7 @@ impl Mapper {
             return Err(Error::EIO);
         }
 
-        let data = unsafe { bindings_h::rust_helper_kmap_local_folio(folio, 0) };
+        let data = unsafe { bindings::rust_helper_kmap_local_folio(folio, 0) };
 
         let len = PAGE_SIZE - offset_in_page;
 

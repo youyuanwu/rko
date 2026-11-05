@@ -7,7 +7,7 @@
 //!
 //! See `docs/design/features/test-framework.md`.
 
-use rko_sys::rko::kunit as bindings;
+use rko_sys as bindings;
 
 /// Trait to normalize test return types.
 ///
@@ -43,13 +43,13 @@ pub fn is_test_result_ok(t: &impl TestResult) -> bool {
 
 /// Returns `true` if the current task is running inside a KUnit test.
 pub fn in_kunit_test() -> bool {
-    !unsafe { rko_sys::rko::helpers::rust_helper_kunit_get_current_test() }.is_null()
+    !unsafe { rko_sys::rust_helper_kunit_get_current_test() }.is_null()
 }
 
 /// Get a pointer to the currently-running KUnit test, or null.
 #[doc(hidden)]
-pub fn kunit_get_current_test() -> *mut core::ffi::c_void {
-    unsafe { rko_sys::rko::helpers::rust_helper_kunit_get_current_test() }
+pub fn kunit_get_current_test() -> *mut bindings::kunit {
+    unsafe { rko_sys::rust_helper_kunit_get_current_test() }
 }
 
 /// Mark a KUnit test as failed. No-op when `CONFIG_KUNIT` is disabled.
@@ -58,15 +58,15 @@ pub fn kunit_get_current_test() -> *mut core::ffi::c_void {
 ///
 /// `test` must be a valid pointer obtained from `kunit_get_current_test()`.
 #[doc(hidden)]
-pub unsafe fn kunit_mark_failed(test: *mut core::ffi::c_void) {
-    unsafe { rko_sys::rko::helpers::rust_helper_kunit_mark_failed(test) }
+pub unsafe fn kunit_mark_failed(test: *mut bindings::kunit) {
+    unsafe { rko_sys::rust_helper_kunit_mark_failed(test.cast()) }
 }
 
 // Re-export generated types used by the proc macro's codegen.
 #[doc(hidden)]
 pub use bindings::{
-    KUNIT_SKIPPED, KUNIT_SPEED_NORMAL, KUNIT_SUCCESS, kunit_attributes, kunit_case, kunit_status,
-    kunit_suite,
+    KUNIT_SKIPPED, KUNIT_SPEED_NORMAL, KUNIT_SUCCESS, kunit, kunit_attributes, kunit_case,
+    kunit_status, kunit_suite,
 };
 
 /// Create a `kunit_case` entry for a test function.
@@ -75,18 +75,17 @@ pub use bindings::{
 #[doc(hidden)]
 pub const fn new_kunit_case(
     name: *const core::ffi::c_char,
-    run_case: unsafe extern "C" fn(*mut core::ffi::c_void),
+    run_case: unsafe extern "C" fn(*mut bindings::kunit),
 ) -> bindings::kunit_case {
     bindings::kunit_case {
-        // bnd-winmd represents function pointers as `*mut isize`.
-        run_case: run_case as *mut isize,
+        run_case: Some(run_case),
         name: name as *mut _,
-        generate_params: core::ptr::null_mut(),
+        generate_params: None,
         attr: bindings::kunit_attributes {
             speed: bindings::KUNIT_SPEED_NORMAL,
         },
-        param_init: core::ptr::null_mut(),
-        param_exit: core::ptr::null_mut(),
+        param_init: None,
+        param_exit: None,
         status: bindings::KUNIT_SUCCESS,
         module_name: core::ptr::null_mut(),
         log: core::ptr::null_mut(),
@@ -131,10 +130,10 @@ macro_rules! kunit_unsafe_test_suite {
 
             static mut KUNIT_TEST_SUITE: $crate::kunit::kunit_suite = $crate::kunit::kunit_suite {
                 name: KUNIT_SUITE_NAME,
-                suite_init: core::ptr::null_mut(),
-                suite_exit: core::ptr::null_mut(),
-                init: core::ptr::null_mut(),
-                exit: core::ptr::null_mut(),
+                suite_init: None,
+                suite_exit: None,
+                init: None,
+                exit: None,
                 #[allow(unused_unsafe)]
                 test_cases: unsafe {
                     core::ptr::addr_of_mut!($test_cases).cast::<$crate::kunit::kunit_case>()

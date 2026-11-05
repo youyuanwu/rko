@@ -1,8 +1,7 @@
 //! IP address and socket address types.
 //!
-//! These are hand-written `#[repr(C)]` structs because the kernel UAPI types
-//! (`sockaddr_in`, `in_addr`, etc.) use anonymous unions/enums that
-//! bnd-winmd cannot extract.
+//! Hand-written `#[repr(C)]` address types provide ergonomic constructors
+//! while matching the kernel UAPI layouts.
 
 use super::{AF_INET, AF_INET6};
 

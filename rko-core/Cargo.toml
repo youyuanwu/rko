@@ -4,10 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-rko-sys = { workspace = true, features = [
-    "fs", "fs_context", "helpers", "pagemap", "dcache", "slab", "gfp",
-    "sync", "types", "net", "workqueue", "poll",
-] }
+rko-sys.workspace = true
 bitflags.workspace = true
 pinned-init.workspace = true
 rko-macros.workspace = true

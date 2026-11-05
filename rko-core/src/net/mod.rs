@@ -11,7 +11,7 @@ pub use addr::{Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6};
 pub use namespace::Namespace;
 pub use tcp::{TcpListener, TcpStream};
 
-/// Address family constants (not extracted by bnd-winmd).
+/// Address family constants.
 pub const AF_INET: i32 = 2;
 pub const AF_INET6: i32 = 10;
 /// Socket type for stream (TCP) sockets.

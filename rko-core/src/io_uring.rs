@@ -9,8 +9,7 @@
 //! See `docs/design/features/futures/io-uring-cmd.md` for design details.
 // UPSTREAM_REF: include/linux/io_uring/cmd.h
 
-use rko_sys::rko::helpers as h;
-use rko_sys::rko::io_uring as uring_b;
+use rko_sys as bindings;
 
 /// Wraps `struct io_uring_cmd` with a safe interface.
 ///
@@ -23,7 +22,7 @@ use rko_sys::rko::io_uring as uring_b;
 /// callback. For async completion (via [`defer`](Self::defer)),
 /// validity extends until [`IoUringCmdAsync::done`] is called.
 pub struct IoUringCmd {
-    cmd: *mut uring_b::io_uring_cmd,
+    cmd: *mut bindings::io_uring_cmd,
 }
 
 // SAFETY: io_uring_cmd is passed between threads by the io_uring core.
@@ -36,12 +35,12 @@ impl IoUringCmd {
     ///
     /// `cmd` must be a valid `struct io_uring_cmd *` from the kernel's
     /// uring_cmd callback.
-    pub unsafe fn from_raw(cmd: *mut uring_b::io_uring_cmd) -> Self {
+    pub unsafe fn from_raw(cmd: *mut bindings::io_uring_cmd) -> Self {
         Self { cmd }
     }
 
     /// The raw pointer to the underlying `struct io_uring_cmd`.
-    pub fn as_raw(&self) -> *mut uring_b::io_uring_cmd {
+    pub fn as_raw(&self) -> *mut bindings::io_uring_cmd {
         self.cmd
     }
 
@@ -64,7 +63,7 @@ impl IoUringCmd {
     pub unsafe fn cmd_data<T: Sized>(&self) -> &T {
         // SAFETY: cmd and sqe are valid. The cmd[] flexible array in the
         // SQE extends up to 80 bytes in SQE128.
-        let ptr = unsafe { (*(*self.cmd).sqe).io_uring_sqe__anon_5.cmd.as_ptr() };
+        let ptr = unsafe { (*(*self.cmd).sqe).__bindgen_anon_6.cmd.as_ref().as_ptr() };
         debug_assert!(core::mem::size_of::<T>() <= 80);
         unsafe { &*ptr.cast::<T>() }
     }
@@ -72,7 +71,7 @@ impl IoUringCmd {
     /// The `addr` field from the SQE (typically a userspace buffer pointer).
     pub fn sqe_addr(&self) -> u64 {
         // SAFETY: cmd and cmd.sqe are valid for the callback duration.
-        unsafe { (*(*self.cmd).sqe).io_uring_sqe__anon_1.addr }
+        unsafe { (*(*self.cmd).sqe).__bindgen_anon_2.addr }
     }
 
     /// The `len` field from the SQE (typically a buffer length).
@@ -99,7 +98,7 @@ impl IoUringCmd {
     /// Consumes `self` — prevents double-completion at compile time.
     /// `ret` is the result value posted in the CQE.
     pub fn done(self, ret: i32, issue_flags: IssueFlags) {
-        unsafe { h::rust_helper_io_uring_cmd_done(self.cmd, ret, issue_flags.0) };
+        unsafe { bindings::rust_helper_io_uring_cmd_done(self.cmd, ret, issue_flags.0) };
     }
 
     /// Defer completion — returns an [`IoUringCmdAsync`] that must be
@@ -119,12 +118,12 @@ impl IoUringCmd {
     /// the uring_cmd callback again with `flags.is_cancel() == true`.
     pub fn mark_cancelable(&self, issue_flags: IssueFlags) {
         unsafe {
-            uring_b::io_uring_cmd_mark_cancelable(self.cmd, issue_flags.0);
+            bindings::io_uring_cmd_mark_cancelable(self.cmd, issue_flags.0);
         }
     }
 
     /// The raw `struct file *` this command targets.
-    pub fn file(&self) -> *mut rko_sys::rko::fs::file {
+    pub fn file(&self) -> *mut rko_sys::file {
         unsafe { (*self.cmd).file }
     }
 }
@@ -135,7 +134,7 @@ impl IoUringCmd {
 /// the CQE. Dropping without calling `done` is a bug — the `#[must_use]`
 /// attribute on `IoUringCmd::defer()` warns about this.
 pub struct IoUringCmdAsync {
-    cmd: *mut uring_b::io_uring_cmd,
+    cmd: *mut bindings::io_uring_cmd,
 }
 
 // SAFETY: Deferred commands can be completed from any thread.
@@ -147,11 +146,11 @@ impl IoUringCmdAsync {
     ///
     /// Posts a CQE with `ret` as the result. Consumes self.
     pub fn done(self, ret: i32, issue_flags: IssueFlags) {
-        unsafe { h::rust_helper_io_uring_cmd_done(self.cmd, ret, issue_flags.0) };
+        unsafe { bindings::rust_helper_io_uring_cmd_done(self.cmd, ret, issue_flags.0) };
     }
 
     /// The raw pointer to the underlying `struct io_uring_cmd`.
-    pub fn as_raw(&self) -> *mut uring_b::io_uring_cmd {
+    pub fn as_raw(&self) -> *mut bindings::io_uring_cmd {
         self.cmd
     }
 

@@ -5,7 +5,7 @@
 //! Used by `read_dir` implementations to emit directory entries
 //! back to userspace via the kernel's `dir_emit` helper.
 
-use rko_sys::rko::{fs as bindings, helpers as bindings_h};
+use rko_sys as bindings;
 
 /// File offset type.
 pub type Offset = i64;
@@ -137,7 +137,7 @@ impl DirEmitter {
     /// userspace buffer is full (stop iterating).
     pub fn emit(&mut self, pos_inc: Offset, name: &[u8], ino: Ino, etype: DirEntryType) -> bool {
         let ok = unsafe {
-            bindings_h::rust_helper_dir_emit(
+            bindings::rust_helper_dir_emit(
                 &mut self.0,
                 name.as_ptr().cast(),
                 name.len() as i32,

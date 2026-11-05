@@ -176,8 +176,9 @@ Samples live in a separate Cargo workspace (`samples/Cargo.toml`) with
 `panic = "abort"` set in their profile. The root workspace (`Cargo.toml`)
 uses the default panic strategy (unwind). This separation is necessary
 because `staticlib` + `no_std` crates require `panic = "abort"`, but
-applying that workspace-wide would affect the host-target generator
-(`rko-sys-gen`). Samples are listed in the root workspace's `exclude`.
+applying that workspace-wide would affect host-side libraries and tests.
+The bindgen build script runs on the host even for kernel-target builds.
+Samples are listed in the root workspace's `exclude`.
 
 Both workspaces use `[workspace.dependencies]` to centralize versions.
 The samples workspace declares `rko-core` as a workspace dependency, and
@@ -202,7 +203,3 @@ The build produces 2 objtool warnings from `___rust_probestack` (a
 1. **`.ko` size** — `hello.ko` is ~866KB due to bundled `core`. Future
    optimization: use kernel's `libcore.rmeta` via
    `--sysroot=/dev/null -L linux_bin/rust/` (requires exact rustc match).
-
-2. **`windows-link` dependency** — `rko-sys` depends on `windows-link`
-   which generates `#[link]` attributes. Currently causes no issues but
-   is unnecessary for kernel modules.

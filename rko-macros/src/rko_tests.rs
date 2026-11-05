@@ -154,7 +154,7 @@ pub(crate) fn rko_tests(mut module: ItemMod) -> Result<TokenStream> {
     // Phase 2: KUnit suite registration for automatic discovery.
     //
     // Generate:
-    //   unsafe extern "C" fn kunit_rust_wrapper_<test>(_test: *mut c_void)
+    //   unsafe extern "C" fn kunit_rust_wrapper_<test>(_test: *mut kunit)
     //   static mut KUNIT_TEST_CASES: [kunit_case; N+1]
     //   kunit_unsafe_test_suite!(suite_name, KUNIT_TEST_CASES)
 
@@ -167,7 +167,7 @@ pub(crate) fn rko_tests(mut module: ItemMod) -> Result<TokenStream> {
         processed.push(syn::parse_quote! {
             #[allow(non_snake_case)]
             unsafe extern "C" fn #wrapper(
-                _test: *mut core::ffi::c_void,
+                _test: *mut ::rko_core::kunit::kunit,
             ) {
                 if #test().is_err() {
                     unsafe { ::rko_core::kunit::kunit_mark_failed(_test); }

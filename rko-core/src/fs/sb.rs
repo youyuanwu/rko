@@ -7,7 +7,7 @@ use core::marker::PhantomData;
 
 use crate::error::Error;
 use crate::types::{ARef, Opaque};
-use rko_sys::rko::{dcache as dcache_b, fs as bindings, helpers as bindings_h};
+use rko_sys as bindings;
 
 use super::inode::{INode, NewINode};
 
@@ -89,7 +89,7 @@ impl<T: super::FileSystem, S> SuperBlock<T, S> {
 
     /// Returns the raw block device pointer (`s_bdev`).
     pub fn bdev_raw(&self) -> *mut c_void {
-        unsafe { (*self.0.get()).s_bdev }
+        unsafe { (*self.0.get()).s_bdev.cast() }
     }
 
     /// Returns a typed block device reference.
@@ -102,12 +102,12 @@ impl<T: super::FileSystem, S> SuperBlock<T, S> {
 
     /// Returns the total number of sectors on the block device.
     pub fn sector_count(&self) -> u64 {
-        unsafe { bindings_h::rust_helper_bdev_nr_sectors(self.bdev_raw()) }
+        unsafe { bindings::rust_helper_bdev_nr_sectors(self.bdev_raw()) }
     }
 
     /// Sets the minimum block size. Returns the actual block size set.
     pub fn min_blocksize(&self, size: i32) -> i32 {
-        unsafe { bindings_h::rust_helper_sb_min_blocksize(self.0.get(), size) }
+        unsafe { bindings::rust_helper_sb_min_blocksize(self.0.get(), size) }
     }
 }
 
@@ -228,7 +228,7 @@ impl<T: super::FileSystem> SuperBlock<T, Ready> {
     pub fn set_root(&self, root_inode: ARef<INode<T>>) -> Result {
         // d_make_root consumes the inode reference (calls iput on failure).
         let inode_ptr = ARef::into_raw(root_inode);
-        let dentry = unsafe { dcache_b::d_make_root(inode_ptr.as_ptr().cast::<c_void>()) };
+        let dentry = unsafe { bindings::d_make_root(inode_ptr.as_ptr().cast()) };
         if dentry.is_null() {
             return Err(Error::ENOMEM);
         }

@@ -11,7 +11,7 @@ use core::ptr;
 
 use crate::error::Error;
 use crate::types::{ARef, AlwaysRefCounted, Opaque};
-use rko_sys::rko::{dcache as bindings, helpers as bindings_h};
+use rko_sys as bindings;
 
 use super::inode::INode;
 use super::sb::SuperBlock;
@@ -30,7 +30,7 @@ pub struct DEntry<T: super::FileSystem>(Opaque<bindings::dentry>, PhantomData<T>
 unsafe impl<T: super::FileSystem> AlwaysRefCounted for DEntry<T> {
     fn inc_ref(&self) {
         // SAFETY: Shared reference implies valid dentry with non-zero refcount.
-        unsafe { bindings::dget(self.0.get()) };
+        unsafe { bindings::rust_helper_dget(self.0.get()) };
     }
 
     unsafe fn dec_ref(obj: ptr::NonNull<Self>) {
@@ -87,8 +87,8 @@ impl<'a, T: super::FileSystem> Unhashed<'a, T> {
     /// The name being looked up.
     pub fn name(&self) -> &[u8] {
         unsafe {
-            let name_ptr = bindings_h::rust_helper_dentry_name(self.0.as_ptr());
-            let name_len = bindings_h::rust_helper_dentry_name_len(self.0.as_ptr()) as usize;
+            let name_ptr = bindings::rust_helper_dentry_name(self.0.as_ptr());
+            let name_len = bindings::rust_helper_dentry_name_len(self.0.as_ptr()) as usize;
             core::slice::from_raw_parts(name_ptr, name_len)
         }
     }

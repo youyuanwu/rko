@@ -8,7 +8,7 @@
 use core::marker::PhantomData;
 
 use crate::types::Opaque;
-use rko_sys::rko::{fs as bindings, helpers as bindings_h};
+use rko_sys as bindings;
 
 use super::dentry::DEntry;
 use super::inode::INode;
@@ -57,14 +57,14 @@ impl<T: super::FileSystem> File<T> {
     /// Returns the inode this file refers to.
     pub fn inode(&self) -> &INode<T> {
         // SAFETY: file_inode returns a valid inode for a valid file.
-        let inode_ptr = unsafe { bindings_h::rust_helper_file_inode(self.0.get()) };
+        let inode_ptr = unsafe { bindings::rust_helper_file_inode(self.0.get()) };
         unsafe { &*inode_ptr.cast() }
     }
 
     /// Returns the dentry this file was opened from.
     pub fn dentry(&self) -> &DEntry<T> {
         // SAFETY: f_path.dentry is valid for the lifetime of the file.
-        let dentry_ptr = unsafe { (*self.0.get()).file__anon_0.f_path.dentry };
+        let dentry_ptr = unsafe { (*self.0.get()).__bindgen_anon_1.f_path.dentry };
         unsafe { DEntry::from_raw(dentry_ptr.cast()) }
     }
 }

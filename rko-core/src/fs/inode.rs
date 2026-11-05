@@ -8,7 +8,7 @@ use core::ptr;
 
 use crate::error::Error;
 use crate::types::{ARef, AlwaysRefCounted, Lockable, Opaque};
-use rko_sys::rko::{fs as bindings, helpers as bindings_h};
+use rko_sys as bindings;
 
 type Result<T = ()> = core::result::Result<T, Error>;
 
@@ -82,11 +82,11 @@ pub struct ReadSem;
 // release the inode's i_rwsem in shared (read) mode.
 unsafe impl<T: super::FileSystem> Lockable<ReadSem> for INode<T> {
     fn raw_lock(&self) {
-        unsafe { bindings::inode_lock_shared(self.0.get()) }
+        unsafe { bindings::rust_helper_inode_lock_shared(self.0.get()) }
     }
 
     unsafe fn unlock(&self) {
-        unsafe { bindings::inode_unlock_shared(self.0.get()) }
+        unsafe { bindings::rust_helper_inode_unlock_shared(self.0.get()) }
     }
 }
 
@@ -124,7 +124,7 @@ impl<T: super::FileSystem> INodeOps<T> {
     /// Returns inode operations for inline symlinks (`i_link`).
     pub fn simple_symlink_inode() -> Self {
         Self(
-            unsafe { bindings_h::rust_helper_simple_symlink_inode_operations() },
+            unsafe { bindings::rust_helper_simple_symlink_inode_operations() },
             PhantomData,
         )
     }
@@ -132,7 +132,7 @@ impl<T: super::FileSystem> INodeOps<T> {
     /// Returns inode operations for page-cache symlinks.
     pub fn page_symlink_inode() -> Self {
         Self(
-            unsafe { bindings_h::rust_helper_page_symlink_inode_operations() },
+            unsafe { bindings::rust_helper_page_symlink_inode_operations() },
             PhantomData,
         )
     }
@@ -265,9 +265,9 @@ impl<T: super::FileSystem> NewINode<T> {
         inode.i_ctime_nsec = params.ctime.nsecs;
 
         unsafe {
-            bindings_h::rust_helper_set_nlink(inode, params.nlink);
-            bindings_h::rust_helper_i_uid_write(inode, params.uid);
-            bindings_h::rust_helper_i_gid_write(inode, params.gid);
+            bindings::rust_helper_set_nlink(inode, params.nlink);
+            bindings::rust_helper_i_uid_write(inode, params.uid);
+            bindings::rust_helper_i_gid_write(inode, params.gid);
 
             // Set ops tables: use custom overrides if set, else defaults from Tables.
             match params.typ {
@@ -277,7 +277,7 @@ impl<T: super::FileSystem> NewINode<T> {
                         .unwrap_or(&tables.dir_inode_ops as *const _);
                     inode.i_op = iops as *mut _;
                     let fops = self.custom_fops.unwrap_or(&tables.dir_file_ops as *const _);
-                    bindings_h::rust_helper_inode_set_fop(inode, fops);
+                    bindings::rust_helper_inode_set_fop(inode, fops);
                 }
                 INodeType::Reg => {
                     let iops = self
@@ -285,22 +285,20 @@ impl<T: super::FileSystem> NewINode<T> {
                         .unwrap_or(&tables.reg_inode_ops as *const _);
                     inode.i_op = iops as *mut _;
                     let fops = self.custom_fops.unwrap_or(&tables.reg_file_ops as *const _);
-                    bindings_h::rust_helper_inode_set_fop(inode, fops);
+                    bindings::rust_helper_inode_set_fop(inode, fops);
                     if let Some(aops) = self.custom_aops {
-                        bindings_h::rust_helper_inode_set_aops(inode, aops);
+                        bindings::rust_helper_inode_set_aops(inode, aops);
                     } else {
-                        bindings_h::rust_helper_inode_set_aops(inode, &tables.reg_aops);
+                        bindings::rust_helper_inode_set_aops(inode, &tables.reg_aops);
                     }
-                    bindings_h::rust_helper_mapping_set_large_folios(ptr::addr_of_mut!(
-                        inode.i_data
-                    ));
+                    bindings::rust_helper_mapping_set_large_folios(ptr::addr_of_mut!(inode.i_data));
                 }
                 INodeType::Lnk(target) => {
                     let iops = self.custom_iops.unwrap_or_else(|| {
                         if target.is_some() {
-                            bindings_h::rust_helper_simple_symlink_inode_operations()
+                            bindings::rust_helper_simple_symlink_inode_operations()
                         } else {
-                            bindings_h::rust_helper_page_symlink_inode_operations()
+                            bindings::rust_helper_page_symlink_inode_operations()
                         }
                     });
                     inode.i_op = iops as *mut _;
@@ -309,17 +307,15 @@ impl<T: super::FileSystem> NewINode<T> {
                         bindings::inode_nohighmem(inode);
                     }
                     if let Some(s) = target {
-                        inode.inode__anon_4.i_link = s.as_ptr() as *mut i8;
+                        inode.__bindgen_anon_5.i_link = s.as_ptr() as *mut i8;
                     }
                 }
                 INodeType::Chr(major, minor) => {
-                    let dev =
-                        bindings_h::rust_helper_MKDEV(major, minor & bindings_h::RKO_MINORMASK);
+                    let dev = bindings::rust_helper_MKDEV(major, minor & bindings::RKO_MINORMASK);
                     bindings::init_special_inode(inode, S_IFCHR, dev);
                 }
                 INodeType::Blk(major, minor) => {
-                    let dev =
-                        bindings_h::rust_helper_MKDEV(major, minor & bindings_h::RKO_MINORMASK);
+                    let dev = bindings::rust_helper_MKDEV(major, minor & bindings::RKO_MINORMASK);
                     bindings::init_special_inode(inode, S_IFBLK, dev);
                 }
                 INodeType::Fifo => {

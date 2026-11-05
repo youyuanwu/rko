@@ -8,7 +8,7 @@
 
 use core::ffi::c_void;
 
-use rko_sys::rko::{helpers as bindings_h, slab as slab_b};
+use rko_sys as bindings;
 
 /// A kernel slab cache for fixed-size allocations.
 ///
@@ -16,11 +16,11 @@ use rko_sys::rko::{helpers as bindings_h, slab as slab_b};
 /// Objects allocated from this cache must be freed back to the same cache
 /// before the cache is destroyed.
 pub struct MemCache {
-    cache: *mut c_void,
+    cache: *mut bindings::kmem_cache,
 }
 
 /// SLAB flags for the inode cache.
-const SLAB_RECLAIM_ACCOUNT: u64 = 1u64 << slab_b::_SLAB_RECLAIM_ACCOUNT;
+const SLAB_RECLAIM_ACCOUNT: u64 = 1u64 << bindings::_SLAB_RECLAIM_ACCOUNT;
 
 impl MemCache {
     /// Creates a new slab cache.
@@ -34,12 +34,12 @@ impl MemCache {
         align: usize,
     ) -> Result<Self, crate::error::Error> {
         let cache = unsafe {
-            bindings_h::rust_helper_kmem_cache_create(
+            bindings::rust_helper_kmem_cache_create(
                 name.as_ptr().cast_mut(),
                 size as u32,
                 align as u32,
                 SLAB_RECLAIM_ACCOUNT,
-                core::ptr::null_mut(),
+                None,
             )
         };
         if cache.is_null() {
@@ -65,12 +65,12 @@ impl MemCache {
         ctor: unsafe extern "C" fn(*mut c_void),
     ) -> Result<Self, crate::error::Error> {
         let cache = unsafe {
-            bindings_h::rust_helper_kmem_cache_create(
+            bindings::rust_helper_kmem_cache_create(
                 name.as_ptr().cast_mut(),
                 size as u32,
                 align as u32,
                 SLAB_RECLAIM_ACCOUNT,
-                ctor as *mut isize,
+                Some(ctor),
             )
         };
         if cache.is_null() {
@@ -80,7 +80,7 @@ impl MemCache {
     }
 
     /// Returns the raw cache pointer for use with kernel APIs.
-    pub fn as_ptr(&self) -> *mut c_void {
+    pub fn as_ptr(&self) -> *mut bindings::kmem_cache {
         self.cache
     }
 
@@ -88,7 +88,7 @@ impl MemCache {
     ///
     /// Returns null on failure.
     pub fn alloc(&self, flags: super::Flags) -> *mut c_void {
-        unsafe { slab_b::kmem_cache_alloc_noprof(self.cache, flags.bits()) }
+        unsafe { bindings::kmem_cache_alloc_noprof(self.cache, flags.bits()) }
     }
 
     /// Frees an object back to this cache.
@@ -97,13 +97,13 @@ impl MemCache {
     ///
     /// `ptr` must have been allocated from this cache.
     pub unsafe fn free(&self, ptr: *mut c_void) {
-        unsafe { slab_b::kmem_cache_free(self.cache, ptr) };
+        unsafe { bindings::kmem_cache_free(self.cache, ptr) };
     }
 }
 
 impl Drop for MemCache {
     fn drop(&mut self) {
-        unsafe { slab_b::kmem_cache_destroy(self.cache) };
+        unsafe { bindings::kmem_cache_destroy(self.cache) };
     }
 }
 

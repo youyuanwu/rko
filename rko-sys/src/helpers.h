@@ -2,7 +2,7 @@
 /*
  * Declarations for C helper wrappers.
  * These wrap kernel macros/static-inlines into real functions that Rust can link.
- * Parsed by bnd-winmd to auto-generate Rust FFI bindings.
+ * Parsed by bindgen to auto-generate Rust FFI bindings.
  */
 
 #ifndef _RKO_HELPERS_H
@@ -13,7 +13,7 @@
 #include <linux/highmem.h>
 #include <linux/slab.h>
 
-/* Constants exposed to Rust (bnd extracts enum values) */
+/* Constants exposed to Rust */
 #include <linux/kdev_t.h>
 enum {
     RKO_MINORMASK = MINORMASK,
@@ -39,6 +39,9 @@ void rust_helper_mapping_set_large_folios(struct address_space *mapping);
 void rust_helper_inode_set_flags(struct inode *inode,
                                  unsigned int flags, unsigned int mask);
 void rust_helper_set_nlink(struct inode *inode, unsigned int nlink);
+void rust_helper_inode_lock_shared(struct inode *inode);
+void rust_helper_inode_unlock_shared(struct inode *inode);
+struct dentry *rust_helper_dget(struct dentry *dentry);
 
 /* dir_emit helper — wraps macro */
 _Bool rust_helper_dir_emit(struct dir_context *ctx, const char *name,
@@ -48,7 +51,7 @@ _Bool rust_helper_dir_emit(struct dir_context *ctx, const char *name,
 /* device number helper */
 unsigned int rust_helper_MKDEV(unsigned int major, unsigned int minor);
 
-/* symlink inode operations — extern statics not visible to bnd */
+/* symlink inode operations */
 const struct inode_operations *rust_helper_page_symlink_inode_operations(void);
 const struct inode_operations *rust_helper_simple_symlink_inode_operations(void);
 
@@ -71,7 +74,7 @@ _Bool rust_helper_IS_ERR(const void *ptr);
 /* file accessor */
 struct inode *rust_helper_file_inode(const struct file *f);
 
-/* inode ops setters (i_fop is in anonymous union, not visible to bnd) */
+/* inode ops setters */
 void rust_helper_inode_set_fop(struct inode *inode,
                                const struct file_operations *fop);
 void rust_helper_inode_set_aops(struct inode *inode,

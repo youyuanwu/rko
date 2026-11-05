@@ -22,7 +22,7 @@ const O_NONBLOCK: i32 = 2048;
 /// given address. Use [`accept`](TcpListener::accept) to accept incoming
 /// connections.
 pub struct TcpListener {
-    sock: *mut rko_sys::rko::net::socket,
+    sock: *mut rko_sys::socket,
 }
 
 // SAFETY: Kernel sockets are usable from any thread.
@@ -35,7 +35,7 @@ unsafe impl Sync for TcpListener {}
 /// [`read`](TcpStream::read), [`write`](TcpStream::write), and
 /// [`write_all`](TcpStream::write_all) operations.
 pub struct TcpStream {
-    sock: *mut rko_sys::rko::net::socket,
+    sock: *mut rko_sys::socket,
 }
 
 // SAFETY: Kernel sockets are usable from any thread.
@@ -55,7 +55,7 @@ impl TcpListener {
     /// Return the raw kernel socket pointer.
     ///
     /// Used by the async layer to register wait-queue callbacks.
-    pub(crate) fn as_raw_sock(&self) -> *mut rko_sys::rko::net::socket {
+    pub(crate) fn as_raw_sock(&self) -> *mut rko_sys::socket {
         self.sock
     }
 
@@ -64,11 +64,11 @@ impl TcpListener {
     /// Sets `SO_REUSEADDR` and `SO_KEEPALIVE` socket options when the
     /// necessary setsockopt bindings are available (see NOTE below).
     pub fn try_new(ns: &Namespace, addr: &SocketAddr) -> Result<Self, Error> {
-        let mut sock: *mut rko_sys::rko::net::socket = ptr::null_mut();
+        let mut sock: *mut rko_sys::socket = ptr::null_mut();
 
         // SAFETY: `ns.as_ptr()` is a valid `struct net *`, `sock` is a valid out-pointer.
         let ret = unsafe {
-            rko_sys::rko::net::sock_create_kern(
+            rko_sys::sock_create_kern(
                 ns.as_ptr(),
                 addr.family(),
                 SOCK_STREAM,
@@ -92,23 +92,23 @@ impl TcpListener {
         // kernel_bind reads `addrlen` bytes from the pointer regardless
         // of the Rust type — the C function expects `struct sockaddr *`.
         let ret = unsafe {
-            rko_sys::rko::net::kernel_bind(
+            rko_sys::kernel_bind(
                 sock,
-                &mut storage as *mut SockaddrStorage as *mut rko_sys::rko::net::sockaddr_unsized,
+                &mut storage as *mut SockaddrStorage as *mut rko_sys::sockaddr_unsized,
                 addrlen,
             )
         };
         if ret < 0 {
             // SAFETY: sock is valid — release on error.
-            unsafe { rko_sys::rko::net::sock_release(sock) };
+            unsafe { rko_sys::sock_release(sock) };
             return Err(Error::from_errno(ret));
         }
 
         // Listen with the kernel default backlog.
         // SAFETY: sock is a valid, bound socket.
-        let ret = unsafe { rko_sys::rko::net::kernel_listen(sock, rko_sys::rko::net::SOMAXCONN) };
+        let ret = unsafe { rko_sys::kernel_listen(sock, rko_sys::SOMAXCONN) };
         if ret < 0 {
-            unsafe { rko_sys::rko::net::sock_release(sock) };
+            unsafe { rko_sys::sock_release(sock) };
             return Err(Error::from_errno(ret));
         }
 
@@ -122,10 +122,10 @@ impl TcpListener {
     /// is pending.
     pub fn accept(&self, block: bool) -> Result<TcpStream, Error> {
         let flags = if block { 0 } else { O_NONBLOCK };
-        let mut new_sock: *mut rko_sys::rko::net::socket = ptr::null_mut();
+        let mut new_sock: *mut rko_sys::socket = ptr::null_mut();
 
         // SAFETY: self.sock is a valid listening socket.
-        let ret = unsafe { rko_sys::rko::net::kernel_accept(self.sock, &mut new_sock, flags) };
+        let ret = unsafe { rko_sys::kernel_accept(self.sock, &mut new_sock, flags) };
         check_err(ret)?;
 
         Ok(TcpStream { sock: new_sock })
@@ -136,7 +136,7 @@ impl Drop for TcpListener {
     fn drop(&mut self) {
         if !self.sock.is_null() {
             // SAFETY: we own the socket.
-            unsafe { rko_sys::rko::net::sock_release(self.sock) };
+            unsafe { rko_sys::sock_release(self.sock) };
         }
     }
 }
@@ -145,7 +145,7 @@ impl TcpStream {
     /// Return the raw kernel socket pointer.
     ///
     /// Used by the async layer to register wait-queue callbacks.
-    pub(crate) fn as_raw_sock(&self) -> *mut rko_sys::rko::net::socket {
+    pub(crate) fn as_raw_sock(&self) -> *mut rko_sys::socket {
         self.sock
     }
 
@@ -155,7 +155,7 @@ impl TcpStream {
     ///
     /// `sock` must be a valid, connected kernel socket. Ownership is
     /// transferred — the socket will be released on drop.
-    pub(crate) unsafe fn from_raw(sock: *mut rko_sys::rko::net::socket) -> Self {
+    pub(crate) unsafe fn from_raw(sock: *mut rko_sys::socket) -> Self {
         Self { sock }
     }
 
@@ -170,14 +170,14 @@ impl TcpStream {
     /// Returns `Ok(())` if connected immediately, or `Err(EAGAIN)` if
     /// the connection is in progress (poll `POLLOUT` for completion).
     pub(crate) fn connect_nonblock(
-        sock: *mut rko_sys::rko::net::socket,
+        sock: *mut rko_sys::socket,
         addr: &SocketAddr,
     ) -> Result<(), Error> {
         let ret = Self::kernel_connect_raw(sock, addr, O_NONBLOCK);
         match ret {
             0 => Ok(()),
-            e if e == -rko_sys::rko::err::EINPROGRESS || e == -rko_sys::rko::err::EALREADY => {
-                Err(Error::from_errno(-rko_sys::rko::err::EAGAIN))
+            e if e == -rko_sys::EINPROGRESS || e == -rko_sys::EALREADY => {
+                Err(Error::from_errno(-rko_sys::EAGAIN))
             }
             e => Err(Error::from_errno(e)),
         }
@@ -189,10 +189,10 @@ impl TcpStream {
         ns: &Namespace,
         addr: &SocketAddr,
         flags: i32,
-    ) -> Result<*mut rko_sys::rko::net::socket, Error> {
-        let mut sock: *mut rko_sys::rko::net::socket = ptr::null_mut();
+    ) -> Result<*mut rko_sys::socket, Error> {
+        let mut sock: *mut rko_sys::socket = ptr::null_mut();
         let ret = unsafe {
-            rko_sys::rko::net::sock_create_kern(
+            rko_sys::sock_create_kern(
                 ns.as_ptr(),
                 addr.family(),
                 SOCK_STREAM,
@@ -204,22 +204,18 @@ impl TcpStream {
 
         let ret = Self::kernel_connect_raw(sock, addr, flags);
         if ret < 0 {
-            unsafe { rko_sys::rko::net::sock_release(sock) };
+            unsafe { rko_sys::sock_release(sock) };
             return Err(Error::from_errno(ret));
         }
         Ok(sock)
     }
 
-    fn kernel_connect_raw(
-        sock: *mut rko_sys::rko::net::socket,
-        addr: &SocketAddr,
-        flags: i32,
-    ) -> i32 {
+    fn kernel_connect_raw(sock: *mut rko_sys::socket, addr: &SocketAddr, flags: i32) -> i32 {
         let (mut storage, addrlen) = addr.to_raw();
         unsafe {
-            rko_sys::rko::net::kernel_connect(
+            rko_sys::kernel_connect(
                 sock,
-                &mut storage as *mut SockaddrStorage as *mut rko_sys::rko::net::sockaddr_unsized,
+                &mut storage as *mut SockaddrStorage as *mut rko_sys::sockaddr_unsized,
                 addrlen,
                 flags,
             )
@@ -231,23 +227,15 @@ impl TcpStream {
     /// Returns the number of bytes read, or an error. Returns `Ok(0)` at
     /// EOF / connection close.
     pub fn read(&self, buf: &mut [u8]) -> Result<usize, Error> {
-        let mut kvec = rko_sys::rko::net::kvec {
+        let mut kvec = rko_sys::kvec {
             iov_base: buf.as_mut_ptr().cast(),
-            iov_len: buf.len() as u64,
+            iov_len: buf.len(),
         };
-        let mut msg = rko_sys::rko::net::msghdr::default();
+        let mut msg = rko_sys::msghdr::default();
 
         // SAFETY: self.sock is valid; kvec and msg are stack-allocated and valid.
-        let ret = unsafe {
-            rko_sys::rko::net::kernel_recvmsg(
-                self.sock,
-                &mut msg,
-                &mut kvec,
-                1,
-                buf.len() as u64,
-                0,
-            )
-        };
+        let ret =
+            unsafe { rko_sys::kernel_recvmsg(self.sock, &mut msg, &mut kvec, 1, buf.len(), 0) };
         check_err(ret).map(|n| n as usize)
     }
 
@@ -255,19 +243,17 @@ impl TcpStream {
     ///
     /// Returns the number of bytes written (may be less than `buf.len()`).
     pub fn write(&self, buf: &[u8]) -> Result<usize, Error> {
-        let mut kvec = rko_sys::rko::net::kvec {
+        let mut kvec = rko_sys::kvec {
             iov_base: buf.as_ptr() as *mut _,
-            iov_len: buf.len() as u64,
+            iov_len: buf.len(),
         };
-        let mut msg = rko_sys::rko::net::msghdr {
-            msg_flags: rko_sys::rko::net::MSG_NOSIGNAL as u32,
-            ..rko_sys::rko::net::msghdr::default()
+        let mut msg = rko_sys::msghdr {
+            msg_flags: rko_sys::MSG_NOSIGNAL as u32,
+            ..rko_sys::msghdr::default()
         };
 
         // SAFETY: self.sock is valid; kvec and msg are stack-allocated and valid.
-        let ret = unsafe {
-            rko_sys::rko::net::kernel_sendmsg(self.sock, &mut msg, &mut kvec, 1, buf.len() as u64)
-        };
+        let ret = unsafe { rko_sys::kernel_sendmsg(self.sock, &mut msg, &mut kvec, 1, buf.len()) };
         check_err(ret).map(|n| n as usize)
     }
 
@@ -291,7 +277,7 @@ impl Drop for TcpStream {
     fn drop(&mut self) {
         if !self.sock.is_null() {
             // SAFETY: we own the socket.
-            unsafe { rko_sys::rko::net::sock_release(self.sock) };
+            unsafe { rko_sys::sock_release(self.sock) };
         }
     }
 }

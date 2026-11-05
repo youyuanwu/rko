@@ -6,15 +6,14 @@
 //! another calls `complete()` (wakes the waiter). Used to bridge async
 //! futures back to synchronous callers.
 
-use rko_sys::rko::helpers as h;
-use rko_sys::rko::wait as wait_b;
+use rko_sys as bindings;
 
 /// A kernel completion.
 ///
 /// Must be initialized in place via `init()` — cannot be moved after
 /// initialization because the internal `list_head` contains self-pointers.
 pub struct Completion {
-    inner: wait_b::completion,
+    inner: bindings::completion,
 }
 
 // SAFETY: completion is internally synchronized by the kernel.
@@ -38,7 +37,7 @@ impl Completion {
     /// a `Completion`. The memory must not be moved after this call.
     pub unsafe fn init(ptr: *mut Self) {
         // SAFETY: ptr is valid, inner is at offset 0.
-        unsafe { h::rust_helper_init_completion(&mut (*ptr).inner) };
+        unsafe { bindings::rust_helper_init_completion(&mut (*ptr).inner) };
     }
 
     /// Block the current thread until `complete()` is called, with timeout.
@@ -46,16 +45,18 @@ impl Completion {
     /// `timeout_jiffies` is the maximum time to wait in jiffies.
     /// Returns the remaining jiffies (0 if timed out).
     pub fn wait_timeout(&mut self, timeout_jiffies: u64) -> u64 {
-        unsafe { h::rust_helper_wait_for_completion_timeout(&mut self.inner, timeout_jiffies) }
+        unsafe {
+            bindings::rust_helper_wait_for_completion_timeout(&mut self.inner, timeout_jiffies)
+        }
     }
 
     /// Block the current thread until `complete()` is called (no timeout).
     pub fn wait(&mut self) {
-        unsafe { h::rust_helper_wait_for_completion(&mut self.inner) }
+        unsafe { bindings::rust_helper_wait_for_completion(&mut self.inner) }
     }
 
     /// Signal the completion, waking one waiter.
     pub fn complete(&mut self) {
-        unsafe { h::rust_helper_complete(&mut self.inner) }
+        unsafe { bindings::rust_helper_complete(&mut self.inner) }
     }
 }

@@ -25,7 +25,7 @@ use crate::sync::NoWaitLock;
 use crate::types::Opaque;
 
 /// EAGAIN errno value for non-blocking operation.
-const EAGAIN: i32 = -rko_sys::rko::err::EAGAIN;
+const EAGAIN: i32 = -rko_sys::EAGAIN;
 
 // ---------------------------------------------------------------------------
 // CallbackState
@@ -68,11 +68,11 @@ struct CallbackState {
 #[allow(dead_code)]
 struct SocketFuture<'a, Out, F: FnMut() -> Result<Out, Error> + Send + 'a> {
     /// Raw pointer to the kernel socket (for wait-queue registration).
-    sock: *mut rko_sys::rko::net::socket,
+    sock: *mut rko_sys::socket,
     /// Whether we have registered on the socket's wait queue.
     is_queued: bool,
     /// Opaque kernel wait_queue_entry — pinned in place.
-    wq_entry: Opaque<rko_sys::rko::wait::wait_queue_entry>,
+    wq_entry: Opaque<rko_sys::wait_queue_entry>,
     /// Pointer to the heap-allocated callback state.
     /// Owned by this SocketFuture; freed on drop.
     cb_state: Option<NonNull<CallbackState>>,
@@ -98,7 +98,7 @@ impl<'a, Out, F: FnMut() -> Result<Out, Error> + Send + 'a> SocketFuture<'a, Out
     /// `sock` is the raw kernel socket pointer.
     /// `mask` is the poll event mask (e.g., POLLIN).
     /// `operation` is the non-blocking operation to attempt.
-    fn new(sock: *mut rko_sys::rko::net::socket, mask: u32, operation: F) -> Self {
+    fn new(sock: *mut rko_sys::socket, mask: u32, operation: F) -> Self {
         // Allocate CallbackState on the heap via KBox.
         let cb = CallbackState {
             mask,
@@ -161,13 +161,13 @@ impl<'a, Out, F: FnMut() -> Result<Out, Error> + Send + 'a> Future for SocketFut
                 // SAFETY: Transmute is sound — extern "C" == extern "system"
                 // on Linux, and the parameter types are ABI-compatible.
                 #[allow(clippy::missing_transmute_annotations)]
-                rko_sys::rko::helpers::rust_helper_init_waitqueue_func_entry(
+                rko_sys::rust_helper_init_waitqueue_func_entry(
                     wq_entry_ptr,
                     core::mem::transmute(wake_callback as *const ()),
                 );
 
                 // Store CallbackState pointer in the wq_entry's private field.
-                rko_sys::rko::helpers::rust_helper_set_wq_entry_private(
+                rko_sys::rust_helper_set_wq_entry_private(
                     wq_entry_ptr,
                     cb_ptr.as_ptr() as *mut core::ffi::c_void,
                 );
@@ -175,9 +175,9 @@ impl<'a, Out, F: FnMut() -> Result<Out, Error> + Send + 'a> Future for SocketFut
                 // Register on the socket's wait queue.
                 // SAFETY: sock is a valid socket; wq.wait is its wait queue head.
                 // The bnd fork correctly pads socket_wq for cacheline alignment.
-                rko_sys::rko::wait::add_wait_queue(
+                rko_sys::add_wait_queue(
                     core::ptr::addr_of_mut!((*this.sock).wq.wait)
-                        .cast::<rko_sys::rko::wait::wait_queue_head>(),
+                        .cast::<rko_sys::wait_queue_head>(),
                     wq_entry_ptr,
                 );
             }
@@ -209,9 +209,9 @@ impl<'a, Out, F: FnMut() -> Result<Out, Error> + Send + 'a> Drop for SocketFutur
             // queue during poll. The socket and wq_entry are still valid.
             // Cast through raw pointer for cross-namespace type compat.
             unsafe {
-                rko_sys::rko::wait::remove_wait_queue(
+                rko_sys::remove_wait_queue(
                     core::ptr::addr_of_mut!((*self.sock).wq.wait)
-                        .cast::<rko_sys::rko::wait::wait_queue_head>(),
+                        .cast::<rko_sys::wait_queue_head>(),
                     Opaque::raw_get(&mut self.wq_entry as *mut _ as *mut _),
                 );
             }
@@ -241,7 +241,7 @@ impl<'a, Out, F: FnMut() -> Result<Out, Error> + Send + 'a> Drop for SocketFutur
 ///   `NoWaitLock::try_lock` ensures lock-free access.
 #[allow(dead_code)]
 unsafe extern "C" fn wake_callback(
-    wq_entry: *mut rko_sys::rko::wait::wait_queue_entry,
+    wq_entry: *mut rko_sys::wait_queue_entry,
     _mode: core::ffi::c_uint,
     _flags: core::ffi::c_int,
     key: *mut core::ffi::c_void,
@@ -250,8 +250,7 @@ unsafe extern "C" fn wake_callback(
     // key encodes the event mask from the kernel.
     let event_mask = key as u32;
     let cb: *const CallbackState =
-        unsafe { rko_sys::rko::helpers::rust_helper_get_wq_entry_private(wq_entry) }
-            as *const CallbackState;
+        unsafe { rko_sys::rust_helper_get_wq_entry_private(wq_entry) } as *const CallbackState;
 
     if cb.is_null() {
         return 0;
@@ -311,7 +310,7 @@ impl TcpListener {
         // SAFETY: The socket pointer is valid for the lifetime of self.inner.
         let sock = self.inner.as_raw_sock();
 
-        SocketFuture::new(sock, rko_sys::rko::poll::POLLIN as u32, move || {
+        SocketFuture::new(sock, rko_sys::POLLIN as u32, move || {
             // Non-blocking accept.
             let stream = self.inner.accept(false)?;
             Ok(TcpStream { inner: stream })
@@ -343,7 +342,7 @@ impl TcpStream {
         addr: &crate::net::SocketAddr,
     ) -> Result<Self, Error> {
         // SendSock wraps a raw socket pointer to make the future Send.
-        struct SendSock(*mut rko_sys::rko::net::socket);
+        struct SendSock(*mut rko_sys::socket);
         unsafe impl Send for SendSock {}
         impl SendSock {
             fn connect_nonblock(&self, addr: &crate::net::SocketAddr) -> Result<(), Error> {
@@ -353,9 +352,9 @@ impl TcpStream {
 
         // Create the socket synchronously.
         let ss = {
-            let mut sock: *mut rko_sys::rko::net::socket = core::ptr::null_mut();
+            let mut sock: *mut rko_sys::socket = core::ptr::null_mut();
             let ret = unsafe {
-                rko_sys::rko::net::sock_create_kern(
+                rko_sys::sock_create_kern(
                     ns.as_ptr(),
                     addr.family(),
                     crate::net::SOCK_STREAM,
@@ -374,7 +373,7 @@ impl TcpStream {
         // SendSock for post-await cleanup (raw ptrs are !Send).
         let cleanup = SendSock(ss.0);
         let addr = *addr;
-        let result = SocketFuture::new(cleanup.0, rko_sys::rko::poll::POLLOUT as u32, move || {
+        let result = SocketFuture::new(cleanup.0, rko_sys::POLLOUT as u32, move || {
             ss.connect_nonblock(&addr)
         })
         .await;
@@ -384,7 +383,7 @@ impl TcpStream {
                 inner: unsafe { crate::net::TcpStream::from_raw(cleanup.0) },
             }),
             Err(e) => {
-                unsafe { rko_sys::rko::net::sock_release(cleanup.0) };
+                unsafe { rko_sys::sock_release(cleanup.0) };
                 Err(e)
             }
         }
@@ -400,9 +399,7 @@ impl TcpStream {
     ) -> impl Future<Output = Result<usize, Error>> + Send + 'a {
         let sock = self.inner.as_raw_sock();
 
-        SocketFuture::new(sock, rko_sys::rko::poll::POLLIN as u32, move || {
-            self.inner.read(buf)
-        })
+        SocketFuture::new(sock, rko_sys::POLLIN as u32, move || self.inner.read(buf))
     }
 
     /// Write data asynchronously.
@@ -415,9 +412,7 @@ impl TcpStream {
     ) -> impl Future<Output = Result<usize, Error>> + Send + 'a {
         let sock = self.inner.as_raw_sock();
 
-        SocketFuture::new(sock, rko_sys::rko::poll::POLLOUT as u32, move || {
-            self.inner.write(buf)
-        })
+        SocketFuture::new(sock, rko_sys::POLLOUT as u32, move || self.inner.write(buf))
     }
 
     /// Write all data asynchronously.

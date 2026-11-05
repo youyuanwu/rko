@@ -11,10 +11,7 @@ use core::ffi::c_void;
 use core::mem::size_of;
 use core::ptr;
 
-use rko_sys::rko::{
-    dcache as dcache_b, fs as bindings, fs_context as fc_bindings, helpers as bindings_h,
-    slab as slab_b, statfs as statfs_b, xattr as xattr_b,
-};
+use rko_sys as bindings;
 
 use super::inode::INodeWithData;
 use super::registration::Registration;
@@ -34,13 +31,13 @@ pub struct Tables<T: FileSystem> {
     pub(crate) reg_file_ops: bindings::file_operations,
     pub(crate) reg_aops: bindings::address_space_operations,
     pub(crate) symlink_inode_ops: bindings::inode_operations,
-    pub(crate) xattr_handler: xattr_b::xattr_handler,
+    pub(crate) xattr_handler: bindings::xattr_handler,
     /// NULL-terminated array of xattr handler pointers. Set on s_xattr.
-    pub(crate) xattr_handlers: [*const xattr_b::xattr_handler; 2],
+    pub(crate) xattr_handlers: [*const bindings::xattr_handler; 2],
     _marker: core::marker::PhantomData<T>,
 }
 
-// SAFETY: Tables contains only function pointers (as *mut isize) which are
+// SAFETY: Tables contains only function pointers and static data pointers, which are
 // inherently thread-safe since they point to static code.
 unsafe impl<T: FileSystem> Send for Tables<T> {}
 unsafe impl<T: FileSystem> Sync for Tables<T> {}
@@ -57,80 +54,80 @@ impl<T: FileSystem> Tables<T> {
         Self {
             super_ops: bindings::super_operations {
                 alloc_inode: if size_of::<T::INodeData>() != 0 {
-                    alloc_inode_callback::<T> as *mut isize
+                    Some(alloc_inode_callback::<T>)
                 } else {
-                    core::ptr::null_mut()
+                    None
                 },
                 destroy_inode: if size_of::<T::INodeData>() != 0 {
-                    destroy_inode_callback::<T> as *mut isize
+                    Some(destroy_inode_callback::<T>)
                 } else {
-                    core::ptr::null_mut()
+                    None
                 },
                 statfs: if T::HAS_STATFS {
-                    statfs_trampoline::<T> as *mut isize
+                    Some(statfs_trampoline::<T>)
                 } else {
-                    simple_statfs_trampoline as *mut isize
+                    Some(simple_statfs_trampoline)
                 },
                 ..const_default_super_operations()
             },
             dir_inode_ops: bindings::inode_operations {
-                lookup: lookup_trampoline::<T> as *mut isize,
+                lookup: Some(lookup_trampoline::<T>),
                 ..const_default_inode_operations()
             },
             dir_file_ops: bindings::file_operations {
-                read: generic_read_dir_trampoline as *mut isize,
-                iterate_shared: iterate_shared_trampoline::<T> as *mut isize,
-                llseek: generic_file_llseek_trampoline as *mut isize,
+                read: Some(generic_read_dir_trampoline),
+                iterate_shared: Some(iterate_shared_trampoline::<T>),
+                llseek: Some(generic_file_llseek_trampoline),
                 ..const_default_file_operations()
             },
             reg_inode_ops: const_default_inode_operations(),
             reg_file_ops: bindings::file_operations {
                 llseek: if <T as super::file::Operations>::HAS_SEEK {
-                    seek_trampoline::<T> as *mut isize
+                    Some(seek_trampoline::<T>)
                 } else {
-                    generic_file_llseek_trampoline as *mut isize
+                    Some(generic_file_llseek_trampoline)
                 },
                 // Priority: read_iter > read > generic_file_read_iter.
                 // read_iter and read are mutually exclusive in the kernel.
                 read: if <T as super::file::Operations>::HAS_READ_ITER {
-                    core::ptr::null_mut()
+                    None
                 } else if <T as super::file::Operations>::HAS_READ {
-                    file_read_trampoline::<T> as *mut isize
+                    Some(file_read_trampoline::<T>)
                 } else {
-                    core::ptr::null_mut()
+                    None
                 },
                 read_iter: if <T as super::file::Operations>::HAS_READ_ITER {
-                    custom_read_iter_trampoline::<T> as *mut isize
+                    Some(custom_read_iter_trampoline::<T>)
                 } else if <T as super::file::Operations>::HAS_READ {
-                    core::ptr::null_mut()
+                    None
                 } else {
-                    read_iter_trampoline as *mut isize
+                    Some(read_iter_trampoline)
                 },
                 ..const_default_file_operations()
             },
             reg_aops: bindings::address_space_operations {
-                read_folio: read_folio_trampoline::<T> as *mut isize,
+                read_folio: Some(read_folio_trampoline::<T>),
                 ..const_default_address_space_operations()
             },
             symlink_inode_ops: if <T as super::inode::Operations>::HAS_GET_LINK {
                 bindings::inode_operations {
-                    get_link: get_link_trampoline::<T> as *mut isize,
+                    get_link: Some(get_link_trampoline::<T>),
                     ..const_default_inode_operations()
                 }
             } else {
                 const_default_inode_operations()
             },
-            xattr_handler: xattr_b::xattr_handler {
+            xattr_handler: bindings::xattr_handler {
                 name: core::ptr::null_mut(),
                 prefix: c"".as_ptr().cast_mut(),
                 flags: 0,
-                list: core::ptr::null_mut(),
+                list: None,
                 get: if T::HAS_READ_XATTR {
-                    xattr_get_trampoline::<T> as *mut isize
+                    Some(xattr_get_trampoline::<T>)
                 } else {
-                    core::ptr::null_mut()
+                    None
                 },
-                set: core::ptr::null_mut(),
+                set: None,
             },
             // Initialized properly after construction since we can't
             // self-reference in const fn. See Tables::with_xattr_ptrs().
@@ -193,7 +190,7 @@ unsafe extern "C" fn alloc_inode_callback<T: FileSystem>(
     let cache = unsafe { (*reg).inode_cache() };
 
     let gfp = super::registration::GFP_KERNEL;
-    let obj = unsafe { bindings_h::rust_helper_alloc_inode_sb(sb, cache, gfp) };
+    let obj = unsafe { bindings::rust_helper_alloc_inode_sb(sb, cache, gfp) };
     if obj.is_null() {
         return ptr::null_mut();
     }
@@ -203,7 +200,7 @@ unsafe extern "C" fn alloc_inode_callback<T: FileSystem>(
 
 /// `super_operations::destroy_inode` — drops INodeData, frees to slab cache.
 unsafe extern "C" fn destroy_inode_callback<T: FileSystem>(inode: *mut bindings::inode) {
-    let is_bad = unsafe { bindings_h::rust_helper_is_bad_inode(inode) };
+    let is_bad = unsafe { bindings::rust_helper_is_bad_inode(inode) };
 
     let super_type = unsafe { (*(*inode).i_sb).s_type };
     // SAFETY: super_type points to the fs_type field of a Registration.
@@ -217,7 +214,7 @@ unsafe extern "C" fn destroy_inode_callback<T: FileSystem>(inode: *mut bindings:
         unsafe { ptr::drop_in_place((*outer).data.as_mut_ptr()) };
     }
 
-    unsafe { slab_b::kmem_cache_free(cache, outer.cast()) };
+    unsafe { bindings::kmem_cache_free(cache, outer.cast()) };
 }
 
 /// `super_operations::statfs` → `T::statfs`.
@@ -225,13 +222,13 @@ unsafe extern "C" fn destroy_inode_callback<T: FileSystem>(inode: *mut bindings:
 /// Only wired when `T::HAS_STATFS` is true. Otherwise `simple_statfs`
 /// is used directly.
 unsafe extern "C" fn statfs_trampoline<T: FileSystem>(
-    dentry: *mut dcache_b::dentry,
-    buf: *mut c_void,
+    dentry: *mut bindings::dentry,
+    buf: *mut bindings::kstatfs,
 ) -> i32 {
     let dentry_ref = unsafe { super::dentry::DEntry::<T>::from_raw(dentry) };
     match T::statfs(dentry_ref) {
         Ok(s) => {
-            let kst = buf.cast::<statfs_b::kstatfs>();
+            let kst = buf.cast::<bindings::kstatfs>();
             unsafe {
                 (*kst).f_type = s.magic as i64;
                 (*kst).f_bsize = s.bsize as i64;
@@ -249,8 +246,8 @@ unsafe extern "C" fn statfs_trampoline<T: FileSystem>(
 ///
 /// Used when `T::HAS_STATFS` is false.
 unsafe extern "C" fn simple_statfs_trampoline(
-    dentry: *mut dcache_b::dentry,
-    buf: *mut c_void,
+    dentry: *mut bindings::dentry,
+    buf: *mut bindings::kstatfs,
 ) -> i32 {
     unsafe { bindings::simple_statfs(dentry, buf) }
 }
@@ -261,9 +258,9 @@ unsafe extern "C" fn simple_statfs_trampoline(
 /// This trampoline just returns the result to the VFS.
 unsafe extern "C" fn lookup_trampoline<T: FileSystem>(
     dir: *mut bindings::inode,
-    dentry: *mut dcache_b::dentry,
+    dentry: *mut bindings::dentry,
     _flags: u32,
-) -> *mut dcache_b::dentry {
+) -> *mut bindings::dentry {
     let inode_ref = unsafe { &*(dir as *const super::INode<T>) };
     // SAFETY: The VFS holds i_rwsem in shared mode during lookup.
     let parent = unsafe { crate::types::Locked::borrowed(inode_ref) };
@@ -284,7 +281,7 @@ unsafe extern "C" fn lookup_trampoline<T: FileSystem>(
 /// when the kernel is done. For `Borrowed(&CStr)`, returns the pointer
 /// directly.
 unsafe extern "C" fn get_link_trampoline<T: FileSystem>(
-    dentry_ptr: *mut dcache_b::dentry,
+    dentry_ptr: *mut bindings::dentry,
     inode_ptr: *mut bindings::inode,
     delayed_call: *mut bindings::delayed_call,
 ) -> *const i8 {
@@ -306,9 +303,9 @@ unsafe extern "C" fn get_link_trampoline<T: FileSystem>(
         Ok(super::inode::GetLinkResult::Owned(cstring)) => {
             let ptr = crate::types::ForeignOwnable::into_foreign(cstring);
             unsafe {
-                bindings_h::rust_helper_set_delayed_call(
+                bindings::rust_helper_set_delayed_call(
                     delayed_call,
-                    drop_cstring as *mut isize,
+                    Some(drop_cstring),
                     ptr as *mut c_void,
                 )
             };
@@ -324,7 +321,7 @@ unsafe extern "C" fn iterate_shared_trampoline<T: FileSystem>(
 ) -> i32 {
     crate::error::from_result(|| {
         let file = unsafe { super::File::<T>::from_raw(file_ptr) };
-        let inode = unsafe { bindings_h::rust_helper_file_inode(file_ptr) };
+        let inode = unsafe { bindings::rust_helper_file_inode(file_ptr) };
         let inode_ref = unsafe { &*(inode as *const super::INode<T>) };
         // SAFETY: The VFS holds i_rwsem in shared mode during iterate_shared.
         let locked = unsafe { crate::types::Locked::borrowed(inode_ref) };
@@ -340,7 +337,7 @@ unsafe extern "C" fn generic_read_dir_trampoline(
     size: usize,
     pos: *mut i64,
 ) -> isize {
-    unsafe { bindings::generic_read_dir(file, buf, size as u64, pos) as isize }
+    unsafe { bindings::generic_read_dir(file, buf, size, pos) as isize }
 }
 
 /// `file_operations::llseek` → `generic_file_llseek`.
@@ -402,8 +399,11 @@ unsafe extern "C" fn file_read_trampoline<T: FileSystem>(
 }
 
 /// `file_operations::read_iter` → `generic_file_read_iter` via helper.
-unsafe extern "C" fn read_iter_trampoline(iocb: *mut bindings::kiocb, iter: *mut c_void) -> isize {
-    unsafe { bindings_h::rust_helper_generic_file_read_iter(iocb, iter.cast()) as isize }
+unsafe extern "C" fn read_iter_trampoline(
+    iocb: *mut bindings::kiocb,
+    iter: *mut bindings::iov_iter,
+) -> isize {
+    unsafe { bindings::rust_helper_generic_file_read_iter(iocb, iter.cast()) as isize }
 }
 
 /// `file_operations::read_iter` → `<T as file::Operations>::read_iter`.
@@ -412,7 +412,7 @@ unsafe extern "C" fn read_iter_trampoline(iocb: *mut bindings::kiocb, iter: *mut
 /// from the raw iov_iter and extracts the file offset from the kiocb.
 unsafe extern "C" fn custom_read_iter_trampoline<T: FileSystem>(
     iocb: *mut bindings::kiocb,
-    iter: *mut c_void,
+    iter: *mut bindings::iov_iter,
 ) -> isize {
     let file_ptr = unsafe { (*iocb).ki_filp };
     let file = unsafe { super::File::<T>::from_raw(file_ptr) };
@@ -431,7 +431,7 @@ unsafe extern "C" fn custom_read_iter_trampoline<T: FileSystem>(
 /// `address_space_operations::read_folio` → `T::read_folio`.
 unsafe extern "C" fn read_folio_trampoline<T: FileSystem>(
     file: *mut bindings::file,
-    folio: *mut c_void,
+    folio: *mut bindings::folio,
 ) -> i32 {
     // Create a PageCache-typed locked folio — the inode is accessible
     // via folio.inode() through mapping->host.
@@ -440,7 +440,7 @@ unsafe extern "C" fn read_folio_trampoline<T: FileSystem>(
 
     // Also pass the inode directly for backward compatibility.
     let inode = if !file.is_null() {
-        unsafe { bindings_h::rust_helper_file_inode(file) }
+        unsafe { bindings::rust_helper_file_inode(file) }
     } else {
         // Readahead path: get inode from the folio's mapping->host.
         locked_folio.inode() as *const super::INode<T> as *mut bindings::inode
@@ -456,15 +456,15 @@ unsafe extern "C" fn read_folio_trampoline<T: FileSystem>(
     // folio_end_read marks uptodate (on success) and unlocks.
     // Prevent LockedFolio::drop from double-unlocking.
     core::mem::forget(locked_folio);
-    unsafe { bindings_h::rust_helper_folio_end_read(folio.cast(), ret == 0) };
+    unsafe { bindings::rust_helper_folio_end_read(folio.cast(), ret == 0) };
 
     ret
 }
 
 /// `xattr_handler::get` → `T::read_xattr`.
 unsafe extern "C" fn xattr_get_trampoline<T: FileSystem>(
-    _handler: *const xattr_b::xattr_handler,
-    dentry_ptr: *mut dcache_b::dentry,
+    _handler: *const bindings::xattr_handler,
+    dentry_ptr: *mut bindings::dentry,
     inode_ptr: *mut bindings::inode,
     name: *const i8,
     buffer: *mut c_void,
@@ -494,14 +494,14 @@ unsafe extern "C" fn xattr_get_trampoline<T: FileSystem>(
 /// Returns the `fs_context_operations` for type `T`.
 ///
 /// Used by the filesystem module to build a `Registration`.
-pub const fn fs_context_ops<T: FileSystem>() -> fc_bindings::fs_context_operations {
-    fc_bindings::fs_context_operations {
-        get_tree: get_tree_callback::<T> as *mut isize,
-        free: core::ptr::null_mut(),
-        dup: core::ptr::null_mut(),
-        parse_param: core::ptr::null_mut(),
-        parse_monolithic: core::ptr::null_mut(),
-        reconfigure: core::ptr::null_mut(),
+pub const fn fs_context_ops<T: FileSystem>() -> bindings::fs_context_operations {
+    bindings::fs_context_operations {
+        get_tree: Some(get_tree_callback::<T>),
+        free: None,
+        dup: None,
+        parse_param: None,
+        parse_monolithic: None,
+        reconfigure: None,
     }
 }
 
@@ -515,7 +515,7 @@ pub const fn fs_context_ops<T: FileSystem>() -> fc_bindings::fs_context_operatio
 ///
 /// `fc` must be a valid pointer to a kernel `fs_context`.
 pub unsafe extern "C" fn init_fs_context_callback<T: FileSystem>(
-    fc: *mut fc_bindings::fs_context,
+    fc: *mut bindings::fs_context,
 ) -> i32 {
     // The registration stores the ctx_ops. The init_fs_context
     // function registered in file_system_type is this trampoline.
@@ -532,13 +532,13 @@ pub unsafe extern "C" fn init_fs_context_callback<T: FileSystem>(
 /// `fs_context_operations::get_tree` callback.
 ///
 /// Calls `get_tree_nodev` or `get_tree_bdev` based on `T::SUPER_TYPE`.
-unsafe extern "C" fn get_tree_callback<T: FileSystem>(fc: *mut fc_bindings::fs_context) -> i32 {
+unsafe extern "C" fn get_tree_callback<T: FileSystem>(fc: *mut bindings::fs_context) -> i32 {
     match T::SUPER_TYPE {
         super::sb::Type::Independent => unsafe {
-            fc_bindings::get_tree_nodev(fc, fill_super_callback::<T> as *mut isize)
+            bindings::get_tree_nodev(fc, Some(fill_super_callback::<T>))
         },
         super::sb::Type::BlockDev => unsafe {
-            fc_bindings::get_tree_bdev(fc, fill_super_callback::<T> as *mut isize)
+            bindings::get_tree_bdev(fc, Some(fill_super_callback::<T>))
         },
     }
 }
@@ -546,7 +546,7 @@ unsafe extern "C" fn get_tree_callback<T: FileSystem>(fc: *mut fc_bindings::fs_c
 /// `fill_super` callback passed to `get_tree_nodev`.
 unsafe extern "C" fn fill_super_callback<T: FileSystem>(
     sb: *mut bindings::super_block,
-    _fc: *mut fc_bindings::fs_context,
+    _fc: *mut bindings::fs_context,
 ) -> i32 {
     // fill_super gets a New-state superblock.
     let sb_new = unsafe { SuperBlock::<T, super::sb::New>::from_raw_new(sb) };
@@ -556,10 +556,10 @@ unsafe extern "C" fn fill_super_callback<T: FileSystem>(
     unsafe {
         (*sb).s_op = &T::TABLES.super_ops as *const _ as *mut _;
         let handlers =
-            &T::TABLES.xattr_handlers as *const _ as *mut [*const xattr_b::xattr_handler; 2];
+            &T::TABLES.xattr_handlers as *const _ as *mut [*const bindings::xattr_handler; 2];
         (*handlers)[0] = &T::TABLES.xattr_handler;
         (*handlers)[1] = core::ptr::null();
-        (*sb).s_xattr = handlers as *mut *mut c_void;
+        (*sb).s_xattr = handlers.cast::<*const bindings::xattr_handler>();
     }
 
     let data = match T::fill_super(sb_new, T::TABLES) {
