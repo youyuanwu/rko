@@ -28,27 +28,27 @@ pub struct MutexBackend;
 
 // SAFETY: The underlying kernel `struct mutex` ensures mutual exclusion.
 unsafe impl super::Backend for MutexBackend {
-    type State = rko_sys::rko::sync::mutex;
+    type State = rko_sys::mutex;
     type GuardState = ();
 
     unsafe fn init(
         ptr: *mut Self::State,
         name: *const core::ffi::c_char,
-        key: *mut rko_sys::rko::fs::lock_class_key,
+        key: *mut rko_sys::lock_class_key,
     ) {
         // SAFETY: ptr, name, key are valid per caller contract.
-        unsafe { rko_sys::rko::helpers::rust_helper___mutex_init(ptr, name, key) };
+        unsafe { rko_sys::rust_helper___mutex_init(ptr, name, key) };
     }
 
     unsafe fn lock(ptr: *mut Self::State) -> Self::GuardState {
         // SAFETY: ptr is valid and the lock is initialized.
-        unsafe { rko_sys::rko::helpers::rust_helper_mutex_lock(ptr) };
+        unsafe { rko_sys::rust_helper_mutex_lock(ptr) };
     }
 
     unsafe fn try_lock(ptr: *mut Self::State) -> Option<Self::GuardState> {
         // SAFETY: ptr is valid and the lock is initialized.
         // mutex_trylock returns 1 on success, 0 on failure.
-        if unsafe { rko_sys::rko::helpers::rust_helper_mutex_trylock(ptr) } != 0 {
+        if unsafe { rko_sys::rust_helper_mutex_trylock(ptr) } != 0 {
             Some(())
         } else {
             None
@@ -57,11 +57,11 @@ unsafe impl super::Backend for MutexBackend {
 
     unsafe fn unlock(ptr: *mut Self::State, _guard_state: &Self::GuardState) {
         // SAFETY: ptr is valid and the lock is held.
-        unsafe { rko_sys::rko::helpers::rust_helper_mutex_unlock(ptr) };
+        unsafe { rko_sys::rust_helper_mutex_unlock(ptr) };
     }
 
     unsafe fn assert_is_held(ptr: *mut Self::State) {
         // SAFETY: ptr is valid. Debug assertion that the mutex is held.
-        debug_assert!(unsafe { rko_sys::rko::helpers::rust_helper_mutex_is_locked(ptr) });
+        debug_assert!(unsafe { rko_sys::rust_helper_mutex_is_locked(ptr) });
     }
 }

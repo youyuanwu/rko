@@ -4,7 +4,6 @@
 //! as an opaque reference — `Namespace` IS the `struct net` in memory
 //! (zero-sized wrapper over the extern symbol for `init_ns()`).
 
-use core::ffi::c_void;
 use core::ptr::NonNull;
 
 use crate::types::AlwaysRefCounted;
@@ -25,12 +24,12 @@ unsafe impl Sync for Namespace {}
 unsafe impl AlwaysRefCounted for Namespace {
     fn inc_ref(&self) {
         // SAFETY: self points to a valid struct net.
-        unsafe { rko_sys::rko::helpers::rust_helper_get_net(self.as_ptr()) };
+        unsafe { rko_sys::rust_helper_get_net(self.as_ptr().cast()) };
     }
 
     unsafe fn dec_ref(obj: NonNull<Self>) {
         // SAFETY: obj points to a valid Namespace with non-zero refcount.
-        unsafe { rko_sys::rko::helpers::rust_helper_put_net(obj.as_ptr().cast()) };
+        unsafe { rko_sys::rust_helper_put_net(obj.as_ptr().cast()) };
     }
 }
 
@@ -59,7 +58,7 @@ impl Namespace {
     ///
     /// Since `Namespace` is a ZST wrapper, `&self` IS the pointer to
     /// the `struct net`.
-    pub(crate) fn as_ptr(&self) -> *mut c_void {
+    pub(crate) fn as_ptr(&self) -> *mut rko_sys::net {
         (self as *const Namespace).cast_mut().cast()
     }
 }

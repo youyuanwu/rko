@@ -104,11 +104,13 @@ endif()
 
 enable_testing()
 
-# Run rko-sys-gen to regenerate rko-sys bindings from kernel headers
+# Cargo generates rko-sys bindings in OUT_DIR through build.rs.
 add_custom_target(generate_bindings
-  COMMAND cargo run --locked -p rko-sys-gen
+  COMMAND ${CMAKE_COMMAND} -E env
+          RKO_KERNEL_SOURCE=${KDIR_ROOT} RKO_KERNEL_BUILD=${KBIN_ROOT}
+          cargo check --locked -p rko-sys
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-  COMMENT "Generating rko-sys bindings (bnd-winmd → windows-bindgen)"
+  COMMENT "Generating rko-sys bindings (bindgen)"
   USES_TERMINAL
 )
 

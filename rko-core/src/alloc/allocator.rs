@@ -4,7 +4,7 @@ use core::alloc::Layout;
 use core::ptr::NonNull;
 
 use super::{AllocError, Allocator, Flags};
-use rko_sys::rko::slab;
+use rko_sys as bindings;
 
 /// NUMA "no node" sentinel — allocate from any node.
 const NUMA_NO_NODE: i32 = -1;
@@ -26,9 +26,9 @@ unsafe impl Allocator for Kmalloc {
             .unwrap_or(core::ptr::null());
 
         let result = unsafe {
-            slab::krealloc_node_align_noprof(
+            bindings::krealloc_node_align_noprof(
                 raw_ptr,
-                size as rko_sys::rko::types::size_t,
+                size,
                 align as u64,
                 flags.bits(),
                 NUMA_NO_NODE,
@@ -47,6 +47,6 @@ unsafe impl Allocator for Kmalloc {
     }
 
     unsafe fn free(ptr: NonNull<u8>, _layout: Layout) {
-        unsafe { slab::kfree(ptr.as_ptr() as *const core::ffi::c_void) };
+        unsafe { bindings::kfree(ptr.as_ptr() as *const core::ffi::c_void) };
     }
 }

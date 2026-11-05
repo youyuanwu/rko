@@ -9,7 +9,7 @@ use core::ptr;
 
 use crate::alloc::MemCache;
 use crate::error::Error;
-use rko_sys::rko::{fs as bindings, fs_context as fc_bindings};
+use rko_sys as bindings;
 
 use super::FileSystem;
 use super::inode::INodeWithData;
@@ -31,7 +31,7 @@ pub(crate) const GFP_KERNEL: u32 = crate::alloc::Flags::GFP_KERNEL.bits();
 #[repr(C)]
 pub struct Registration {
     pub(crate) fs_type: bindings::file_system_type,
-    ctx_ops: fc_bindings::fs_context_operations,
+    ctx_ops: bindings::fs_context_operations,
     inode_cache: Option<MemCache>,
     registered: bool,
 }
@@ -45,7 +45,7 @@ impl Registration {
 
         let fs_type = bindings::file_system_type {
             name: T::NAME.as_ptr().cast_mut(),
-            kill_sb: vtable::kill_sb_callback::<T> as *mut isize,
+            kill_sb: Some(vtable::kill_sb_callback::<T>),
             ..Default::default()
         };
 
@@ -96,7 +96,7 @@ impl Registration {
                 slot.write(reg);
 
                 // Now that we're at a stable address, wire and register.
-                (*slot).fs_type.init_fs_context = init_fs_context_trampoline as *mut isize;
+                (*slot).fs_type.init_fs_context = Some(init_fs_context_trampoline);
                 let ret = bindings::register_filesystem(&mut (*slot).fs_type);
                 if ret != 0 {
                     // Drop the partially-initialized Registration.
@@ -116,7 +116,7 @@ impl Registration {
     /// `self` must be pinned and must not move after this call.
     pub unsafe fn register(self: Pin<&mut Self>) -> Result {
         let this = unsafe { self.get_unchecked_mut() };
-        this.fs_type.init_fs_context = init_fs_context_trampoline as *mut isize;
+        this.fs_type.init_fs_context = Some(init_fs_context_trampoline);
 
         let ret = unsafe { bindings::register_filesystem(&mut this.fs_type) };
         if ret != 0 {
@@ -127,12 +127,12 @@ impl Registration {
     }
 
     /// Returns a pointer to the `fs_context_operations` table.
-    fn ctx_ops_ptr(&self) -> *mut fc_bindings::fs_context_operations {
+    fn ctx_ops_ptr(&self) -> *mut bindings::fs_context_operations {
         &self.ctx_ops as *const _ as *mut _
     }
 
     /// Returns the inode slab cache pointer.
-    pub(crate) fn inode_cache(&self) -> *mut c_void {
+    pub(crate) fn inode_cache(&self) -> *mut bindings::kmem_cache {
         match &self.inode_cache {
             Some(cache) => cache.as_ptr(),
             None => ptr::null_mut(),
@@ -154,7 +154,7 @@ unsafe extern "C" fn inode_init_once_callback<T: FileSystem>(ptr: *mut c_void) {
 ///
 /// Recovers the `Registration` from `fc->fs_type` via `container_of`,
 /// then sets `fc->ops`.
-unsafe extern "C" fn init_fs_context_trampoline(fc: *mut fc_bindings::fs_context) -> i32 {
+unsafe extern "C" fn init_fs_context_trampoline(fc: *mut bindings::fs_context) -> i32 {
     let fs_type_ptr = unsafe { (*fc).fs_type };
     // SAFETY: fs_type_ptr points to the fs_type field of a Registration.
     let reg = unsafe { crate::container_of!(fs_type_ptr, Registration, fs_type) };

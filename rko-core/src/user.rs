@@ -7,7 +7,7 @@
 //! with bounds checking and automatic pointer advancement.
 
 use crate::error::Error;
-use rko_sys::rko::helpers as bindings_h;
+use rko_sys as bindings;
 
 /// A writer that copies data to a userspace buffer.
 ///
@@ -52,7 +52,7 @@ impl Writer {
         // SAFETY: ptr is a valid userspace address for self.len bytes.
         // data is a valid kernel buffer. copy_to_user handles fault detection.
         let pending = unsafe {
-            bindings_h::rust_helper_copy_to_user(self.ptr.cast(), data.as_ptr().cast(), n as u64)
+            bindings::rust_helper_copy_to_user(self.ptr.cast(), data.as_ptr().cast(), n as u64)
         };
         if pending != 0 {
             return Err(Error::EFAULT);
@@ -110,11 +110,7 @@ impl Reader {
         // SAFETY: ptr is a valid userspace address for self.len bytes.
         // buf is a valid kernel buffer. copy_from_user handles fault detection.
         let pending = unsafe {
-            bindings_h::rust_helper_copy_from_user(
-                buf.as_mut_ptr().cast(),
-                self.ptr.cast(),
-                n as u64,
-            )
+            bindings::rust_helper_copy_from_user(buf.as_mut_ptr().cast(), self.ptr.cast(), n as u64)
         };
         if pending != 0 {
             return Err(Error::EFAULT);

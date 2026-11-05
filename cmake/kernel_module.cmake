@@ -83,6 +83,7 @@ function(add_kernel_module)
     COMMAND ${CMAKE_COMMAND} -E make_directory ${BUILD_DIR}
     COMMAND sh -c "printf '%s\\n' '${KBUILD_LINE1}' '${KBUILD_LINE2}' > '${BUILD_DIR}/Kbuild'"
     COMMAND ${CMAKE_COMMAND} -E env RUSTC_BOOTSTRAP=1
+      RKO_KERNEL_SOURCE=${KDIR_ROOT} RKO_KERNEL_BUILD=${KBIN_ROOT}
       cargo
         --config ${SAMPLES_DIR}/cargo-kernel.toml
         --config ${CARGO_TARGET_CFG}

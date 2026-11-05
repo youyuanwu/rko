@@ -12,7 +12,7 @@ use core::ptr;
 
 use crate::error::Error;
 use crate::types::{AlwaysRefCounted, Opaque, ScopeGuard};
-use rko_sys::rko::{fs as fs_b, helpers as bindings_h, mm_types as mm_b, pagemap as bindings_pg};
+use rko_sys as bindings;
 
 type Result<T = ()> = core::result::Result<T, Error>;
 
@@ -31,18 +31,18 @@ pub struct PageCache<T: super::FileSystem>(PhantomData<T>);
 /// Instances are always ref-counted: a call to `folio_get` ensures
 /// the allocation remains valid until the matching `folio_put`.
 #[repr(C)]
-pub struct Folio<S = ()>(Opaque<mm_b::folio>, PhantomData<S>);
+pub struct Folio<S = ()>(Opaque<bindings::folio>, PhantomData<S>);
 
 // SAFETY: The type invariants guarantee that `Folio` is always ref-counted.
 unsafe impl<S> AlwaysRefCounted for Folio<S> {
     fn inc_ref(&self) {
         // SAFETY: The shared reference implies a non-zero refcount.
-        unsafe { bindings_h::rust_helper_folio_get(self.0.get()) };
+        unsafe { bindings::rust_helper_folio_get(self.0.get()) };
     }
 
     unsafe fn dec_ref(obj: ptr::NonNull<Self>) {
         // SAFETY: The caller guarantees a non-zero refcount.
-        unsafe { bindings_h::rust_helper_folio_put(obj.cast().as_ptr()) }
+        unsafe { bindings::rust_helper_folio_put(obj.cast().as_ptr()) }
     }
 }
 
@@ -50,19 +50,19 @@ impl<S> Folio<S> {
     /// Returns the byte position of this folio in its file.
     pub fn pos(&self) -> i64 {
         // SAFETY: Valid folio via shared reference.
-        unsafe { bindings_h::rust_helper_folio_pos(self.0.get()) }
+        unsafe { bindings::rust_helper_folio_pos(self.0.get()) }
     }
 
     /// Returns the byte size of this folio.
     pub fn size(&self) -> usize {
         // SAFETY: Valid folio via shared reference.
-        unsafe { bindings_h::rust_helper_folio_size(self.0.get()) as usize }
+        unsafe { bindings::rust_helper_folio_size(self.0.get()) as usize }
     }
 
     /// Flushes the data cache for the pages that make up the folio.
     pub fn flush_dcache(&self) {
         // SAFETY: Valid folio via shared reference.
-        unsafe { bindings_h::rust_helper_flush_dcache_folio(self.0.get()) }
+        unsafe { bindings::rust_helper_flush_dcache_folio(self.0.get()) }
     }
 
     /// Maps a region of the folio into kernel virtual address space.
@@ -76,7 +76,7 @@ impl<S> Folio<S> {
         if offset >= folio_size {
             return Err(Error::EINVAL);
         }
-        let ptr = unsafe { bindings_h::rust_helper_kmap_local_folio(self.0.get(), offset as u64) };
+        let ptr = unsafe { bindings::rust_helper_kmap_local_folio(self.0.get(), offset as u64) };
         if ptr.is_null() {
             return Err(Error::ENOMEM);
         }
@@ -127,7 +127,7 @@ impl FolioMap<'_> {
 impl Drop for FolioMap<'_> {
     fn drop(&mut self) {
         // SAFETY: ptr was returned by kmap_local_folio.
-        unsafe { bindings_h::rust_helper_kunmap_local(self.ptr.cast()) };
+        unsafe { bindings::rust_helper_kunmap_local(self.ptr.cast()) };
     }
 }
 
@@ -135,11 +135,8 @@ impl<T: super::FileSystem> Folio<PageCache<T>> {
     /// Returns the inode that owns this page-cache folio.
     pub fn inode(&self) -> &super::inode::INode<T> {
         // SAFETY: For a page-cache folio, mapping->host is the owning inode.
-        // The mapping field is at folio.folio__anon_0.folio__anon_0__anon_0.mapping.
         let folio_ptr = self.0.get();
-        let mapping = unsafe {
-            (*folio_ptr).folio__anon_0.folio__anon_0__anon_0.mapping as *mut fs_b::address_space
-        };
+        let mapping = unsafe { (*folio_ptr).__bindgen_anon_1.__bindgen_anon_1.mapping };
         let host = unsafe { (*mapping).host };
         unsafe { &*(host as *const super::inode::INode<T>) }
     }
@@ -158,7 +155,7 @@ impl<S> LockedFolio<'_, S> {
     /// The folio must be valid, locked, and the caller transfers unlock
     /// responsibility. The returned `LockedFolio` must not outlive the
     /// refcount that keeps the folio alive.
-    pub(crate) unsafe fn from_raw(folio: *mut mm_b::folio) -> Self {
+    pub(crate) unsafe fn from_raw(folio: *mut bindings::folio) -> Self {
         // SAFETY: Caller guarantees the pointer is valid and locked.
         unsafe { Self(&*folio.cast()) }
     }
@@ -166,7 +163,7 @@ impl<S> LockedFolio<'_, S> {
     /// Marks the folio as being up to date.
     pub fn mark_uptodate(&mut self) {
         // SAFETY: Valid folio via the locked reference.
-        unsafe { bindings_h::rust_helper_folio_mark_uptodate(self.0.0.get()) }
+        unsafe { bindings::rust_helper_folio_mark_uptodate(self.0.0.get()) }
     }
 
     fn for_each_page(
@@ -187,11 +184,10 @@ impl<S> LockedFolio<'_, S> {
             let page_offset = next_offset & (super::PAGE_SIZE - 1);
             let usable = core::cmp::min(remaining, super::PAGE_SIZE - page_offset);
             let ptr = unsafe {
-                bindings_h::rust_helper_kmap_local_folio(self.0.0.get(), next_offset as u64)
+                bindings::rust_helper_kmap_local_folio(self.0.0.get(), next_offset as u64)
             };
-            let _guard = ScopeGuard::new(|| unsafe {
-                bindings_h::rust_helper_kunmap_local(ptr as *const _)
-            });
+            let _guard =
+                ScopeGuard::new(|| unsafe { bindings::rust_helper_kunmap_local(ptr as *const _) });
             // SAFETY: kmap_local_folio returns a valid pointer for `usable` bytes.
             let s = unsafe { core::slice::from_raw_parts_mut(ptr.cast::<u8>(), usable) };
             cb(s)?;
@@ -239,6 +235,6 @@ impl<S> core::ops::Deref for LockedFolio<'_, S> {
 impl<S> Drop for LockedFolio<'_, S> {
     fn drop(&mut self) {
         // SAFETY: Valid folio; we hold the lock and release it here.
-        unsafe { bindings_pg::folio_unlock(self.0.0.get()) }
+        unsafe { bindings::folio_unlock(self.0.0.get()) }
     }
 }

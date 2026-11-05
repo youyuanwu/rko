@@ -21,7 +21,7 @@ impl Guard {
     #[inline]
     pub fn new() -> Self {
         // SAFETY: Acquire the RCU read side lock.
-        unsafe { rko_sys::rko::helpers::rust_helper_rcu_read_lock() };
+        unsafe { rko_sys::rust_helper_rcu_read_lock() };
         Self {
             _not_send: core::marker::PhantomData,
         }
@@ -44,7 +44,7 @@ impl Drop for Guard {
     fn drop(&mut self) {
         // SAFETY: Release the RCU read side lock. The Guard invariant
         // guarantees we hold it.
-        unsafe { rko_sys::rko::helpers::rust_helper_rcu_read_unlock() };
+        unsafe { rko_sys::rust_helper_rcu_read_unlock() };
     }
 }
 

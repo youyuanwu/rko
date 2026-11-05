@@ -13,7 +13,7 @@ CMake is the sole build orchestrator. No per-sample Makefiles.
 
 | Workspace | Members | Panic | Purpose |
 |-----------|---------|-------|---------|
-| Root (`Cargo.toml`) | rko-sys, rko-sys-gen, rko-core | unwind | Host libs + generator |
+| Root (`Cargo.toml`) | rko-sys, rko-core, rko-macros, rko-util, rko-test-uring | unwind | Host libraries and tools |
 | Samples (`samples/Cargo.toml`) | hello, kvec_test | abort | Kernel staticlib modules |
 
 Separate workspaces because `staticlib` + `no_std` needs `panic = "abort"`,
@@ -21,6 +21,9 @@ which can't be set per-crate. `build-std` workspace-wide also fails
 (duplicate `core` lang items with `std`-using crates).
 
 Both use `[workspace.dependencies]` to centralize versions.
+
+`rko-sys/build.rs` generates bindings with bindgen for each target from the
+configured kernel headers. No separate generator command is needed.
 
 ### `add_kernel_module()` CMake function
 

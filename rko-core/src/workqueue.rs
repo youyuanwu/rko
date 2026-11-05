@@ -54,9 +54,9 @@ use crate::types::Opaque;
 use core::marker::PhantomData;
 
 /// Type alias for the FFI `work_struct`.
-type BindingsWorkStruct = rko_sys::rko::workqueue::work_struct;
+type BindingsWorkStruct = rko_sys::work_struct;
 /// Type alias for the FFI `delayed_work`.
-type BindingsDelayedWork = rko_sys::rko::workqueue::delayed_work;
+type BindingsDelayedWork = rko_sys::delayed_work;
 
 // ---------------------------------------------------------------------------
 // init_work_with_key — stub until the C helper is wired up
@@ -72,19 +72,13 @@ unsafe fn init_work_with_key(
     work: *mut BindingsWorkStruct,
     func: unsafe extern "C" fn(*mut BindingsWorkStruct),
     name: *const core::ffi::c_char,
-    key: *mut rko_sys::rko::fs::lock_class_key,
+    key: *mut rko_sys::lock_class_key,
 ) {
-    // SAFETY: Transmute the callback to work_func_t. On Linux,
-    // `extern "C"` and `extern "system"` share the same ABI, and
-    // `*mut` / `*const` are representation-identical.
-    #[allow(clippy::missing_transmute_annotations)]
-    let work_func: rko_sys::rko::fs::work_func_t = unsafe { Some(core::mem::transmute(func)) };
-
     // SAFETY: `work` points at valid memory per caller contract.
     // The helper initializes the work_struct with proper lockdep
     // metadata, list_head, and callback.
     unsafe {
-        rko_sys::rko::helpers::rust_helper_init_work_with_key(work, work_func, false, name, key);
+        rko_sys::rust_helper_init_work_with_key(work, Some(func), false, name, key);
     }
 }
 
@@ -101,8 +95,7 @@ unsafe fn init_work_with_key(
 // UPSTREAM_REF: linux/rust/kernel/workqueue.rs Queue
 #[repr(C)]
 pub struct Queue {
-    // workqueue_struct is fully opaque — all FFI functions accept
-    // `*mut c_void` — so we use a zero-length array as a stand-in.
+    // workqueue_struct is only accessed through pointers.
     _opaque: [u8; 0],
     // Prevent construction outside of `from_raw`.
     _pin: PhantomData<core::marker::PhantomPinned>,
@@ -134,18 +127,16 @@ impl Queue {
     where
         W: RawWorkItem<ID> + Send + 'static,
     {
-        let queue_ptr = self as *const Queue as *mut core::ffi::c_void;
+        let queue_ptr = (self as *const Queue)
+            .cast_mut()
+            .cast::<rko_sys::workqueue_struct>();
 
         // SAFETY: We only return `false` (via the closure) when the
         // `work_struct` is already queued. The `W: Send + 'static` bound
         // ensures the work item is safe to run on any thread.
         unsafe {
             w.__enqueue(move |work_ptr| {
-                rko_sys::rko::workqueue::queue_work_on(
-                    rko_sys::rko::workqueue::WORK_CPU_UNBOUND as i32,
-                    queue_ptr,
-                    work_ptr,
-                )
+                rko_sys::queue_work_on(rko_sys::WORK_CPU_UNBOUND as i32, queue_ptr, work_ptr)
             })
         }
     }
@@ -161,13 +152,13 @@ impl Queue {
     /// not currently queued.
     pub unsafe fn enqueue_delayed(
         &self,
-        dwork: *mut rko_sys::rko::workqueue::delayed_work,
+        dwork: *mut rko_sys::delayed_work,
         delay_jiffies: u64,
     ) -> bool {
-        let queue_ptr = self as *const Queue as *mut core::ffi::c_void;
-        unsafe {
-            rko_sys::rko::helpers::rust_helper_queue_delayed_work(queue_ptr, dwork, delay_jiffies)
-        }
+        let queue_ptr = (self as *const Queue)
+            .cast_mut()
+            .cast::<rko_sys::workqueue_struct>();
+        unsafe { rko_sys::rust_helper_queue_delayed_work(queue_ptr, dwork, delay_jiffies) }
     }
 }
 

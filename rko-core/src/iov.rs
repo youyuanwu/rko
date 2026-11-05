@@ -7,7 +7,7 @@
 //! data between kernel and userspace buffers.
 
 use crate::error::Error;
-use rko_sys::rko::net as net_b;
+use rko_sys as bindings;
 
 /// Wraps `struct iov_iter` for reading/writing to userspace scatter-gather
 /// buffers.
@@ -19,7 +19,7 @@ use rko_sys::rko::net as net_b;
 /// This naming follows the kernel convention: "write to iter" means the
 /// caller writes data into the iter's destination buffers.
 pub struct IoVecIter {
-    ptr: *mut net_b::iov_iter,
+    ptr: *mut bindings::iov_iter,
 }
 
 impl IoVecIter {
@@ -29,14 +29,14 @@ impl IoVecIter {
     ///
     /// `ptr` must be a valid pointer to an initialized `iov_iter` that
     /// remains valid for the lifetime of this wrapper.
-    pub(crate) unsafe fn from_raw(ptr: *mut net_b::iov_iter) -> Self {
+    pub(crate) unsafe fn from_raw(ptr: *mut bindings::iov_iter) -> Self {
         Self { ptr }
     }
 
     /// Returns the number of bytes remaining in the iterator.
     pub fn count(&self) -> usize {
         // SAFETY: ptr is valid per the type invariant.
-        unsafe { (*self.ptr).iov_iter__anon_0.iov_iter__anon_0__anon_0.count as usize }
+        unsafe { (*self.ptr).__bindgen_anon_1.__bindgen_anon_1.count }
     }
 
     /// Returns true if no bytes remain.
@@ -56,8 +56,7 @@ impl IoVecIter {
         }
         // SAFETY: data is a valid kernel buffer, self.ptr is a valid iov_iter.
         // _copy_to_iter copies from kernel to userspace via the iterator.
-        let copied =
-            unsafe { net_b::_copy_to_iter(data.as_ptr().cast(), n as u64, self.ptr) } as usize;
+        let copied = unsafe { bindings::_copy_to_iter(data.as_ptr().cast(), n, self.ptr) };
         if copied == 0 && n > 0 {
             return Err(Error::EFAULT);
         }
@@ -84,8 +83,7 @@ impl IoVecIter {
         }
         // SAFETY: buf is a valid kernel buffer, self.ptr is a valid iov_iter.
         // _copy_from_iter copies from userspace to kernel via the iterator.
-        let copied =
-            unsafe { net_b::_copy_from_iter(buf.as_mut_ptr().cast(), n as u64, self.ptr) } as usize;
+        let copied = unsafe { bindings::_copy_from_iter(buf.as_mut_ptr().cast(), n, self.ptr) };
         if copied == 0 && n > 0 {
             return Err(Error::EFAULT);
         }

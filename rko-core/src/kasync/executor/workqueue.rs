@@ -126,9 +126,9 @@ impl<F: Future<Output = ()> + Send + 'static> RevocableTask for Task<F> {
         // cancel_work_sync waits for in-flight workqueue execution to
         // complete, ensuring no callback is running when it returns.
         unsafe {
-            rko_sys::rko::workqueue::cancel_work_sync(
+            rko_sys::cancel_work_sync(
                 core::ptr::addr_of!(self.work)
-                    .cast::<rko_sys::rko::workqueue::work_struct>()
+                    .cast::<rko_sys::work_struct>()
                     .cast_mut(),
             );
         }

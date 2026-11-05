@@ -29,7 +29,7 @@ use crate::types::Opaque;
 /// currently a placeholder — the key is never registered with lockdep.
 // UPSTREAM_REF: linux/rust/kernel/sync.rs LockClassKey
 #[repr(transparent)]
-pub struct LockClassKey(Opaque<rko_sys::rko::fs::lock_class_key>);
+pub struct LockClassKey(Opaque<rko_sys::lock_class_key>);
 
 // SAFETY: lock_class_key is designed for concurrent use by lockdep.
 unsafe impl Send for LockClassKey {}
@@ -49,7 +49,7 @@ impl LockClassKey {
     }
 
     /// Return a raw pointer to the inner `lock_class_key`.
-    pub fn as_ptr(&self) -> *mut rko_sys::rko::fs::lock_class_key {
+    pub fn as_ptr(&self) -> *mut rko_sys::lock_class_key {
         self.0.get()
     }
 }

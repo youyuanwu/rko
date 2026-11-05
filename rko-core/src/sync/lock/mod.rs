@@ -40,7 +40,7 @@ pub unsafe trait Backend {
     unsafe fn init(
         ptr: *mut Self::State,
         name: *const core::ffi::c_char,
-        key: *mut rko_sys::rko::fs::lock_class_key,
+        key: *mut rko_sys::lock_class_key,
     );
 
     /// Acquire the lock.

@@ -1,5 +1,8 @@
 # WIP: rko Development Status
 
+> Historical status snapshot. The binding partitions below have since been
+> replaced by [build-time bindgen generation](Bindings.md).
+
 ## Status: ✅ Core Complete, VFS Bindings In Progress
 
 `hello.ko` and `kvec_test.ko` build end-to-end and pass QEMU tests.

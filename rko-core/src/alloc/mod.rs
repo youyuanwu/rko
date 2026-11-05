@@ -27,7 +27,7 @@ impl core::fmt::Display for AllocError {
 }
 
 // GFP flags derived from generated bit-position constants in rko-sys.
-use rko_sys::rko::gfp::*;
+use rko_sys::*;
 
 bitflags::bitflags! {
     /// Kernel GFP allocation flags (`gfp_t`).
@@ -88,14 +88,14 @@ impl NoFsGuard {
     /// Enter a no-FS allocation context.
     #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
-        let saved = unsafe { rko_sys::rko::helpers::rust_helper_memalloc_nofs_save() };
+        let saved = unsafe { rko_sys::rust_helper_memalloc_nofs_save() };
         Self { saved }
     }
 }
 
 impl Drop for NoFsGuard {
     fn drop(&mut self) {
-        unsafe { rko_sys::rko::helpers::rust_helper_memalloc_nofs_restore(self.saved) };
+        unsafe { rko_sys::rust_helper_memalloc_nofs_restore(self.saved) };
     }
 }
 

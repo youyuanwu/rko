@@ -442,7 +442,7 @@ impl HttpUringHandler {
                     // SAFETY: dst is a userspace pointer from the SQE cmd
                     // payload. copy_to_user handles fault detection.
                     let pending = unsafe {
-                        rko_sys::rko::helpers::rust_helper_copy_to_user(
+                        rko_sys::rust_helper_copy_to_user(
                             dst.cast(),
                             data.as_slice().as_ptr().cast(),
                             copy_len as u64,
@@ -499,7 +499,7 @@ impl HttpUringHandler {
             let src = buf_addr as *const u8;
             // SAFETY: src is a userspace pointer from the SQE cmd payload.
             let pending_bytes = unsafe {
-                rko_sys::rko::helpers::rust_helper_copy_from_user(
+                rko_sys::rust_helper_copy_from_user(
                     buf.as_mut_slice().as_mut_ptr().cast(),
                     src.cast(),
                     body_len as u64,
