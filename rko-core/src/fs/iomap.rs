@@ -234,6 +234,7 @@ pub const fn iomap_ops<T: Operations>() -> bindings::iomap_ops {
         } else {
             None
         },
+        iomap_next: None,
     }
 }
 

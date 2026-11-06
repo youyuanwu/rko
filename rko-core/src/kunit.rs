@@ -146,6 +146,7 @@ macro_rules! kunit_unsafe_test_suite {
                 log: core::ptr::null_mut(),
                 suite_init_err: 0,
                 is_init: false,
+                status: $crate::kunit::KUNIT_SUCCESS,
             };
 
             #[used]
