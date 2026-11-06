@@ -17,15 +17,15 @@ jobs:
       CMAKE_C_COMPILER_LAUNCHER: "sccache"
       CMAKE_CXX_COMPILER_LAUNCHER: "sccache"
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
 
     - name: Run sccache-cache
-      uses: mozilla-actions/sccache-action@v0.0.9
+      uses: mozilla-actions/sccache-action@v0.0.11
       with:
         version: "v0.10.0"
 
     - name: Setup Rust toolchain and cache
-      uses: actions-rust-lang/setup-rust-toolchain@v1
+      uses: actions-rust-lang/setup-rust-toolchain@v2
       with:
         components: rustfmt, clippy, rust-src
         target: x86_64-unknown-linux-musl
