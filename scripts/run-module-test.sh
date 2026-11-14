@@ -108,6 +108,7 @@ INITRAMFS="$BUILD_DIR/initramfs.cpio.gz"
 # 2. Run QEMU
 KVM_ARGS=""
 [ "$KVM" = "1" ] && KVM_ARGS="-enable-kvm -cpu host"
+[ "$KVM" = "0" ] && KVM_ARGS="-cpu max"
 
 LOGFILE="$BUILD_DIR/test.log"
 timeout --foreground 60 qemu-system-x86_64 \
@@ -116,12 +117,13 @@ timeout --foreground 60 qemu-system-x86_64 \
     -append "console=ttyS0 panic=-1" \
     $KVM_ARGS > "$LOGFILE" 2>&1 || true
 
-# Show only the test portion of the log (after init starts testing)
-sed -n '/=== TEST: insmod/,$p' "$LOGFILE"
-
 if grep -q "ALL TESTS PASSED" "$LOGFILE"; then
+    # Show only the test portion of the log (after init starts testing)
+    sed -n '/=== TEST: insmod/,$p' "$LOGFILE"
     echo "TEST OK"
 else
+    echo "QEMU output:"
+    cat "$LOGFILE"
     echo "TEST FAILED"
     exit 1
 fi
