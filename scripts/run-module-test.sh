@@ -108,6 +108,7 @@ INITRAMFS="$BUILD_DIR/initramfs.cpio.gz"
 # 2. Run QEMU
 KVM_ARGS=""
 [ "$KVM" = "1" ] && KVM_ARGS="-enable-kvm -cpu host"
+[ "$KVM" = "0" ] && KVM_ARGS="-cpu max"
 
 LOGFILE="$BUILD_DIR/test.log"
 timeout --foreground 60 qemu-system-x86_64 \
