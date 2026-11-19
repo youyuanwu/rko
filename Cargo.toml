@@ -7,7 +7,6 @@ exclude = ["samples"]
 [workspace.dependencies]
 rko-sys = { path = "rko-sys" }
 rko-core = { path = "rko-core" }
-rko-util = { path = "rko-util" }
 rko-macros = { path = "rko-macros" }
 bitflags = "2"
 bindgen = { version = "0.73", default-features = false, features = ["runtime"] }
